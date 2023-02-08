@@ -1,0 +1,12 @@
+version: "3.3"
+
+services:
+  server:
+    build: ./requirements/server
+    image: server
+    container_name: server
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "8080:8080"
