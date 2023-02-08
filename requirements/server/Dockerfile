@@ -2,7 +2,7 @@ FROM node:latest
 
 WORKDIR /usr/src/app
 
-COPY ./source/* .
+COPY . .
 
 RUN npm install
 
