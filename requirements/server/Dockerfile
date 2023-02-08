@@ -4,8 +4,8 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-RUN npm install
+RUN npm install -g "@nestjs/cli"
 
-EXPOSE 8080
+EXPOSE 3000
 
-ENTRYPOINT [ "node", "source/server.js" ]
+ENTRYPOINT [ "npm", "run", "start" ]

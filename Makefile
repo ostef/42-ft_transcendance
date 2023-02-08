@@ -45,7 +45,7 @@ prune: down fclean
 	$(DOCKER) system prune -a -f
 
 log:
-	$(DOCKER) logs server > server.log
+	$(DOCKER) logs server > server.log 2>> server.log
 
 re: fclean all
 
