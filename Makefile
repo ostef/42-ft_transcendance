@@ -46,7 +46,6 @@ prune: down fclean
 
 log:
 	$(DOCKER) logs server > server.log
-	$(DOCKER) logs database > database.log
 
 re: fclean all
 
