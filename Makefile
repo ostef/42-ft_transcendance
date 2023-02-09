@@ -30,6 +30,9 @@ restart: $(DEPENDENCIES)
 	$(COMPOSE) restart
 
 up: $(DEPENDENCIES)
+	$(COMPOSE) up --build
+
+detached: $(DEPENDENCIES)
 	$(COMPOSE) up --detach --build
 
 down:
