@@ -1,14 +1,28 @@
 version: "3.3"
 
 services:
-  server:
-    build: ./requirements/server
-    image: server
-    container_name: server
+  backend:
+    build: ./requirements/backend
+    image: backend
+    container_name: backend
     env_file:
       - .env
     restart: always
     ports:
-      - "3000:3000"
+      - 3000:3000
     volumes:
-      - ./requirements/server:/usr/src/app
+      - ./requirements/backend:/usr/src/app
+
+  frontend:
+    build: ./requirements/frontend
+    image: frontend
+    container_name: frontend
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - ./requirements/frontend:/usr/src/app
+    depends_on:
+      - backend
