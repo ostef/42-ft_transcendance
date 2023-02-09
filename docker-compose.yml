@@ -2,7 +2,7 @@ version: "3.3"
 
 services:
   backend:
-    build: ./requirements/backend
+    build: ./backend
     image: backend
     container_name: backend
     env_file:
@@ -11,10 +11,10 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - ./requirements/backend:/usr/src/app
+      - ./backend:/usr/src/app
 
   frontend:
-    build: ./requirements/frontend
+    build: ./frontend
     image: frontend
     container_name: frontend
     env_file:
@@ -23,6 +23,6 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - ./requirements/frontend:/usr/src/app
+      - ./frontend:/usr/src/app
     depends_on:
       - backend
