@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-RUN npm install -g "@nestjs/cli"
+RUN npm install
 
 EXPOSE 3000
 
