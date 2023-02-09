@@ -2,10 +2,8 @@ FROM node:latest
 
 WORKDIR /usr/src/app
 
-COPY . .
-
-RUN npm install
+COPY setup.sh .
 
 EXPOSE 3000
 
-ENTRYPOINT [ "npm", "run", "start" ]
+ENTRYPOINT [ "/bin/sh", "setup.sh" ]
