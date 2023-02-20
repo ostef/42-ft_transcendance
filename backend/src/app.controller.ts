@@ -1,7 +1,16 @@
-import { Controller, Request, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Request,
+  Response,
+  Get,
+  Post,
+  UseGuards,
+  HttpStatus,
+} from '@nestjs/common';
 import { FortyTwoAuthGuard } from './auth/fortytwo-auth.guard';
 import { AuthService } from './auth/auth.service';
 import { AppService } from './app.service';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Controller()
 export class AppController {
@@ -12,17 +21,32 @@ export class AppController {
 
   @UseGuards(FortyTwoAuthGuard)
   @Get('auth/42')
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async auth() {}
-
-  @UseGuards(FortyTwoAuthGuard)
-  @Post('auth/login')
-  async login(@Request() req) {
+  async auth(@Request() req) {
     return this.authService.login(req.user);
+  }
+
+  @Get('auth/42/callback')
+  @UseGuards(FortyTwoAuthGuard)
+  async FortyTwoAuthCallback(@Request() req, @Response() res) {
+    const token = await this.authService.login(req.user);
+    res.cookie('access_token', token, {
+      secure: false,
+      sameSite: 'strict',
+      //TODO change maxAge to 1 hour in production
+      maxAge: 900000,
+    });
+    return res.status(HttpStatus.OK);
   }
 
   @Get()
   getHello(): string {
+    return this.appService.getHello();
+  }
+
+  @Get('hello-protected')
+  @UseGuards(JwtAuthGuard)
+  getHelloProtected(@Request() req): string {
+    console.log('Hello protected');
     return this.appService.getHello();
   }
 }

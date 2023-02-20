@@ -21,10 +21,14 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy) {
     profile: any,
     done: any,
   ) {
-    const user = await this.authService.validateUser(profile);
-    if (!user) {
-      throw new UnauthorizedException();
-    }
+    // const user = await this.authService.validateUser(profile);
+    // if (!user) {
+    //   throw new UnauthorizedException();
+    // }
+    const user = {
+      username: profile.username,
+      email: profile.email,
+    };
     done(null, user);
   }
 }

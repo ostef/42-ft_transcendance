@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 
@@ -20,9 +20,15 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+    if (!user) throw new BadRequestException('Unauthorized access');
+    const userFound = await this.usersService.findOne(user.username);
+    if (!userFound) {
+      //TODO: change this to create a new user
+      console.log('User not found in database');
+      throw new BadRequestException('User not found');
+    }
+    console.log('User found in database');
+    const payload = { username: user.username };
+    return this.jwtService.sign(payload);
   }
 }
