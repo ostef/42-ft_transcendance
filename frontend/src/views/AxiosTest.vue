@@ -1,10 +1,7 @@
 <template>
 
 <div>
-	<div v-for="post in posts" v-bind:key="post.id">
-		<h2>{{ post.title }}</h2>
-		<p>{{ post.body }}</p>
-	</div>
+	<p>Message from the Backend: {{ msg }}</p>
 </div>
 
 </template>
@@ -16,17 +13,15 @@ export default {
 
 	data () {
 		return {
-			posts: [],
+			msg: "",
 		};
 	},
 
 	methods: {
 		async getData () {
 			try {
-				const response = await this.$http.get (
-					'/posts'
-				);
-				this.posts = response.data;
+				const response = await this.$http.get ('/');
+				this.msg = response.data;
 			} catch (error) {
 				console.error (error.message);
 			}
