@@ -6,7 +6,7 @@
 		<input type="password" name="password" v-model="input.password" placeholder="Password" />
 		<button type="button" @click="login()">Login</button>
 	</div>
-	
+
 </template>
 
 <script lang="ts">
