@@ -15,9 +15,9 @@ export default {
 		}
 	},
 	mounted(): void {
-		if (!this.authenticated) {
-			this.$router.replace ({ name: 'login' });
-		}
+		//if (!this.authenticated) {
+		//	this.$router.replace ({ name: 'login' });
+		//}
 	},
 	methods: {
 		setAuthenticated (status: boolean): void {
