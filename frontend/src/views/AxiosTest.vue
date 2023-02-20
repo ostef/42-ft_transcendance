@@ -24,7 +24,7 @@ export default {
 		async getData () {
 			try {
 				const response = await this.$http.get (
-					'/postss'
+					'/posts'
 				);
 				this.posts = response.data;
 			} catch (error) {
