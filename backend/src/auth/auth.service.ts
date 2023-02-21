@@ -24,10 +24,8 @@ export class AuthService {
     const userFound = await this.usersService.findOne(user.username);
     if (!userFound) {
       //TODO: change this to create a new user
-      console.log('User not found in database');
       throw new BadRequestException('User not found');
     }
-    console.log('User found in database');
     const payload = { username: user.username };
     return this.jwtService.sign(payload);
   }

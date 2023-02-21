@@ -32,8 +32,7 @@ export class AppController {
     res.cookie('access_token', token, {
       secure: false,
       sameSite: 'strict',
-      //TODO change maxAge to 1 hour in production
-      maxAge: 900000,
+      maxAge: 360, // 1 hour
     });
     return res.status(HttpStatus.OK);
   }

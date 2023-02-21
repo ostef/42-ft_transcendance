@@ -15,8 +15,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       if (req && req.cookies) {
         token = req.cookies['access_token'];
       }
-      console.log('Extracting token from cookie');
-      console.log(token);
       return token || ExtractJwt.fromAuthHeaderAsBearerToken()(req);
     };
     super({
@@ -28,14 +26,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload) {
-    console.log('Validating payload');
     const user = await this.usersService.findOne(payload.username /*userId*/);
-
-    if (!user) {
-      console.log('User not found');
-      throw new UnauthorizedException('Please log in to continue');
-    }
-    console.log('User found');
+    if (!user) throw new UnauthorizedException('Please log in to continue');
     return { username: payload.username };
   }
 }
