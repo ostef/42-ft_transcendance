@@ -32,7 +32,7 @@ export class AppController {
     res.cookie('access_token', token, {
       secure: false,
       sameSite: 'strict',
-      maxAge: 360, // 1 hour
+      maxAge: 3600, // 1 hour
     });
     return res.status(HttpStatus.OK);
   }
