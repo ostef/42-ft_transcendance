@@ -24,9 +24,8 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./database:/var/lib/postgresql/data
+      - data_database:/var/lib/postgresql/data
     environment:
-      PGDATA: "/var/lib/postgresql/data/pgdata"
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -44,3 +43,5 @@ services:
       - ./frontend:/usr/src/app
     depends_on:
       - backend
+volumes:
+  data_database:
