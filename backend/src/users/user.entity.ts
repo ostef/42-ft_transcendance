@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable } from 'typeorm';
+import { Conversation } from '../chat/chat.entity';
 
 @Entity()
 export class User {
@@ -16,4 +17,8 @@ export class User {
 
   @Column()
   has2FA: boolean;
+
+  @ManyToMany(() => Conversation, (conv) => conv.users)
+  @JoinTable()
+  conversations: Conversation[];
 }
