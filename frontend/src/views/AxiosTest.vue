@@ -1,36 +1,33 @@
 <template>
 
 <div>
-	<p>Message from the Backend: {{ msg }}</p>
+	<p>Message from the Backend: {{ message }}</p>
 </div>
 
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 
-export default {
-	name: 'AxiosTest',
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
 
-	data () {
-		return {
-			msg: "",
-		};
-	},
+const message = ref ("");
 
-	methods: {
-		async getData () {
-			try {
-				const response = await this.$http.get ('/');
-				this.msg = response.data;
-			} catch (error) {
-				console.error (error.message);
-			}
-		}
-	},
-
-	created() {
-		this.getData();
-	},
+async function getData (): Promise<void>
+{
+	try
+	{
+		const response = await axios.get ('/');
+		message.value = response.data;
+	}
+	catch (error: any)
+	{
+		console.error (error.message);
+	}
 }
+
+onMounted (() => {
+	getData ();
+});
 
 </script>

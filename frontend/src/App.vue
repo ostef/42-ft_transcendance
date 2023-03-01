@@ -5,29 +5,20 @@
 	<router-view @authenticated="setAuthenticated" />
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 
-export default {
-	name: 'App',
-	data() {
-		return {
-			authenticated: false,
-		}
-	},
-	mounted(): void {
-		//if (!this.authenticated) {
-		//	this.$router.replace ({ name: 'login' });
-		//}
-	},
-	methods: {
-		setAuthenticated (status: boolean): void {
-			this.authenticated = status;
-		},
+import { ref } from 'vue';
 
-		logout (): void {
-			this.authenticated = false;
-		}
-	}
+const authenticated = ref (false);
+
+function setAuthenticated (status: boolean): void
+{
+	authenticated.value = status;
+}
+
+function logout (): void
+{
+	setAuthenticated (false);
 }
 
 </script>
