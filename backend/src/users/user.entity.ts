@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { Conversation } from '../chat/chat.entity';
 
 @Entity()
@@ -12,10 +18,14 @@ export class User {
   @Column()
   nickname: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   password: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   has2FA: boolean;
 
   @ManyToMany(() => Conversation, (conv) => conv.users)

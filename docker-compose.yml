@@ -17,6 +17,7 @@ services:
 
   database:
     image: postgres
+    build: ./database
     container_name: database
     env_file:
       - .env
