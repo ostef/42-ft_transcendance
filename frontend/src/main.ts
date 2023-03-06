@@ -1,19 +1,37 @@
-import * as Vue from 'vue';
-import './style.css';
+import * as Vue from "vue";
+// import * as VueCookies from "vue-cookies";
+import VueCookies from "vue-cookies";
 
-import App from './App.vue';
-import router from './plugins/router';
+import * as Vuex from "vuex";
+import "./style.css";
 
-import axios from 'axios';
-import VueAxios from 'vue-axios';
+import App from "./App.vue";
+import router from "./plugins/router";
+import store from "./plugins/store";
 
+import axios from "axios";
+import VueAxios from "vue-axios";
+import api from "./api/api";
+import Api from "./api/api";
+import { inject, provide } from "vue";
 
-const app = Vue.createApp (App);
-app.use (router);
-app.use (VueAxios, axios);
+const app = Vue.createApp(App);
+// app.use((Vuex);
+app.use(router);
 
-axios.defaults.baseURL = 'http://' + location.hostname + ':3000';
+app.use(store);
+app.use(VueCookies);
+app.use(VueAxios, axios);
+
+axios.defaults.baseURL = "http://" + location.hostname + ":3000";
 //axios.defaults.baseURL = 'http://jsonplaceholder.typicode.com';
-axios.defaults.headers.common['Authorization'] = 'Bearer ' + localStorage.getItem('token');
+// axios.defaults.headers.common["Authorization"] = W;
+"Bearer " + localStorage.getItem("token");
+// app.config.globalProperties.$api = new Api();
+// app.provide("api", app.config.globalProperties.$api);
 
-app.mount ('#app');
+// const $cookies = inject<VueCookies>("$cookies");
+// provide("$cookies", $cookies);
+// app.config.globalProperties.$cookies = $cookies;
+
+app.mount("#app");

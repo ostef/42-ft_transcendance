@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { jwtConstants } from './constants';
 
 @Injectable()
 export class AuthService {
@@ -21,13 +22,15 @@ export class AuthService {
 
   async login(user: any) {
     if (!user) throw new BadRequestException('Unauthorized access');
-    const userFound = await this.usersService.findOne(user.username);
-    if (!userFound) {
+    let registeredUser = await this.usersService.findOne(user.username);
+    if (!registeredUser) {
       //TODO: change this to create a new user
       console.log('User not found, creating a new one');
-      await this.usersService.create(user);
+      registeredUser = await this.usersService.create(user);
+      console.log('Done creating user');
+    } else {
+      console.log('User found');
     }
-    const payload = { username: user.username };
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign({ username: registeredUser.username });
   }
 }

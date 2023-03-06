@@ -38,6 +38,25 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
+  async addFriend(username: string, usernameFriend: string): Promise<User> {
+    const user = await this.findOne(username);
+    const friend = await this.findOne(usernameFriend);
+    if (!user) throw new Error(`User with username ${username} does not exist`);
+    if (!friend)
+      throw new Error(`User with username ${usernameFriend} does not exist`);
+    const friends = user.friends;
+    friends.push(friend);
+    return this.usersRepository.save({ username, friends });
+  }
+
+  async removeFriend(username: string, friend: User): Promise<User> {
+    const user = await this.findOne(username);
+    if (!user) return null;
+    const friends = user.friends;
+    friends.splice(friends.indexOf(friend), 1);
+    return this.usersRepository.save({ username, friend });
+  }
+
   async remove(username: string): Promise<void> {
     const user = await this.usersRepository.findOneBy({ username });
     if (user) {

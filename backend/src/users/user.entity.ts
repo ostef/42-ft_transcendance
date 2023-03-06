@@ -31,4 +31,9 @@ export class User {
   @ManyToMany(() => Conversation, (conv) => conv.users)
   @JoinTable()
   conversations: Conversation[];
+
+  // friends
+  @ManyToMany(() => User, (user) => user.friends)
+  @JoinTable()
+  friends: User[];
 }
