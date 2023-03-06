@@ -1,8 +1,5 @@
 <template>
-	<div id="nav">
-		<router-link v-if="authenticated" to="/login" @click.native="logout()" replace>Logout</router-link>
-	</div>
-	<router-view @authenticated="setAuthenticated" />
+	<router-view />
 </template>
 
 <script setup lang="ts">

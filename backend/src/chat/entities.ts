@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, OneToOne, OneToMany
 import { User } from '../users/user.entity';
 
 @Entity()
-export class Conversation
+export class Channel
 {
 	@PrimaryGeneratedColumn()
 	id: number;
@@ -10,13 +10,22 @@ export class Conversation
 	@Column()
 	name: string;
 
-	@ManyToMany(() => User, (u) => u.conversations)
+	@Column()
+	isPrivate: boolean;
+
+	@Column()
+	password: string;
+
+	@ManyToOne(() => User, (u) => u.ownedChannels)
+	owner: User;
+
+	@ManyToMany(() => User, (u) => u.joinedChannels)
 	users: User[];
 
 	@Column()
 	dateCreated: Date;
 
-	@OneToMany(() => Message, (msg) => msg.conversation)
+	@OneToMany(() => Message, (msg) => msg.channel)
 	messages: Message[];
 }
 
@@ -26,8 +35,8 @@ export class Message
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@ManyToOne(() => Conversation, (conv) => conv.messages)
-	conversation: Conversation;
+	@ManyToOne(() => Channel, (conv) => conv.messages)
+	channel: Channel;
 
 	@OneToOne(() => User)
 	@JoinColumn()

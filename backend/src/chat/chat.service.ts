@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Conversation, Message } from './chat.entity';
+import { Channel, Message } from './entities';
 import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 
@@ -9,8 +9,8 @@ import { UsersService } from '../users/users.service';
 export class ChatService
 {
 	constructor(
-		@InjectRepository(Conversation)
-		private conversationRepository: Repository<Conversation>,
+		@InjectRepository(Channel)
+		private channelRepository: Repository<Channel>,
 
 		@InjectRepository(Message)
 		private messageRepository: Repository<Message>,
@@ -18,19 +18,19 @@ export class ChatService
 		private usersService: UsersService
 	){}
 
-	async startConversation(users: User[], name: string, date: Date): Promise<void>
+	async startChannel(users: User[], name: string, date: Date): Promise<void>
 	{
-		const conv = new Conversation();
+		const conv = new Channel();
 		conv.users = users;
 		conv.dateCreated = date;
 		conv.name = name;
 
-		await this.conversationRepository.save (conv);
+		await this.channelRepository.save (conv);
 	}
 
-	async addUserToConversation(convId: number, username: string): Promise<boolean>
+	async addUserToChannel(convId: number, username: string): Promise<boolean>
 	{
-		const conv = await this.conversationRepository.findOneBy ({id: convId});
+		const conv = await this.channelRepository.findOneBy ({id: convId});
 		if (!conv)
 			return false;
 
@@ -42,20 +42,20 @@ export class ChatService
 			return false;
 
 		conv.users.push (user);
-		this.conversationRepository.save (conv);
+		this.channelRepository.save (conv);
 	}
 
-	async removeUserFromConversation(convId: number, username: string): Promise<boolean>
+	async removeUserFromChannel(convId: number, username: string): Promise<boolean>
 	{
 		return false;
 	}
 
-	async isUserInConversation(conv: Conversation, user: User): Promise<boolean>
+	async isUserInChannel(conv: Channel, user: User): Promise<boolean>
 	{
 		return false;
 	}
 
-	async sendMessage(from: User, to: Conversation, date: Date, content: string): Promise<boolean>
+	async sendMessage(from: User, to: Channel, date: Date, content: string): Promise<boolean>
 	{
 		return false;
 	}

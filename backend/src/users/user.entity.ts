@@ -3,9 +3,10 @@ import {
   Column,
   PrimaryGeneratedColumn,
   ManyToMany,
+  OneToMany,
   JoinTable,
 } from 'typeorm';
-import { Conversation } from '../chat/chat.entity';
+import { Channel } from '../chat/entities';
 
 @Entity()
 export class User {
@@ -28,7 +29,14 @@ export class User {
   })
   has2FA: boolean;
 
-  @ManyToMany(() => Conversation, (conv) => conv.users)
+  @ManyToMany(() => User, (u) => u.blockedUsers)
+  blockedUsers : User[];
+
+  @ManyToMany(() => Channel, (conv) => conv.users)
   @JoinTable()
-  conversations: Conversation[];
+  joinedChannels: Channel[];
+
+  @OneToMany(() => Channel, (conv) => conv.owner)
+  @JoinTable()
+  ownedChannels: Channel[];
 }

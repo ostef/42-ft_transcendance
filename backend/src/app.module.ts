@@ -10,7 +10,7 @@ import { User } from './users/user.entity';
 
 import { ChatService } from './chat/chat.service';
 import { ChatModule } from './chat/chat.module';
-import { Conversation, Message } from './chat/chat.entity';
+import { Channel, Message } from './chat/entities';
 
 import * as process from 'process';
 
@@ -26,7 +26,7 @@ import * as process from 'process';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      entities: [User, Conversation, Message],
+      entities: [User, Channel, Message],
       //TODO: Change to false in production
       synchronize: true,
     }),
