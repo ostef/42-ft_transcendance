@@ -1,6 +1,6 @@
 import { OnModuleInit } from '@nestjs/common';
-import { SubscribeMessage, WebSocketGateway, MessageBody, WebSocketServer } from '@nestjs/websockets';
-import { Server } from 'socket.io';
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
 	namespace: "/chat",
@@ -26,14 +26,11 @@ export class ChatGateway implements OnModuleInit
 	}
 
 	@SubscribeMessage ("newMessage")
-	onNewMessage (@MessageBody() body: any)
+	onNewMessage (@ConnectedSocket() client: Socket, @MessageBody() data: string)
 	{
-		console.log ("newMessage: " + body);
+		console.log ("newMessage: " + data);
 
 		// Send the message to all other clients
-		this.server.emit ("onMessage", {
-			msg: "New Message",
-			content: body,
-		});
+		this.server.emit ("onMessage", { from: client.id, content: data });
 	}
 }
