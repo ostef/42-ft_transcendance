@@ -17,11 +17,6 @@ const routes: VueRouter.RouteRecordRaw[] = [
 		component: Login
 	},
 	{
-		path: '/axiostest',
-		name: 'axiostest',
-		component: AxiosTest
-	},
-	{
 		path: '/chat',
 		name: 'chat',
 		component: Chat
