@@ -4,15 +4,17 @@ import {
   PrimaryGeneratedColumn,
   ManyToMany,
   JoinTable,
+  OneToOne,
 } from 'typeorm';
 import { Conversation } from '../chat/chat.entity';
 
 @Entity()
 export class User {
+  //TODO: change this to uuid
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255, unique: true })
   username: string;
 
   @Column()
@@ -31,9 +33,23 @@ export class User {
   @ManyToMany(() => Conversation, (conv) => conv.users)
   @JoinTable()
   conversations: Conversation[];
+}
 
-  // friends
-  @ManyToMany(() => User, (user) => user.friends)
-  @JoinTable()
-  friends: User[];
+@Entity()
+export class Friendship {
+  @PrimaryGeneratedColumn()
+  id?: number;
+
+  @Column({ type: 'varchar', length: 255, unique: false })
+  username: string;
+
+  @Column({ type: 'varchar', length: 255, unique: false })
+  friendname: string;
+
+  // //link friend with cascade
+  // @OneToOne(() => User, (user) => user.id, { cascade: true })
+  // friend: User;
+
+  // @Column({ type: 'varchar', length: 255, unique: false })
+  // friendname: string;
 }

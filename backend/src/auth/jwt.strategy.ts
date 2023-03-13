@@ -31,7 +31,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       username: user.username,
       nickname: user.nickname,
-      friends: user.friends,
     };
   }
 }

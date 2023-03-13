@@ -1,12 +1,17 @@
 <template>
 	<div id="nav">
-		<router-link v-if="authenticated" to="/login" @click.native="logout()" replace>Logout</router-link>
+		<router-link to="/">Home</router-link>
+    <router-link to="/login">Login</router-link>
+    <router-link to="/profile">Profile</router-link>
+    <router-link to="/register">Register</router-link>
+    <router-link to="/logout">Logout</router-link>
 	</div>
   <div id="error">
     <p>ERROR</p>
     <p  ref="error" v-if="error">{{ error }}</p>
   </div>
-	<router-view @authenticated="setAuthenticated" />
+	<router-view />
+<!--  <router-view @authenticated="setAuthenticated" />-->
 
 </template>
 
@@ -14,31 +19,32 @@
 
 import store from "./plugins/store";
 import api from "./api/api";
+import {toast} from "vue3-toastify";
+import 'vue3-toastify/dist/index.css';
 
 export default {
 	name: 'App',
 	data() {
-		return {
-      error: store.state.error,
-			authenticated: false,
-		}
+		// return {
+    //   error: store.state.error,
+		// 	authenticated: false,
+		// }
 	},
-	created(): void {
+	async created(): void {
     console.log("App created")
 		store.dispatch("checkLogin", {provider: api});
     console.log("Login status: " + store.state.isLoggedIn);
     if (store.state.isLoggedIn) {
-      store.dispatch("fetchUser", {provider: api});
+      await store.dispatch("fetchUser", {provider: api});
+      await store.dispatch("fetchFriends", {provider: api});
     }
 	},
 	methods: {
-		setAuthenticated (status: boolean): void {
-			this.authenticated = status;
-		},
+		// setAuthenticated (status: boolean): void {
+		// 	this.authenticated = status;
+		// },
 
-		logout (): void {
-			this.authenticated = false;
-		}
+
 	},
   computed: {
     error(): any {
@@ -46,9 +52,8 @@ export default {
     }
   },
   watch: {
-    error: function (newError, oldError) {
-     //update error p tag
-      this.$refs.error.innerText = newError;
+    error: function (newError) {
+      toast(newError, {type: "error"})
     }
   }
 }

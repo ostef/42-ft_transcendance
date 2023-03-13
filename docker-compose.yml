@@ -9,7 +9,7 @@ services:
       - database
     env_file:
       - .env
-    restart: unless-stopped
+#    restart: unless-stopped
     ports:
       - 3000:3000
     volumes:
@@ -21,7 +21,7 @@ services:
     container_name: database
     env_file:
       - .env
-    restart: unless-stopped
+#    restart: unless-stopped
     ports:
       - 5432:5432
     volumes:
@@ -37,7 +37,7 @@ services:
     container_name: frontend
     env_file:
       - .env
-    restart: unless-stopped
+#    restart: unless-stopped
     ports:
       - 8080:8080
     volumes:

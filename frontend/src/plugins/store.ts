@@ -70,7 +70,22 @@ export default createStore({
         commit("setUser", response.data);
       }
     },
-
+    async fetchFriends({ commit }, { provider }) {
+      console.log("fetchFriends action");
+      const response = await provider.friends.get();
+      console.log("response", response);
+      if (response.status === 200) {
+        commit("setFriends", response.data);
+      }
+    },
+    async updateProfile({ commit }, { provider, nickname }) {
+      const response = await provider.user.update({ nickname });
+      if (response.status === 200) {
+        commit("setUser", response.data);
+      } else {
+        commit("setError", response.data);
+      }
+    },
     async addFriend({ commit }, { provider, username }) {
       const response = await provider.friends.add({ username });
       if (response.status === 200) {

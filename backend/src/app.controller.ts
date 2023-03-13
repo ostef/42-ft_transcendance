@@ -52,14 +52,39 @@ export class AppController {
     return res.status(HttpStatus.OK).send(req.user);
   }
 
+  //update nickname
+  @Post('user/nickname')
+  @UseGuards(JwtAuthGuard)
+  async updateNickname(@Request() req, @Response() res) {
+    try {
+      const { nickname } = req.body;
+      req.user.nickname = nickname;
+      const user = await this.userService.update(req.user);
+      return res.status(HttpStatus.OK).send(user);
+    } catch (err) {
+      return res.status(HttpStatus.BAD_REQUEST).send(err.message);
+    }
+  }
+
   //friends
+  @Post('friends')
+  @UseGuards(JwtAuthGuard)
+  async getFriends(@Request() req, @Response() res) {
+    return res
+      .status(HttpStatus.OK)
+      .send(await this.userService.getFriends(req.user.username));
+  }
+
   @Post('friends/add')
   @UseGuards(JwtAuthGuard)
   async addFriend(@Request() req, @Response() res) {
-    const { usernameFriend } = req.body;
+    const usernameFriend = req.body.username;
     try {
-      const user = await this.userService.addFriend(req.user, usernameFriend);
-      return res.status(HttpStatus.OK).send(user.friends);
+      await this.userService.addFriend(req.user.username, usernameFriend);
+      return res
+        .status(HttpStatus.OK)
+        .send(await this.userService.getFriends(req.user.username));
+      // return res.status(HttpStatus.OK).send(req.user.following);
     } catch (err) {
       return res.status(HttpStatus.BAD_REQUEST).send(err.message);
     }
@@ -70,7 +95,7 @@ export class AppController {
   async removeFriend(@Request() req, @Response() res) {
     const { friend } = req.body;
     const user = await this.userService.removeFriend(req.user, friend);
-    return res.status(HttpStatus.OK).send(user.friends);
+    return res.status(HttpStatus.OK).send();
   }
 
   @Post('auth/logout')
