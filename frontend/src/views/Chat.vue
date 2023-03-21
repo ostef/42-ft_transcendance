@@ -1,21 +1,29 @@
 <template>
 
 <div id="channels">
+	<h2>Channels</h2>
+
 </div>
 
 <div id="chat-main">
+	<h2>Messages</h2>
 	<div id="chat-messages">
-		<div v-for="msg in loadedMessages">[{{ msg.date }}] {{ msg.from }} sent: {{ msg.content }}</div>
+		<div v-for="msg in loadedMessages" :class="msg.senderId == 0 ? 'message mine' : 'message theirs'">
+			<div class="message-sender" />
+			<div class="message-text">
+				{{ msg.content }}
+			</div>
+		</div>
 	</div>
 
-	<form>
+	<form id="chat-input">
 		<input type="text" name="input-message" v-model="inputMessage" placeholder="Write something" />
-		<button type="button" @click="sendMessage()">Send</button>
-		<button type="button" @click="loadMessageHistory()">Load History</button>
+		<button type="button" @click="">Send</button>
 	</form>
 </div>
 
-<div id="channel-info">
+<div id="channel-users">
+	<h2>Users</h2>
 </div>
 
 </template>
@@ -53,32 +61,23 @@ export default {
 				return this.$store.getters.getOldestMessage;
 			},
 		},
+
+		currentChannelId: {
+			get (): any {
+				return this.$store.getters.getCurrentChannelId;
+			},
+		},
+
+		channels: {
+			get (): any {
+				return this.$store.getters.getChannels;
+			},
+		},
 	},
 
 	created ()
 	{
 		this.socket = io ("http://" + window.location.hostname + ":3000/chat");
-		this.socket.emit ("getMessageHistory", this.oldestLoadedMessage);
-
-		this.socket.on ("onMessage", (data: any) => {
-			console.log ("onMessage: " + data);
-
-			this.$store.commit ("appendMessage", {from: data.from, date: data.date, content: data.content});
-		});
-
-		this.socket.on ("onConnection", (data: any) => {
-			console.log ("onConnection: " + data);
-
-			// Ignore for now, because this breaks message history
-			//if (data.id != this.socket.id)
-			//	this.$store.commit ("appendMessage", {from: "Server", date: new Date (), content: data.id + " joined the chat room"});
-		});
-
-		this.socket.on ("messageHistory", (data: any[]) => {
-			console.log ("messageHistory: " + data);
-			if (data != null)
-				this.$store.commit ("appendMessageHistory", data);
-		});
 
 	},
 
@@ -91,16 +90,118 @@ export default {
 				this.inputMessage = "";
 			}
 		},
-
-		loadMessageHistory (): void
-		{
-			this.socket.emit ("getMessageHistory", this.oldestLoadedMessage);
-		}
 	}
 }
 
 </script>
 
 <style scoped>
+
+*
+{
+	box-sizing: border-box;
+}
+
+#channels
+{
+	position: absolute;
+	left: 0;
+	right: 80%;
+	top: 0;
+	bottom: 0;
+	background: blue;
+	border-radius: 15px;
+	margin: 5px;
+	overflow: hidden;
+}
+
+#chat-main
+{
+	position: absolute;
+	left: 20%;
+	right: 20%;
+	top: 0;
+	bottom: 0;
+	background: green;
+	border-radius: 15px;
+	margin: 5px;
+	display: grid;
+	overflow: hidden;
+}
+
+#channel-users
+{
+	overflow: hidden;
+	position: absolute;
+	left: 80%;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background: red;
+	border-radius: 15px;
+	margin: 5px;
+}
+
+#chat-messages
+{
+	background: rgba(209, 124, 209, 0.933);
+	overflow: scroll;
+	display: grid;
+	padding: 10px;
+}
+
+.message
+{
+	margin: 10px;
+	/* background: white; */
+}
+
+.message-sender
+{
+	background: lime;
+	border-radius: 50%;
+	width: 50px;
+	height: 50px;
+	float: left;
+}
+
+.message-text
+{
+	background: tomato;
+	border-radius: 20px;
+	margin-left: 10px;
+	margin-right: 10px;
+	padding: 12px;
+	float: left;
+	max-width: 40%;
+	overflow: hidden;
+	white-space: pre-line;
+}
+
+.message.mine .message-sender
+{
+	float: right;
+}
+
+.message.mine .message-text
+{
+	background: blue;
+	float: right;
+}
+
+#chat-input
+{
+	background: white;
+	padding: 20px;
+}
+
+#chat-input input
+{
+	border: 1px solid #555;
+	width: 60%;
+	padding: 10px;
+	margin-right: 10px;
+	border-radius: 15px;
+}
 
 </style>
