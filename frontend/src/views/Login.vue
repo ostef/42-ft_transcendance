@@ -35,4 +35,8 @@ function login(): void
 	margin: 0.5em;
 }
 
+.ball {
+	margin: 0.5em;
+}
+
 </style>

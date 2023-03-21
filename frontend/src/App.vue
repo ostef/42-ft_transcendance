@@ -24,4 +24,5 @@ function logout (): void
 </script>
 
 <style scoped>
+
 </style>
