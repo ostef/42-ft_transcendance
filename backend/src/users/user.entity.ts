@@ -30,6 +30,9 @@ export class User {
   })
   has2FA: boolean;
 
+  @Column({ type: 'bytea', nullable: true })
+  avatar: any;
+
   @ManyToMany(() => Conversation, (conv) => conv.users)
   @JoinTable()
   conversations: Conversation[];

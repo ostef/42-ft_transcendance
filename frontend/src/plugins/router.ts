@@ -8,6 +8,8 @@ import store from "./store";
 import App from "../App.vue";
 import cookie from "cookie";
 import { inject } from "vue";
+import Setting from "../views/Setting.vue";
+import Debug from "../views/Debug.vue";
 // import  VueCookies from "vue-cookies";
 
 const routes: VueRouter.RouteRecordRaw[] = [
@@ -29,8 +31,24 @@ const routes: VueRouter.RouteRecordRaw[] = [
   },
   {
     path: "/profile",
+    name: "myprofile",
+    component: Profile,
+  },
+  //profile other users
+  {
+    path: "/profile/:username?",
     name: "profile",
     component: Profile,
+  },
+  {
+    path: "/settings",
+    name: "settings",
+    component: Setting,
+  },
+  {
+    path: "/debug",
+    name: "debug",
+    component: Debug,
   },
 ];
 
@@ -49,7 +67,7 @@ router.beforeEach((to, from, next) => {
     next({ name: "login" });
   } else if (to.name === "login" && store.state.isLoggedIn) {
     console.log("redirecting to profile");
-    next({ name: "profile" });
+    next({ name: "settings" });
   } else {
     console.log("next");
     next();

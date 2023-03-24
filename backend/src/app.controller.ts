@@ -6,12 +6,14 @@ import {
   Post,
   UseGuards,
   HttpStatus,
+  Delete,
 } from '@nestjs/common';
 import { FortyTwoAuthGuard } from './auth/fortytwo-auth.guard';
 import { AuthService } from './auth/auth.service';
 import { UsersService } from './users/users.service';
 import { AppService } from './app.service';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { User } from './users/user.entity';
 
 @Controller()
 export class AppController {
@@ -45,11 +47,43 @@ export class AppController {
     return res.status(HttpStatus.OK).send('<script>window.close();</script >');
   }
 
-  @Post('user')
+  @Get('user/:username')
+  @UseGuards(JwtAuthGuard)
+  async getUser(@Request() req, @Response() res) {
+    const { username } = req.params;
+    try {
+      const user = await this.userService.findOne(username);
+      return res.status(HttpStatus.OK).send(user);
+    } catch (err) {
+      return res.status(HttpStatus.BAD_REQUEST).send(err.message);
+    }
+  }
+
+  @Get('user')
   @UseGuards(JwtAuthGuard)
   async getProfile(@Request() req, @Response() res) {
     // res.status(HttpStatus.OK);
     return res.status(HttpStatus.OK).send(req.user);
+  }
+
+  //debug adduser
+  @Post('user')
+  async addUser(@Request() req, @Response() res) {
+    try {
+      const { username, nickname, password } = req.body;
+      const newuser: User = new User();
+      newuser.username = username;
+      newuser.nickname = nickname;
+      newuser.password = password;
+      newuser.avatar = null;
+      newuser.has2FA = false;
+      newuser.conversations = [];
+
+      const user = await this.userService.create(newuser);
+      return res.status(HttpStatus.OK).send(user);
+    } catch (err) {
+      return res.status(HttpStatus.BAD_REQUEST).send(err.message);
+    }
   }
 
   //update nickname
@@ -67,7 +101,7 @@ export class AppController {
   }
 
   //friends
-  @Post('friends')
+  @Get('friends')
   @UseGuards(JwtAuthGuard)
   async getFriends(@Request() req, @Response() res) {
     return res
@@ -90,7 +124,7 @@ export class AppController {
     }
   }
 
-  @Post('friends/remove')
+  @Delete('friends/remove')
   @UseGuards(JwtAuthGuard)
   async removeFriend(@Request() req, @Response() res) {
     const { friend } = req.body;

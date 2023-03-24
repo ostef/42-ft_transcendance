@@ -5,8 +5,7 @@
 <!--		<input type="text" name="username" v-model="input.username" placeholder="Username" />-->
 <!--		<input type="password" name="password" v-model="input.password" placeholder="Password" />-->
 <!--		<button type="button" @click="login()">Login</button>-->
-    <button type="button" @click="login()">Login test</button>
-      <iframe ref="iframe"></iframe>
+    <button type="button" @click="login()" >Login test</button>
 <!--    <a href="http://localhost:3000/auth/42">-->
 <!--      <button type="button">Login with 42</button>-->
 <!--    </a>-->
@@ -22,6 +21,8 @@ import api from "../api/api";
 import store from "../plugins/store";
 import router from "../plugins/router";
 
+
+
 export default {
   name: 'Login',
   data() {
@@ -33,16 +34,18 @@ export default {
     }
   },
   methods: {
-    login(): void {
+    async login(): Promise<void> {
       console.log("login button clicked");
-      store.dispatch("checkLogin", {provider: api});
+      await store.dispatch("checkLogin", {provider: api});
       if (store.state.isLoggedIn) {
-        store.dispatch("fetchUser", {provider: api});
+        await store.dispatch("fetchUser", {provider: api});
       }
       else {
-        store.dispatch("login", {provider: api});
+        await store.dispatch("login", {provider: api});
+        await store.dispatch("fetchUser", {provider: api});
+        await store.dispatch("fetchFriends", {provider: api});
       }
-      router.push({name: "profile"});
+      router.push({name: "myprofile"});
     }
   }
   //  mounted(): void {
@@ -53,11 +56,11 @@ export default {
 }
 </script>
 
-<style scoped>
+<!--<style scoped>-->
 
-#login input,button {
-	display: block;
-	margin: 0.5em;
-}
+<!--#login input,button {-->
+<!--	display: block;-->
+<!--	margin: 0.5em;-->
+<!--}-->
 
-</style>
+<!--</style>-->

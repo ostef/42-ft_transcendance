@@ -1,16 +1,44 @@
 <template>
-	<div id="nav">
-		<router-link to="/">Home</router-link>
-    <router-link to="/login">Login</router-link>
-    <router-link to="/profile">Profile</router-link>
-    <router-link to="/register">Register</router-link>
-    <router-link to="/logout">Logout</router-link>
-	</div>
-  <div id="error">
-    <p>ERROR</p>
-    <p  ref="error" v-if="error">{{ error }}</p>
-  </div>
-	<router-view />
+  <v-app>
+    <v-main>
+    <v-app-bar id="nav">
+      <v-app-bar-title>Ft tramscemdance</v-app-bar-title>>
+      <router-link to="/">
+        <v-btn icon>
+          <v-icon :icon="mdiHome"></v-icon>
+        </v-btn>
+      </router-link>
+      <router-link to="/login">Login</router-link>
+      <router-link to="/profile">Profile</router-link>
+      <router-link to="/settings">
+        <v-btn icon>
+          <v-icon :icon="mdiAccountSettings"></v-icon>
+        </v-btn>
+      </router-link>
+      <router-link to="/register">Register</router-link>
+      <router-link to="/debug">Debug</router-link>
+      <router-link to="/logout">Logout</router-link>
+    </v-app-bar>
+    <div id="error">
+      <p>ERROR</p>
+      <p  ref="error" v-if="error">{{ error }}</p>
+    </div>
+    <router-view />
+    </v-main>
+    <!--  <router-view @authenticated="setAuthenticated" />-->
+  </v-app>
+<!--	<v-app-bar id="nav">-->
+<!--		<router-link to="/">Home</router-link>-->
+<!--    <router-link to="/login">Login</router-link>-->
+<!--    <router-link to="/profile">Profile</router-link>-->
+<!--    <router-link to="/register">Register</router-link>-->
+<!--    <router-link to="/logout">Logout</router-link>-->
+<!--	</v-app-bar>-->
+<!--  <div id="error">-->
+<!--    <p>ERROR</p>-->
+<!--    <p  ref="error" v-if="error">{{ error }}</p>-->
+<!--  </div>-->
+<!--	<router-view />-->
 <!--  <router-view @authenticated="setAuthenticated" />-->
 
 </template>
@@ -20,19 +48,23 @@
 import store from "./plugins/store";
 import api from "./api/api";
 import {toast} from "vue3-toastify";
-import 'vue3-toastify/dist/index.css';
+
+//import icons
+import {mdiHome, mdiAccountSettings} from "@mdi/js";
+
+// import 'vue3-toastify/dist/index.css';
 
 export default {
 	name: 'App',
 	data() {
-		// return {
-    //   error: store.state.error,
-		// 	authenticated: false,
-		// }
+    return {
+      mdiHome: mdiHome,
+      mdiAccountSettings: mdiAccountSettings,
+    }
 	},
-	async created(): void {
+	async created(): Promise<void> {
     console.log("App created")
-		store.dispatch("checkLogin", {provider: api});
+		await store.dispatch("checkLogin", {provider: api});
     console.log("Login status: " + store.state.isLoggedIn);
     if (store.state.isLoggedIn) {
       await store.dispatch("fetchUser", {provider: api});
@@ -52,7 +84,7 @@ export default {
     }
   },
   watch: {
-    error: function (newError) {
+    error: function (newError: any) {
       toast(newError, {type: "error"})
     }
   }

@@ -1,8 +1,9 @@
 import { createStore } from "vuex";
 import api from "../api/api";
 
-export interface user {
+export interface User {
   id: number;
+  avatar: any;
   username: string;
   nickname: string;
   friends: any;
@@ -10,8 +11,8 @@ export interface user {
 export default createStore({
   state: {
     isLoggedIn: false as boolean,
-    user: {} as user,
-    error: null as string,
+    user: {} as User,
+    error: null as string | null,
   },
   getters: {},
   mutations: {
@@ -23,6 +24,7 @@ export default createStore({
     },
     setUser(state, user) {
       state.user = user;
+      console.log("store | setUser mutation | user.nickname", user.nickname);
     },
     setFriends(state, friends) {
       state.user.friends = friends;
@@ -63,11 +65,14 @@ export default createStore({
       }
     },
     async fetchUser({ commit }, { provider }) {
-      console.log("fetchUser action");
+      console.log("store | fetchUser action");
       const response = await provider.user.get();
       console.log("response", response);
       if (response.status === 200) {
         commit("setUser", response.data);
+      } else {
+        commit("setError", response.data);
+        console.log("error", response.data);
       }
     },
     async fetchFriends({ commit }, { provider }) {
@@ -78,18 +83,26 @@ export default createStore({
         commit("setFriends", response.data);
       }
     },
-    async updateProfile({ commit }, { provider, nickname }) {
-      const response = await provider.user.update({ nickname });
+    async updateNickname({ commit }, { provider, nickname }) {
+      console.log("updateNickname action");
+      const response = await provider.user.updateNickname({ nickname });
       if (response.status === 200) {
         commit("setUser", response.data);
-      } else {
-        commit("setError", response.data);
       }
     },
     async addFriend({ commit }, { provider, username }) {
       const response = await provider.friends.add({ username });
       if (response.status === 200) {
         commit("setFriends", response.data);
+      } else {
+        commit("setError", response.data);
+      }
+    },
+    //debug adduser
+    async addUser({ commit }, { provider, username, nickname }) {
+      const response = await provider.user.addUser({ username, nickname });
+      if (response.status === 200) {
+        commit("setUser", response.data);
       } else {
         commit("setError", response.data);
       }

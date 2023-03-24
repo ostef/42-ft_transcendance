@@ -16,22 +16,25 @@ class Api {
       isAuthenticated: async (data) => {
         return await this.call("/auth/valid", { method: "post", data });
       },
-      update: async (data) => {
-        return await this.call("/user/update", { method: "put", data });
+      updateNickname: async (data) => {
+        return await this.call("/user/nickname", { method: "post", data });
       },
       get: async (data) => {
+        return await this.call("/user", { method: "get", data });
+      },
+      addUser: async (data) => {
         return await this.call("/user", { method: "post", data });
       },
     };
     this.friends = {
       get: async (data) => {
-        return await this.call("/friends", { method: "post", data });
+        return await this.call("/friends", { method: "get", data });
       },
       add: async (data) => {
         return await this.call("/friends/add", { method: "post", data });
       },
       remove: async (data) => {
-        return await this.call("/friends/remove", { method: "post", data });
+        return await this.call("/friends/remove", { method: "delete", data });
       },
     };
     console.log("Api constructor done");
