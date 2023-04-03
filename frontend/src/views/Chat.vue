@@ -1,15 +1,23 @@
 <template>
 
-<div id="channels">
-	<h2>Channels</h2>
-
+<div id="channels-panel">
+	<div id="channels">
+		<button v-for="(chan, index) in channels" class="channel-entry" @click="changeCurrentChannel (index)">
+			{{ chan.name }}
+		</button>
+	</div>
 </div>
 
-<div id="chat-main">
-	<h2>Messages</h2>
+<div id="chat-panel">
+	<div id="channel-header">
+		<b><em>#</em></b> {{ channels[channelIndex].name }}<br>
+		<small><i>{{ channels[channelIndex].description }}</i></small>
+	</div>
 	<div id="chat-messages">
 		<div v-for="msg in loadedMessages" :class="msg.senderId == 0 ? 'message mine' : 'message theirs'">
-			<div class="message-sender" />
+			<button class="message-sender">
+				<img :src="getUserProfilePictureURL (msg.senderId)" alt="Profile picture" />
+			</button>
 			<div class="message-text">
 				{{ msg.content }}
 			</div>
@@ -18,12 +26,20 @@
 
 	<form id="chat-input">
 		<input type="text" name="input-message" v-model="inputMessage" placeholder="Write something" />
-		<button type="button" @click="">Send</button>
+		<button type="button" @click="sendMessage ()">Send</button>
 	</form>
 </div>
 
-<div id="channel-users">
-	<h2>Users</h2>
+<div id="users-panel">
+	<div id="users">
+		<button v-for="(user, index) in usersInChannel" class="user-entry">
+			<div class="user-picture">
+				<img :src="user.profilePictureURL" alt="Profile picture" />
+			</div>
+
+			{{ user.username }} 👑
+		</button>
+	</div>
 </div>
 
 </template>
@@ -31,11 +47,13 @@
 <script lang="ts">
 
 import { io } from 'socket.io-client';
+import ProfileDropdown from "../components/ProfileDropdown.vue";
 
 export default {
 	data () {
 		return {
-			inputMessage: ""
+			inputMessage: "",
+			channelIndex: 0,
 		}
 	},
 
@@ -56,28 +74,26 @@ export default {
 			},
 		},
 
-		oldestLoadedMessage: {
-			get (): any {
-				return this.$store.getters.getOldestMessage;
-			},
-		},
-
-		currentChannelId: {
-			get (): any {
-				return this.$store.getters.getCurrentChannelId;
-			},
-		},
-
 		channels: {
 			get (): any {
 				return this.$store.getters.getChannels;
+			},
+		},
+
+		usersInChannel: {
+			get (): any {
+				return this.$store.getters.getUsersInChannel;
 			},
 		},
 	},
 
 	created ()
 	{
-		this.socket = io ("http://" + window.location.hostname + ":3000/chat");
+		this.socket = io ("http://" + window.location.hostname + ":3000/chat", {
+			transportOptions: {
+				polling: { extraHeaders: { authorization: "Bearer " + localStorage.getItem ("token") } },
+			},
+		});
 
 	},
 
@@ -89,6 +105,30 @@ export default {
 				this.socket.emit ("newMessage", { date: new Date (), content: this.inputMessage });
 				this.inputMessage = "";
 			}
+		},
+
+		loadMessagesFromChannel (): void
+		{
+		},
+
+		loadUsersInChannel (): void
+		{
+		},
+
+		changeCurrentChannel (index: number): void
+		{
+			this.channelIndex = index;
+			this.loadMessagesFromChannel ();
+			this.loadUsersInChannel ();
+		},
+
+		getUserProfilePictureURL (id: number): string
+		{
+			const index = this.usersInChannel.findIndex ((val) => val.id == id);
+			if (index == -1)
+				return "";
+
+			return this.usersInChannel[index].profilePictureURL;
 		},
 	}
 }
@@ -102,7 +142,7 @@ export default {
 	box-sizing: border-box;
 }
 
-#channels
+#channels-panel
 {
 	position: absolute;
 	left: 0;
@@ -112,10 +152,18 @@ export default {
 	background: blue;
 	border-radius: 15px;
 	margin: 5px;
+	padding: 5px;
 	overflow: hidden;
+	display: grid;
 }
 
-#chat-main
+#channels
+{
+	padding: 5px;
+	overflow: scroll;
+}
+
+#chat-panel
 {
 	position: absolute;
 	left: 20%;
@@ -129,7 +177,7 @@ export default {
 	overflow: hidden;
 }
 
-#channel-users
+#users-panel
 {
 	overflow: hidden;
 	position: absolute;
@@ -140,11 +188,46 @@ export default {
 	background: red;
 	border-radius: 15px;
 	margin: 5px;
+	display: grid;
+}
+
+
+#users
+{
+	padding: 5px;
+}
+
+.channel-entry
+{
+	padding: 10px;
+	width: 100%;
+	height: 64px;
+	margin-top: 2px;
+	margin-bottom: 2px;
+	overflow: hidden;
+}
+
+.user-entry
+{
+	padding: 10px;
+	width: 100%;
+	height: 64px;
+	margin-top: 2px;
+	margin-bottom: 2px;
+	overflow: hidden;
+}
+
+#channel-header
+{
+	padding: 15px;
+	padding-left: 25px;
+	text-align: left;
+	font-size: large;
 }
 
 #chat-messages
 {
-	background: rgba(209, 124, 209, 0.933);
+	/* background: rgba(209, 124, 209, 0.933); */
 	overflow: scroll;
 	display: grid;
 	padding: 10px;
@@ -163,6 +246,12 @@ export default {
 	width: 50px;
 	height: 50px;
 	float: left;
+	overflow: hidden;
+}
+
+.message-sender img
+{
+	width: 100%;
 }
 
 .message-text
@@ -191,7 +280,7 @@ export default {
 
 #chat-input
 {
-	background: white;
+	background: rgb(5, 88, 40);
 	padding: 20px;
 }
 
@@ -203,5 +292,21 @@ export default {
 	margin-right: 10px;
 	border-radius: 15px;
 }
+
+.user-picture
+{
+	background: lime;
+	border-radius: 50%;
+	width: 50px;
+	height: 50px;
+	float: left;
+	overflow: hidden;
+}
+
+.user-picture img
+{
+	width: 100%;
+}
+
 
 </style>
