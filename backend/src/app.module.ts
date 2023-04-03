@@ -4,8 +4,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 
-import { UsersService } from './users/users.service';
 import { UsersModule } from './users/users.module';
+
 import { Friendship, User } from './users/user.entity';
 
 import { ChatService } from './chat/chat.service';
@@ -27,7 +27,8 @@ import * as process from 'process';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      entities: [User, Friendship, Conversation, Message],
+      entities: ["users/*.entity.ts", "chat/entities/*.ts" ],
+      
       //TODO: Change to false in production
       synchronize: true,
     }),

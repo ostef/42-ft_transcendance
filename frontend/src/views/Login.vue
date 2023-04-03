@@ -2,6 +2,7 @@
 	<h1>Login</h1>
 
 	<div id="login">
+
 <!--		<input type="text" name="username" v-model="input.username" placeholder="Username" />-->
 <!--		<input type="password" name="password" v-model="input.password" placeholder="Password" />-->
 <!--		<button type="button" @click="login()">Login</button>-->
@@ -9,6 +10,7 @@
 <!--    <a href="http://localhost:3000/auth/42">-->
 <!--      <button type="button">Login with 42</button>-->
 <!--    </a>-->
+
 	</div>
 
 </template>

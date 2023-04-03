@@ -3,10 +3,14 @@ import {
   Column,
   PrimaryGeneratedColumn,
   ManyToMany,
+  OneToMany,
   JoinTable,
   OneToOne,
 } from 'typeorm';
-import { Conversation } from '../chat/chat.entity';
+
+import { Channel } from "../chat/entities/channel.entity";
+import { UserToUser } from "../chat/entities/user_to_user.entity";
+import { ChannelInvite } from "../chat/entities/invite.entity";
 
 @Entity()
 export class User {
@@ -33,9 +37,20 @@ export class User {
   @Column({ type: 'bytea', nullable: true })
   avatar: any;
 
-  @ManyToMany(() => Conversation, (conv) => conv.users)
+ 
+  @ManyToMany(() => User, (u) => u.blockedUsers)
+
   @JoinTable()
-  conversations: Conversation[];
+  blockedUsers : User[];
+
+  @OneToMany(() => ChannelInvite, (invite) => invite.toUser)
+  receivedInvites: ChannelInvite[];
+
+  @ManyToMany(() => Channel, (chan) => chan.users)
+  joinedChannels: Channel[];
+
+  @ManyToMany (() => UserToUser, (utu) => utu.users)
+  conversations: UserToUser[];
 }
 
 @Entity()

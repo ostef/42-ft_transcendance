@@ -1,5 +1,6 @@
 import * as VueRouter from "vue-router";
 
+
 import AxiosTest from "../views/AxiosTest.vue";
 import Login from "../views/Login.vue";
 import Profile from "../views/Profile.vue";
@@ -50,6 +51,11 @@ const routes: VueRouter.RouteRecordRaw[] = [
     name: "debug",
     component: Debug,
   },
+  {
+		path: '/chat',
+		name: 'chat',
+		component: Chat
+	},
 ];
 
 const router: VueRouter.Router = VueRouter.createRouter({

@@ -5,12 +5,15 @@ import * as directives from "vuetify/directives";
 // import * as VueCookies from "vue-cookies";
 import VueCookies from "vue-cookies";
 
+
 import * as Vuex from "vuex";
 import "./style.css";
+
 
 import App from "./App.vue";
 import router from "./plugins/router";
 import store from "./plugins/store";
+
 
 import axios from "axios";
 import VueAxios from "vue-axios";
@@ -62,3 +65,4 @@ axios.defaults.baseURL = "http://" + location.hostname + ":3000";
 // app.config.globalProperties.$cookies = $cookies;
 
 app.mount("#app");
+
