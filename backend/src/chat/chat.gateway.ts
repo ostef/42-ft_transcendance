@@ -1,15 +1,34 @@
-import { OnModuleInit } from '@nestjs/common';
-import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { OnModuleInit, UseGuards } from '@nestjs/common';
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-class Message
-{
-	from: string;
-	date: Date;
-	content: string;
-};
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { ChannelService } from "./channel.service";
+import { InviteService } from "./invite.service";
+import { MessageService } from "./message.service";
 
-@WebSocketGateway({
+type ChannelParams = {
+	id: number;
+	name: string;
+	isPrivate: boolean;
+	password: string;
+}
+
+type MessageParams = {
+	toUserId: number;
+	toChannelId: number;
+	content: string;
+}
+
+type InviteParams = {
+	senderId: number;
+	receiverId: number;
+	channelId: number;
+	message: string;
+	accept: boolean;
+}
+
+@WebSocketGateway ({
 	namespace: "/chat",
 	cors: {
 		origin: "*",
@@ -21,12 +40,18 @@ export class ChatGateway implements OnModuleInit
 	@WebSocketServer ()
 	server: Server;
 
-	messages: Message[] = [];
+	constructor (
+		private channelService: ChannelService,
+		private messageService: MessageService,
+		private inviteService: InviteService,
+	) {}
 
 	onModuleInit ()
 	{
 		this.server.on ("connection", (socket) => {
 			console.log ("New connection (" + socket.id + ")");
+			console.log ("Token: ", socket.handshake.headers.cookie);
+			// console.log ("Socket: ", socket);
 
 			this.server.emit ("onConnection", {
 				id: socket.id,
@@ -34,6 +59,59 @@ export class ChatGateway implements OnModuleInit
 		});
 	}
 
+	@UseGuards (JwtAuthGuard)
+	@SubscribeMessage ("createChannel")
+	onCreateChannel (@ConnectedSocket () client: Socket, @MessageBody () params: ChannelParams)
+	{
+	}
+
+	@UseGuards (JwtAuthGuard)
+	@SubscribeMessage ("updateChannel")
+	onUpdateChannel (@ConnectedSocket () client: Socket, @MessageBody () params: ChannelParams)
+	{}
+
+	@UseGuards (JwtAuthGuard)
+	@SubscribeMessage ("deleteChannel")
+	onDeleteChannel (@ConnectedSocket () client: Socket, @MessageBody () params: ChannelParams)
+	{}
+
+	@UseGuards (JwtAuthGuard)
+	@SubscribeMessage ("joinChannel")
+	onJoinChannel (@ConnectedSocket () client: Socket, @MessageBody () params: ChannelParams)
+	{}
+
+	@UseGuards (JwtAuthGuard)
+	@SubscribeMessage ("leaveChannel")
+	onLeaveChannel (@ConnectedSocket () client: Socket, @MessageBody () params: ChannelParams)
+	{}
+
+	@UseGuards (JwtAuthGuard)
+	@SubscribeMessage ("sendMessage")
+	onSendMessage (@ConnectedSocket () client: Socket, @MessageBody () params: MessageParams)
+	{}
+
+	@UseGuards (JwtAuthGuard)
+	@SubscribeMessage ("inviteUser")
+	onInviteUser (@ConnectedSocket () client: Socket, @MessageBody () params: InviteParams)
+	{}
+
+	@UseGuards (JwtAuthGuard)
+	@SubscribeMessage ("handleInvite")
+	onHandleInvite (@ConnectedSocket () client: Socket, @MessageBody () params: InviteParams)
+	{}
+
+	@UseGuards (JwtAuthGuard)
+	@SubscribeMessage ("getPublicChannels")
+	onGetPublicChannels (@ConnectedSocket () client: Socket)
+	{}
+
+	@UseGuards (JwtAuthGuard)
+	@SubscribeMessage ("getJoinedChannels")
+	onGetJoinedChannels (@ConnectedSocket () client: Socket)
+	{}
+}
+
+/*
 	@SubscribeMessage ("newMessage")
 	onNewMessage (@ConnectedSocket() client: Socket, @MessageBody() data: any)
 	{
@@ -79,3 +157,4 @@ export class ChatGateway implements OnModuleInit
 		client.emit ("messageHistory", history);
 	}
 }
+*/

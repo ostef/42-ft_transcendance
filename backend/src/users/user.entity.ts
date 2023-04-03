@@ -6,7 +6,10 @@ import {
   OneToMany,
   JoinTable,
 } from 'typeorm';
-import { Channel } from '../chat/entities';
+
+import { Channel } from "../chat/entities/channel.entity";
+import { UserToUser } from "../chat/entities/user_to_user.entity";
+import { ChannelInvite } from "../chat/entities/invite.entity";
 
 @Entity()
 export class User {
@@ -30,13 +33,15 @@ export class User {
   has2FA: boolean;
 
   @ManyToMany(() => User, (u) => u.blockedUsers)
+  @JoinTable()
   blockedUsers : User[];
 
-  @ManyToMany(() => Channel, (conv) => conv.users)
-  @JoinTable()
+  @OneToMany(() => ChannelInvite, (invite) => invite.toUser)
+  receivedInvites: ChannelInvite[];
+
+  @ManyToMany(() => Channel, (chan) => chan.users)
   joinedChannels: Channel[];
 
-  @OneToMany(() => Channel, (conv) => conv.owner)
-  @JoinTable()
-  ownedChannels: Channel[];
+  @ManyToMany (() => UserToUser, (utu) => utu.users)
+  conversations: UserToUser[];
 }
