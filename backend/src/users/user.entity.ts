@@ -8,9 +8,9 @@ import {
   OneToOne,
 } from 'typeorm';
 
-import { Channel } from "../chat/entities/channel.entity";
-import { UserToUser } from "../chat/entities/user_to_user.entity";
-import { ChannelInvite } from "../chat/entities/invite.entity";
+import { Channel } from '../chat/entities/channel.entity';
+import { UserToUser } from '../chat/entities/user_to_user.entity';
+import { ChannelInvite } from '../chat/entities/invite.entity';
 
 @Entity()
 export class User {
@@ -34,14 +34,13 @@ export class User {
   })
   has2FA: boolean;
 
-  @Column({ type: 'bytea', nullable: true })
-  avatar: any;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  avatar: string;
 
- 
-  @ManyToMany(() => User, (u) => u.blockedUsers)
-
-  @JoinTable()
-  blockedUsers : User[];
+  // @ManyToMany(() => User, (u) => u.blockedUsers)
+  //
+  // @JoinTable()
+  // blockedUsers : User[];
 
   @OneToMany(() => ChannelInvite, (invite) => invite.toUser)
   receivedInvites: ChannelInvite[];
@@ -49,7 +48,7 @@ export class User {
   @ManyToMany(() => Channel, (chan) => chan.users)
   joinedChannels: Channel[];
 
-  @ManyToMany (() => UserToUser, (utu) => utu.users)
+  @ManyToMany(() => UserToUser, (utu) => utu.users)
   conversations: UserToUser[];
 }
 

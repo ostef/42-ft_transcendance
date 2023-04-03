@@ -1,10 +1,8 @@
 import * as VueRouter from "vue-router";
 
-
-import AxiosTest from "../views/AxiosTest.vue";
 import Login from "../views/Login.vue";
 import Profile from "../views/Profile.vue";
-
+import Chat from "../views/Chat.vue";
 import store from "./store";
 import App from "../App.vue";
 import cookie from "cookie";
@@ -17,18 +15,13 @@ const routes: VueRouter.RouteRecordRaw[] = [
   {
     path: "/",
     redirect: {
-      name: "axiostest",
+      name: "profile",
     },
   },
   {
     path: "/login",
     name: "login",
     component: Login,
-  },
-  {
-    path: "/axiostest",
-    name: "axiostest",
-    component: AxiosTest,
   },
   {
     path: "/profile",
@@ -52,10 +45,10 @@ const routes: VueRouter.RouteRecordRaw[] = [
     component: Debug,
   },
   {
-		path: '/chat',
-		name: 'chat',
-		component: Chat
-	},
+    path: "/chat",
+    name: "chat",
+    component: Chat,
+  },
 ];
 
 const router: VueRouter.Router = VueRouter.createRouter({

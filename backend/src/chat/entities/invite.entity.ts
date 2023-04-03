@@ -1,27 +1,36 @@
 import {
-	Entity,
-	PrimaryColumn, Column, CreateDateColumn, JoinColumn, JoinTable,
-	OneToOne, OneToMany, ManyToOne, ManyToMany,
+  Entity,
+  Column,
+  CreateDateColumn,
+  JoinColumn,
+  JoinTable,
+  OneToOne,
+  OneToMany,
+  ManyToOne,
+  ManyToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { User } from '../../users/user.entity';
-import { Channel } from "./channel.entity";
+import { Channel } from './channel.entity';
 
 @Entity()
-export class ChannelInvite
-{
-	@ManyToOne (() => User)
-	fromUser: User;
+export class ChannelInvite {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-	@ManyToOne (() => User, (u) => u.receivedInvites)
-	toUser: User;
+  @ManyToOne(() => User)
+  fromUser: User;
 
-	@ManyToOne (() => Channel, (c) => c.pendingInvites)
-	channel: Channel;
+  @ManyToOne(() => User, (u) => u.receivedInvites)
+  toUser: User;
 
-	@CreateDateColumn ()
-	date: Date;
+  @ManyToOne(() => Channel, (c) => c.pendingInvites)
+  channel: Channel;
 
-	@Column ("text")
-	message: string;
+  @CreateDateColumn()
+  date: Date;
+
+  @Column('text')
+  message: string;
 }

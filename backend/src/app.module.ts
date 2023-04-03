@@ -9,6 +9,11 @@ import { ChatModule } from './chat/chat.module';
 import { FilesModule } from './files/files.module';
 
 import * as process from 'process';
+import { ChannelInvite } from './chat/entities/invite.entity';
+import { Friendship, User } from './users/user.entity';
+import { Channel } from './chat/entities/channel.entity';
+import { Message } from './chat/entities/message.entity';
+import { UserToUser } from './chat/entities/user_to_user.entity';
 
 @Module({
   imports: [
@@ -22,7 +27,7 @@ import * as process from 'process';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      entities: ["users/*.entity.ts", "chat/entities/*.ts" ],
+      entities: [User, Channel, Message, UserToUser, ChannelInvite, Friendship],
 
       //TODO: Change to false in production
       synchronize: true,
