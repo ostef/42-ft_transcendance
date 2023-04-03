@@ -1,114 +1,133 @@
 import { OnModuleInit, UseGuards } from '@nestjs/common';
-import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
+import {
+  ConnectedSocket,
+  MessageBody,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+  WsException,
+} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-import { JwtAuthGuard } from "../auth/jwt-auth.guard";
-import { ChannelService } from "./channel.service";
-import { InviteService } from "./invite.service";
-import { MessageService } from "./message.service";
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ChannelService } from './channel.service';
+import { InviteService } from './invite.service';
+import { MessageService } from './message.service';
 
 type ChannelParams = {
-	id: number;
-	name: string;
-	isPrivate: boolean;
-	password: string;
-}
+  id: number;
+  name: string;
+  isPrivate: boolean;
+  password: string;
+};
 
 type MessageParams = {
-	toUserId: number;
-	toChannelId: number;
-	content: string;
-}
+  toUserId: number;
+  toChannelId: number;
+  content: string;
+};
 
 type InviteParams = {
-	senderId: number;
-	receiverId: number;
-	channelId: number;
-	message: string;
-	accept: boolean;
-}
+  senderId: number;
+  receiverId: number;
+  channelId: number;
+  message: string;
+  accept: boolean;
+};
 
-@WebSocketGateway ({
-	namespace: "/chat",
-	cors: {
-		origin: "*",
-		methods: ["GET", "POST"]
-	}
+@WebSocketGateway({
+  namespace: '/chat',
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
 })
-export class ChatGateway implements OnModuleInit
-{
-	@WebSocketServer ()
-	server: Server;
+export class ChatGateway implements OnModuleInit {
+  @WebSocketServer()
+  server: Server;
 
-	constructor (
-		private channelService: ChannelService,
-		private messageService: MessageService,
-		private inviteService: InviteService,
-	) {}
+  constructor(
+    private channelService: ChannelService,
+    private messageService: MessageService,
+    private inviteService: InviteService,
+  ) {}
 
-	onModuleInit ()
-	{
-		this.server.on ("connection", (socket) => {
-			console.log ("New connection (" + socket.id + ")");
-			console.log ("Token: ", socket.handshake.headers.cookie);
-			// console.log ("Socket: ", socket);
+  onModuleInit() {
+    this.server.on('connection', (socket) => {
+      console.log('New connection (' + socket.id + ')');
 
-			this.server.emit ("onConnection", {
-				id: socket.id,
-			});
-		});
-	}
+      console.log('Token: ', socket.request.headers.cookie);
+      // console.log ("Socket: ", socket);
 
-	@UseGuards (JwtAuthGuard)
-	@SubscribeMessage ("createChannel")
-	onCreateChannel (@ConnectedSocket () client: Socket, @MessageBody () params: ChannelParams)
-	{
-	}
+      this.server.emit('onConnection', {
+        id: socket.id,
+      });
+    });
+  }
 
-	@UseGuards (JwtAuthGuard)
-	@SubscribeMessage ("updateChannel")
-	onUpdateChannel (@ConnectedSocket () client: Socket, @MessageBody () params: ChannelParams)
-	{}
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('createChannel')
+  onCreateChannel(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: ChannelParams,
+  ) {}
 
-	@UseGuards (JwtAuthGuard)
-	@SubscribeMessage ("deleteChannel")
-	onDeleteChannel (@ConnectedSocket () client: Socket, @MessageBody () params: ChannelParams)
-	{}
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('updateChannel')
+  onUpdateChannel(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: ChannelParams,
+  ) {}
 
-	@UseGuards (JwtAuthGuard)
-	@SubscribeMessage ("joinChannel")
-	onJoinChannel (@ConnectedSocket () client: Socket, @MessageBody () params: ChannelParams)
-	{}
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('deleteChannel')
+  onDeleteChannel(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: ChannelParams,
+  ) {}
 
-	@UseGuards (JwtAuthGuard)
-	@SubscribeMessage ("leaveChannel")
-	onLeaveChannel (@ConnectedSocket () client: Socket, @MessageBody () params: ChannelParams)
-	{}
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('joinChannel')
+  onJoinChannel(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: ChannelParams,
+  ) {}
 
-	@UseGuards (JwtAuthGuard)
-	@SubscribeMessage ("sendMessage")
-	onSendMessage (@ConnectedSocket () client: Socket, @MessageBody () params: MessageParams)
-	{}
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('leaveChannel')
+  onLeaveChannel(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: ChannelParams,
+  ) {}
 
-	@UseGuards (JwtAuthGuard)
-	@SubscribeMessage ("inviteUser")
-	onInviteUser (@ConnectedSocket () client: Socket, @MessageBody () params: InviteParams)
-	{}
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('sendMessage')
+  onSendMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: MessageParams,
+  ) {}
 
-	@UseGuards (JwtAuthGuard)
-	@SubscribeMessage ("handleInvite")
-	onHandleInvite (@ConnectedSocket () client: Socket, @MessageBody () params: InviteParams)
-	{}
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('inviteUser')
+  onInviteUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: InviteParams,
+  ) {}
 
-	@UseGuards (JwtAuthGuard)
-	@SubscribeMessage ("getPublicChannels")
-	onGetPublicChannels (@ConnectedSocket () client: Socket)
-	{}
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('handleInvite')
+  onHandleInvite(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: InviteParams,
+  ) {}
 
-	@UseGuards (JwtAuthGuard)
-	@SubscribeMessage ("getJoinedChannels")
-	onGetJoinedChannels (@ConnectedSocket () client: Socket)
-	{}
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('getPublicChannels')
+  onGetPublicChannels(@ConnectedSocket() client: Socket) {}
+
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('getJoinedChannels')
+  onGetJoinedChannels(@ConnectedSocket() client: Socket) {}
 }
 
 /*
