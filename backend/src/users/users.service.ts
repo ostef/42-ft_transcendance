@@ -41,6 +41,7 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
   async update(user: User): Promise<User> {
+    console.log('DEBUG: user to update: ', user);
     return this.usersRepository.save(user);
   }
 

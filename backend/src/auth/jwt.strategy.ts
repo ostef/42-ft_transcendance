@@ -29,6 +29,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) throw new UnauthorizedException('Please log in to continue');
     console.log('User found', user);
     return {
+      //TODO: generalize this
+      id: user.id,
+      avatar: user.avatar,
       username: user.username,
       nickname: user.nickname,
     };

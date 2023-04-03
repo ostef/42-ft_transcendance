@@ -11,6 +11,7 @@ import { Friendship, User } from './users/user.entity';
 import { ChatService } from './chat/chat.service';
 import { ChatModule } from './chat/chat.module';
 import { Conversation, Message } from './chat/chat.entity';
+import { FilesModule } from './files/files.module';
 
 import * as process from 'process';
 
@@ -30,6 +31,7 @@ import * as process from 'process';
       //TODO: Change to false in production
       synchronize: true,
     }),
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

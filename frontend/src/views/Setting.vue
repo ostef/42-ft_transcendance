@@ -11,11 +11,15 @@
   <div>
     <form @submit.prevent="updateProfile">
       <p>Update Nickname</p>
-      <input type="text" v-model="nickname" placeholder="Nickname">
+      <input type="text" v-model="updateNickname" placeholder="Nickname">
       <button type="submit">Update</button>
     </form>
   </div>
-  </div>
+    <div>
+    <p>Update Avatar</p>
+    <v-img :src="avatar" width="100" height="100"></v-img>
+    <input type="file" accept="image/*" @change="updateAvatar" formenctype="multipart/form-data">
+    </div>
   <div id=friends>
     <h2>Friends</h2>
     <p v-if="!friends">No friends yet</p>
@@ -29,6 +33,7 @@
      <button type="submit">Add Friend</button>
     </form>
   </div>
+</div>
 
 
 
@@ -41,6 +46,8 @@
 import store from "../plugins/store";
 import api from "../api/api";
 import {User} from "../plugins/store";
+
+import defaultAvatarUrl from "../assets/default_avatar.png";
 
 import router from "../plugins/router";
 
@@ -55,6 +62,9 @@ import {onMounted} from "vue";
 export default {
   name: "Setting",
   async beforeMount() {
+    this.user = store.state.user;
+    if (this.user.avatar == null)
+      this.user.avatar = defaultAvatarUrl;
     if (!store.state.user)
       console.log("Setting | user not logged in, this is not supposed to happen");
     else
@@ -64,6 +74,7 @@ export default {
   data() {
     return {
       user: null as User | null,
+      updateNickname: "",
       friendUsername: "",
       // nickname: store.state.user.nickname
     }
@@ -76,8 +87,16 @@ export default {
     },
     async updateProfile(): Promise<void> {
       console.log("update profile button clicked");
-      await store.dispatch("updateNickname", {provider: api, nickname: this.nickname});
+      //TODO: check if nickname already exists
+      await store.dispatch("updateNickname", {provider: api, nickname: this.updateNickname});
     },
+    async updateAvatar(event: any): Promise<void> {
+      console.log("update avatar button clicked");
+      const file = event.target.files[0];
+      const fd = new FormData();
+      fd.append("avatar", file);
+      await store.dispatch("updateAvatar", {provider: api, avatar: fd});
+    }
 
   },
   computed: {
@@ -94,6 +113,9 @@ export default {
     friends(): any {
       return store.state.user.friends;
     },
+    avatar(): any {
+      return store.state.user.avatar;
+    }
   }
 
 }

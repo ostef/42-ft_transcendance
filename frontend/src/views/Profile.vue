@@ -7,7 +7,7 @@
 <div id="profile">
     <p>Username: {{ user.username }}</p>
     <p>Nickname: {{ user.nickname }}</p>
-    <v-img :src="user.avatar" width="100" height="100"></v-img>
+  <v-img :src="user.avatar" width="100" height="100"></v-img>
   </div>
 
   <div id=friends>
@@ -31,6 +31,8 @@
 import store from "../plugins/store";
 import api from "../api/api";
 import {User} from "../plugins/store";
+
+import defaultAvatarUrl from "../assets/default_avatar.png";
 
 
 import router from "../plugins/router";
@@ -63,6 +65,9 @@ export default {
     console.log("Profile | onMounted");
     this.user =  fetchUser();
     console.log("Profile | username: ", this.user.username);
+    if (!this.user.avatar)
+      this.user.avatar = defaultAvatarUrl;
+
   },
   methods: {
   },

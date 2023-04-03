@@ -11,13 +11,13 @@ import { Conversation } from '../chat/chat.entity';
 @Entity()
 export class User {
   //TODO: change this to uuid
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type: 'int' })
   id?: number;
 
   @Column({ type: 'varchar', length: 255, unique: true })
   username: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255, unique: true })
   nickname: string;
 
   @Column({

@@ -14,10 +14,17 @@ class Api {
         return await this.call("/auth/logout", { method: "post", data });
       },
       isAuthenticated: async (data) => {
-        return await this.call("/auth/valid", { method: "post", data });
+        return await this.call("/auth/valid", { method: "get", data });
       },
       updateNickname: async (data) => {
         return await this.call("/user/nickname", { method: "post", data });
+      },
+      updateAvatar: async (data) => {
+        return await this.call("/user/avatar", {
+          method: "post",
+          data,
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       },
       get: async (data) => {
         return await this.call("/user", { method: "get", data });
@@ -41,19 +48,19 @@ class Api {
     console.log(this.user);
   }
 
-  async call(path, { method = "get", data, parameters = {} } = {}) {
+  async call(path, { method = "get", data, parameters = {}, headers = {} }) {
     const queryParameters = Object.keys(parameters)
       .map((key) => `${key}=${encodeURIComponent(parameters[key])}`)
       .join("&");
     const url = `http://${location.hostname}:3000${path}`; //?${queryParameters}`;
+    // headers["Access-Control-Allow-Origin"] = "http://localhost:8080 ";
+    console.log("DEBUG: call api: ", path, method, data, headers);
     try {
       const response = await axios.request({
         url: url,
         method: method,
         data: data,
-        headers: {
-          "Access-Control-Allow-Origin": `*`, // "http://localhost:3000", change that
-        },
+        // headers: headers,
         withCredentials: true,
       });
       return response;

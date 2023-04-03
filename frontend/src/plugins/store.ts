@@ -90,6 +90,13 @@ export default createStore({
         commit("setUser", response.data);
       }
     },
+    async updateAvatar({ commit }, { provider, avatar }) {
+      console.log("updateAvatar action");
+      const response = await provider.user.updateAvatar(avatar);
+      if (response.status === 200) {
+        commit("setUser", response.data);
+      }
+    },
     async addFriend({ commit }, { provider, username }) {
       const response = await provider.friends.add({ username });
       if (response.status === 200) {
