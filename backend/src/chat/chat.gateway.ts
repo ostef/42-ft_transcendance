@@ -1,4 +1,4 @@
-import { OnModuleInit, UseGuards } from '@nestjs/common';
+import { OnModuleInit, UseGuards, Logger } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -7,12 +7,17 @@ import {
   WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
+
 import { Server, Socket } from 'socket.io';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ChannelService } from './channel.service';
 import { InviteService } from './invite.service';
 import { MessageService } from './message.service';
+
+import { JwtService } from '@nestjs/jwt';
+
+import * as cookie from 'cookie';
 
 type ChannelParams = {
   id: number;
@@ -35,34 +40,53 @@ type InviteParams = {
   accept: boolean;
 };
 
+@UseGuards(JwtAuthGuard)
 @WebSocketGateway({
-  namespace: '/chat',
   cors: {
-    origin: '*',
+    origin: 'http://localhost:8080',
     methods: ['GET', 'POST'],
+    credentials: true,
   },
+  transports: ['polling'],
 })
 export class ChatGateway implements OnModuleInit {
   @WebSocketServer()
   server: Server;
 
+  private logger: Logger = new Logger('ChatGateway');
+
   constructor(
     private channelService: ChannelService,
     private messageService: MessageService,
     private inviteService: InviteService,
+    private jwtService: JwtService,
   ) {}
 
   onModuleInit() {
+    this.server.use((socket, next) => {
+      const token = cookie.parse(socket.handshake.headers.cookie)[
+        'access_token'
+      ];
+      if (!token) {
+        return next(new WsException('No token'));
+      }
+      try {
+        const payload = this.jwtService.verify(token);
+        next();
+      } catch (e) {
+        return next(new WsException('Invalid token'));
+      }
+    });
     this.server.on('connection', (socket) => {
       console.log('New connection (' + socket.id + ')');
-
-      console.log('Token: ', socket.request.headers.cookie);
-      // console.log ("Socket: ", socket);
-
       this.server.emit('onConnection', {
         id: socket.id,
       });
     });
+  }
+
+  afterInit(server: Server) {
+    this.logger.log('Socket server initialized');
   }
 
   @UseGuards(JwtAuthGuard)

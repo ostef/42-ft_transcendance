@@ -104,14 +104,22 @@ export default {
   },
 
   created() {
-    this.socket = io("http://" + window.location.hostname + ":3000/chat", {
+    this.socket = io("http://" + window.location.hostname + ":3000", {
       transportOptions: {
         polling: {
-          extraHeaders: {
-            authorization: "Bearer " + localStorage.getItem("token"),
+          cors: {
+            origin: "http://localhost:3000",
+            methods: ["GET", "POST"],
           },
         },
       },
+      withCredentials: true,
+    });
+    this.socket.on("connect", () => {
+      console.log("Connected to chat server");
+    });
+    this.socket.on("connect_error", (err: any) => {
+      console.log("Error connecting to chat server: " + err);
     });
   },
 
