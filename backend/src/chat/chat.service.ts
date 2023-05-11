@@ -59,4 +59,4 @@ export class ChatService
 	{
 		return false;
 	}
-}
+}3000

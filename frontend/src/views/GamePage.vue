@@ -1,17 +1,19 @@
 <template>
-
-	<div>
+		<div>
+		<div class="leftbar"></div>
+		<div class="rightbar"></div>
+		<div class="navbar"></div>
 		<div class="score">
-			<div id="player-score">1000</div>
-			<div id="computer-score">50</div>
+			<div id="player-score">0</div>
+			<div id="computer-score">0</div>
 		</div>
-		<div class="ball" id="ball"></div>
-		<div class="paddle left" id="player-paddle"></div>
-		<div class="paddle right" id="computer-paddle"></div>
-	</div>
+		<canvas class="canvas" id="myCanvas"></canvas>
+		</div>
 </template>
 
 <style>
+
+
 
 *, *::after, *::before {
 	box-sizing: border-box;
@@ -25,44 +27,36 @@
 }
 
 body {
+	position: relative;
 	margin: 0;
 	background-color: var(--background-color);
 }
 
-.paddle {
-	--position : 50;
-
-
+.canvas {
 	position: absolute;
-	background-color: var(--foreground-color);
-	top: calc(var(--position) * 1vh);
-	transform: translateY(-50%);
-	width: 1vh;
-	height: 10vh;
+	border: 5px solid;
+	top: 20%;
+	left: 20%;
+	width: 60%;
+	height: 60%;
 }
 
-.paddle.left {
-	left: 1vw;
-}
-
-.paddle.right {
-	right: 1vw;
-}
-
-.ball {
-
-	--x: 50;
-	--y: 50;
-
-
+.leftbar {
 	position: absolute;
-	background-color: var(--foreground-color);
-	left: calc(var(--x) * 1vw);
-	top: calc(var(--y) * 1vh);
-	border-radius: 50%;
-	transform: translate(-50%);
-	width: 2.5vh;
-	height: 2.5vh;
+	left: 0px;
+	width: 20%;
+}
+
+.rightbar {
+	position: absolute;
+	right: 0px;
+	width: 20%;
+}
+
+.navbar {
+	position: absolute;
+	top : 0px;
+	height: 20%;
 }
 
 .score {
@@ -103,18 +97,56 @@ let computerPaddle = null
 let playerScoreElem = null
 let computerScoreElem = null
 
+let canvas = null
+let ctx = null
+
+let CanvasAbsoluteSize = 60 / 100
+let CanvasAbsoluteStart = 20 / 100
+
 onMounted(() => {
-	ball = new Ball(document.getElementById("ball"))
-	playerPaddle = new Paddle(document.getElementById("player-paddle"))
-	computerPaddle = new Paddle(document.getElementById("computer-paddle"))
+
+	canvas = document.querySelector("canvas")
+	ctx = canvas.getContext("2d")
+
+	//Il faut set les dimensions du canvas pour que le reste du code fonctionne
+	canvas.height = window.innerHeight * CanvasAbsoluteSize
+	canvas.width =  window.innerWidth * CanvasAbsoluteSize
+	ball = new Ball("canvas", 100, 100, {x: 10 , y: 10}, "red", 8)
+	playerPaddle = new Paddle("canvas", "white", 5, true)
+	computerPaddle = new Paddle("canvas", "white", canvas.width - 5, false)
 	playerScoreElem = document.getElementById("player-score")
 	computerScoreElem = document.getElementById("computer-score")
 
 	document.addEventListener("mousemove", e=> {
-	playerPaddle.position = e.y / window.innerHeight * 100
+	playerPaddle.setYpos(e.y)
+	playerPaddle.draw(0)
 	})
+
+	window.onresize = windowresize
 	window.requestAnimationFrame(update)
 })
+
+function windowresize() 
+{
+	const ballPosAbsolute = ball.getypos() / canvas.height
+	const ballXPosAbsolute = ball.getxpos() / canvas.width
+	canvas.height = window.innerHeight * CanvasAbsoluteSize
+	canvas.width =  window.innerWidth * CanvasAbsoluteSize
+	playerPaddle.context = canvas.getContext("2d")
+	computerPaddle.context = canvas.getContext("2d")
+	ball.context = canvas.getContext("2d")
+	ball.canvas = canvas
+	playerPaddle.canvas = canvas
+	computerPaddle.canvas = canvas
+	//computerPaddle.setXpos(canvas.width - 15 + computerPaddle.getWidth() / 2)
+	playerPaddle.setHeight(canvas.height / 7)
+	computerPaddle.setHeight(canvas.height / 7)
+	computerPaddle.setXpos(canvas.width - 5)
+
+	//Mise à jour de la balle en absolue pour éviter des tricks en window resize
+	ball.setypos(ballPosAbsolute * canvas.height)
+	ball.setxpos(ballXPosAbsolute * canvas.width)
+}
 
 function update(time) 
 {
@@ -122,8 +154,14 @@ function update(time)
 	if (lastTime != null)
 	{
 		const delta = time - lastTime
-		ball.update(delta, [playerPaddle.rect(), computerPaddle.rect()])
-		computerPaddle.update(delta, ball.y)
+		ball.clear()
+		computerPaddle.updatecomputer(ball.getypos())
+		computerPaddle.draw(1)
+		ball.update(delta, playerPaddle.getPaddlePos(), computerPaddle.getPaddlePos())
+		//The next line is here to stop the animation frame to lower the position of
+		//the paddle. Because the draw function does lower it for good reasons
+		playerPaddle.setYpos(playerPaddle.getYpos() + window.innerHeight * CanvasAbsoluteStart)
+		playerPaddle.draw(0)
 		const hue = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hue"))
 
 		document.documentElement.style.setProperty("--hue", (hue + delta * 0.01).toString())
@@ -138,16 +176,19 @@ function update(time)
 
 function isLose() 
 {
-	const rect = ball.rect()
-	return (rect.right >= window.innerWidth || rect.left <= 0)
+	if (ball.getcenterpos().x + ball.radius >= canvas.width)
+		return (1)
+
+	if (ball.getcenterpos().x - ball.radius <= 1)
+		return (1)
+	return (0)
 }
 
 
 function handleLose() 
 {
-	const rect = ball.rect()
 
-	if (rect.right >= window.innerWidth)
+	if (ball.getcenterpos().x + ball.radius >= canvas.width)
 	{
 		if (playerScoreElem?.textContent)
 			playerScoreElem.textContent = (parseInt(playerScoreElem.textContent) + 1).toString()
@@ -160,11 +201,6 @@ function handleLose()
 	ball.reset()
 	computerPaddle.reset()
 }
-
-
-
-
-
 
 </script>
 

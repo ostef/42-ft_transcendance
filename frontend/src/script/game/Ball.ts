@@ -1,77 +1,204 @@
-const INITIAL_VELOCITY = 0.025
-const VELOCITY_INCREASE = 0.00001
+const INITIAL_direction = 4
+const direction_INCREASE = 0.0001
+
+type Point = {x: number; y: number}
+type Segment = { A: Point; B : Point}
 
 export default class Ball {
-	
-	ballElem: HTMLElement
+	// Always use setter for xpos and ypos ! Getters are not mandatory inside class
+	#xpos: number
+	#ypos: number
+	radius : number
+	color: ""
 	direction: { x: number; y: number }
-	velocity: number;
+	speed : number
+	mainCanvas : any
+	context : any
+	//No setter for centerpos, you should'nt change it manually, getter not mandatory inside class
+	#centerpos : Point
+	#nextpos : Point
+	isPlaying : boolean
 
 
-	constructor(ballElem: any) {
-		this.ballElem = ballElem
-		this.direction = {x: 0, y: 0}
-		this.velocity = INITIAL_VELOCITY
+	constructor(maincanvas : "",  x :  number, y : number , direction : { x :  number; y : number}, color : "", radius : number) {
+
+		this.#xpos = x
+		this.#ypos = y
+		this.direction = direction
+		this.color =  color
+		this.radius = radius
+		this.speed = 1
+		this.#centerpos = { x : this.#xpos, y : this.#ypos }
+		this.mainCanvas = document.querySelector(maincanvas)
+		this.context = this.mainCanvas.getContext("2d")
+		this.isPlaying = true
+		this.#nextpos = { x : this.#centerpos.x + this.direction.x * (this.speed), 
+			y : this.#centerpos.y + this.direction.x * (this.speed)}
+
 		this.reset()
 	}
 
-	get x() {
-		return parseFloat(getComputedStyle(this.ballElem).getPropertyValue("--x"))
+	getxpos() 
+	{
+		return (this.#xpos)
 	}
 
-	set x(value) {
-		this.ballElem.style.setProperty("--x", value.toString())
+	getypos()
+	{
+		return (this.#ypos)
 	}
 
-	get y() {
-		return parseFloat(getComputedStyle(this.ballElem).getPropertyValue("--y"))
+	getcenterpos()
+	{
+		return (this.#centerpos)
 	}
 
-	set y(value) {
-		this.ballElem.style.setProperty("--y", value.toString())
+	setxpos(value : number)
+	{
+		this.#xpos = value
+		this.#centerpos.x = value
+		this.#nextpos.x = this.#centerpos.x + this.direction.x * (this.speed)
 	}
 
-	rect() {
-		return (this.ballElem.getBoundingClientRect())
+	setypos(value : number)
+	{
+		this.#ypos = value
+		this.#centerpos.y = this.#ypos
+		this.#nextpos.y = this.#centerpos.y + this.direction.y * (this.speed)
+	}
+
+	draw()
+	{
+		this.context.beginPath()
+		this.context.arc(this.#xpos, this.#ypos, this.radius, 0, Math.PI * 2, this.color, false)
+		this.context.strokeStyle = "blue"
+		this.context.stroke()
+	}
+
+	clear()
+	{
+		this.context.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height)
 	}
 
 	reset() {
-		this.x = 50
-		this.y = 50
+		this.setxpos(this.mainCanvas.width / 2)
+		this.setypos(this.mainCanvas.height / 2)
 		this.direction = {x: 0, y: 0}
 		while (Math.abs(this.direction.x) <= .2 || Math.abs(this.direction.x) >= .9) 
 		{
 			const heading = randomNumberBewteen(0, 2 * Math.PI)
 			this.direction = {x: Math.cos(heading), y: Math.sin(heading)}
 		}
-		this.velocity = INITIAL_VELOCITY
+		this.speed = INITIAL_direction
 	}
 
-	update(delta : any, paddleRects : any) {
-		this.x += this.direction.x * this.velocity * delta
-		this.y += this.direction.y * this.velocity * delta
-		this.velocity += VELOCITY_INCREASE * delta
-		const rect = this.rect()
+	/*drawFront( playerseg : Segment, computseg : Segment)
+	{
+		this.context.beginPath()
+		this.context.moveTo(playerseg.A.x, playerseg.A.y)
+		this.context.lineTo(playerseg.B.x, playerseg.B.y)
+		this.context.moveTo(computseg.A.x, computseg.A.y)
+		this.context.lineTo(computseg.B.x, computseg.B.y)
+		this.context.stroke()
+	}*/
 
-		if (rect.bottom >= window.innerHeight || rect.top <= 0) {
+	drawLine(A : Point, B : Point)
+	{
+		this.context.beginPath()
+		this.context.moveTo(A.x, A.y)
+		this.context.lineTo(B.x, B.y)
+		this.context.stroke()
+	}
+
+	update(delta : any, playerPos : any, computerPos : any) {
+		this.setxpos(this.#xpos + this.direction.x * this.speed)
+		this.setypos(this.#ypos + this.direction.y * this.speed)
+		this.speed += direction_INCREASE
+		
+		if (this.#ypos + this.radius > this.mainCanvas.height || this.#ypos - this.radius < 0) {
 			this.direction.y *= -1
 		}
-		
-		if (paddleRects.some((r: any) => isCollision(r, rect)))
+		if (this.collisionDetection(playerPos, computerPos) && this.isPlaying)
 		{
 			this.direction.x *= -1
 		}
+		this.draw()
+	}
 
+	lerp(A : number,B : number, t : number)
+	{
+		return (A + (B - A) * t)
+	}
+	
+	getIntersection(A : Point, B : Point, C : Point, D : Point)
+	{
+		const ttop = (D.x - C.x) * (A.y - C.y) - (D.y - C.y) * (A.x - C.x)
+		const bottom = (D.y - C.y) * (B.x - A.x) - (D.x - C.x) * (B.y - A.y)
+		
+		const uTop = (C.y - A.y) * (A.x - B.x) - (C.x - A.x) * (A.y - B.y)
+		
+		if (bottom != 0)
+		{
+			const t = ttop/bottom
+			const u = uTop / bottom
+			if (t >= 0 && t<= 1 && u<= 1 && u >= 0)
+			{		
+				return ({
+					x: this.lerp(A.x, B.x, t),
+					y: this.lerp(A.y, B.y, t)
+				})
+			}
+		}
+		return (null)
+	}
+
+	collisionDetection(playerPos : {height : number, width: number, centerPos : {x : number, y : number}, front : Segment}, 
+		computerPos : {height : number, width: number, centerPos : {x : number, y : number}, front : Segment})
+	{
+
+
+		//Intersection part
+		//Player inter with center
+		const frontPosPlayer = {
+			x : this.#centerpos.x - this.radius,
+			y : this.#centerpos.y
+		}
+		const frontNextPosPlayer = {
+			x : this.#nextpos.x - this.radius,
+			y : this.#nextpos.y
+		}
+		if (this.getIntersection(frontPosPlayer, frontNextPosPlayer, playerPos.front.A, playerPos.front.B) != null)
+		{
+			return (1)
+		}
+
+		const frontPosComputer = {
+			x : this.#centerpos.x + this.radius,
+			y : this.#centerpos.y
+		}
+		const frontNextPosComputer = {
+			x : this.#nextpos.x + this.radius,
+			y : this.#nextpos.y
+		}
+
+
+		//Computer front intersection
+		if (this.getIntersection(frontPosComputer, frontNextPosComputer, computerPos.front.A, computerPos.front.B) != null)
+		{
+			return (1)
+		}
+
+
+		//This part is to tell that the ball is not possible to bounce anymore
+
+
+
+		return (0)
 	}
 }
 
 
 function randomNumberBewteen(min: number, max: number) {
 	return (Math.random() * (max - min) + min)
-}
-
-function isCollision(rect1: { left: number; right: number; top: number; bottom: number; }, rect2: DOMRect) {
-	return rect1.left <= rect2.right && rect1.right >= rect2.left 
-	&& rect1.top <= rect2.bottom && rect1.bottom >= rect2.top
 }
 
