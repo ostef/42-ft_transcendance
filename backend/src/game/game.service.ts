@@ -2,10 +2,28 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Todo } from './interfaces/game.interface';
 import { CreateTodoDto } from './dto/createTodo.dto';
 
+import Ball from "./script/Ball"
+import Paddle from "./script/Paddle"
+
 @Injectable()
 export class GameService {
 
-    todos : Todo[] = [
+    player1SocketId : string
+    player2SocketId : string
+    paddleLeft : Paddle
+    paddleRight : Paddle
+    ball : Ball
+    score : {p1 : number, p2 : number}
+    
+
+    //Todo Coder une instance de jeu en back
+    //Todo Creer un module qui s'occupe du matchmaking et de la gestion des instances 
+    //et sauvegarde des scores etc.
+
+
+
+   //Test avec todo list 
+   /* todos : Todo[] = [
         {
             id : 1,
         },
@@ -59,5 +77,5 @@ export class GameService {
         {
             return {deleted : 0, nbTodos : this.todos.length}
         }
-    }
+    }*/
 }

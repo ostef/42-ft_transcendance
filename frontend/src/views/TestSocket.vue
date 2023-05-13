@@ -26,7 +26,11 @@ export default {
     },
     created () {
         console.log("Starting connection to websocket server")
-        this.socketInstance = io("http://localhost:3000")
+        this.socketInstance = io("http://" + window.location.hostname + ":3000/game", {
+        transportOptions: {
+            polling: { extraHeaders: { authorization: "Bearer " + localStorage.getItem ("token") } }},
+        })
+        
     }
 }
 

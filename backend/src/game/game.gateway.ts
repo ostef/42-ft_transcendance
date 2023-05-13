@@ -2,7 +2,14 @@ import { Body, OnModuleInit } from '@nestjs/common';
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io'
 
-@WebSocketGateway()
+
+@WebSocketGateway({
+	namespace: "/game",
+	cors: {
+		origin: "*",
+		methods: ["GET", "POST"]
+	}
+})
 export class GameGateway implements OnModuleInit {
 
   @WebSocketServer()
@@ -25,4 +32,6 @@ export class GameGateway implements OnModuleInit {
     })
     return 'Hello world!'; 
   }
+
+  
 }
