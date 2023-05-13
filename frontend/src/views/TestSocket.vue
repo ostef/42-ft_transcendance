@@ -22,7 +22,6 @@ export default {
     },
     data () {
         return {
-            socketInstance : Socket<ServerToClientEvents, ClientToServerEvents> = io()
         }
     },
     created () {
