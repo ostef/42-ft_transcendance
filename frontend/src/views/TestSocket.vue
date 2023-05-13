@@ -19,17 +19,15 @@ import Socket from "socket.io-client"
 export default {
     name : 'TestSocket',
     components : {
-
     },
-    data : function () {
+    data () {
         return {
-            socket : null,
-            socketInstance : Socket
+            socketInstance : Socket<ServerToClientEvents, ClientToServerEvents> = io()
         }
     },
-    created : function () {
+    created () {
         console.log("Starting connection to websocket server")
-        this.socket = io("http://localhost:5432")
+        this.socketInstance = io("http://localhost:5432")
     }
 }
 
