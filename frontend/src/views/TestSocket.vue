@@ -26,7 +26,7 @@ export default {
     },
     created () {
         console.log("Starting connection to websocket server")
-        this.socketInstance = io("http://localhost:5432")
+        this.socketInstance = io("http://localhost:3000")
     }
 }
 
