@@ -105,6 +105,9 @@ let CanvasAbsoluteStart = 20 / 100
 
 onMounted(() => {
 
+
+	
+
 	canvas = document.querySelector("canvas")
 	ctx = canvas.getContext("2d")
 
@@ -146,6 +149,7 @@ function windowresize()
 	//Mise à jour de la balle en absolue pour éviter des tricks en window resize
 	ball.setypos(ballPosAbsolute * canvas.height)
 	ball.setxpos(ballXPosAbsolute * canvas.width)
+	//Todo Besoin de regler encore des bugs de resize pour la balle ou elle stuck en bas
 }
 
 function update(time) 
