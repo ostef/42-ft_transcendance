@@ -33,5 +33,7 @@ export class GameGateway implements OnModuleInit {
     return 'Hello world!'; 
   }
 
+  @SubscribeMessage()
+
   
 }

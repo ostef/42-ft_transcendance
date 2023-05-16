@@ -9,7 +9,7 @@ export default class Ball {
 	#xpos: number
 	#ypos: number
 	radius : number
-	color: ""
+	color: string
 	direction: { x: number; y: number }
 	speed : number
 	mainCanvas : {width : number, height : number}
@@ -20,7 +20,7 @@ export default class Ball {
 	isPlaying : boolean
 
 
-	constructor(maincanvas : {width : number, height : number},  x :  number, y : number , direction : { x :  number; y : number}, color : "", radius : number) {
+	constructor(maincanvas : {width : number, height : number},  x :  number, y : number , direction : { x :  number; y : number}, color : string, radius : number) {
 
 		this.#xpos = x
 		this.#ypos = y

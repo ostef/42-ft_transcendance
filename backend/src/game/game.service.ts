@@ -8,17 +8,11 @@ import Paddle from "./script/Paddle"
 @Injectable()
 export class GameService {
 
-    player1SocketId : string
-    player2SocketId : string
-    paddleLeft : Paddle
-    paddleRight : Paddle
-    ball : Ball
-    score : {p1 : number, p2 : number}
-    
 
-    //Todo Coder une instance de jeu en back
     //Todo Creer un module qui s'occupe du matchmaking et de la gestion des instances 
     //et sauvegarde des scores etc.
+	
+
 
 
 

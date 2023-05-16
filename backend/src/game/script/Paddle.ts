@@ -9,7 +9,7 @@ export default class Paddle {
 	#xpos : number // Center position of the paddle
 	#height : number = 0
 	#width : number = 0
-	color : ""
+	color : string
 	canvasAbsoluteStart : number // Départ haut du canvas en fonction de la taille décidée 
 	// Ce départ sert à positionner les paddle correctement dans le canvas
 	mainCanvas : {width : number, height : number}
@@ -19,7 +19,7 @@ export default class Paddle {
 	#frontSegment : Segment
 	player : boolean
 
-	constructor(canvas : {width : number, height : number}, color :"", xpos : number, player : boolean) {
+	constructor(canvas : {width : number, height : number}, color : string, xpos : number, player : boolean) {
 		this.player = player
 		this.#xpos = xpos + this.#width / 2
 		this.color = color
