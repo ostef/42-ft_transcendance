@@ -1,9 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Todo } from './interfaces/game.interface';
-import { CreateTodoDto } from './dto/createTodo.dto';
+import { Socket } from 'socket.io';
 
-import Ball from "./script/Ball"
-import Paddle from "./script/Paddle"
+import Game from "./script/Game"
 
 @Injectable()
 export class GameService {
@@ -11,65 +9,62 @@ export class GameService {
 
     //Todo Creer un module qui s'occupe du matchmaking et de la gestion des instances 
     //et sauvegarde des scores etc.
-	
+
+	//Emplacement des joueurs qui attendent une game
+	//Lorsqu'une personne arrive dans la waitroom on regarde si
+	//on peut lancer une game a deux, sinon il est ajouté à la wairoom
+	waitRoom : Socket[] = []
+	gamesRoom : Game[] = []
 
 
 
+	quitWaitRoom(client : Socket)
+	{
+		console.log("Quitting the wait room for ", client.id)
+		this.waitRoom = this.waitRoom.filter( socket => socket.id !== client.id)
+	}
 
-   //Test avec todo list 
-   /* todos : Todo[] = [
-        {
-            id : 1,
-        },
-        {
-            id : 2,
-        }
-    ];
+	addPlayerToWaitRoom(client : Socket)
+	{
+		console.log("adding client to wait room", client.id)
+		this.waitRoom.push(client)
+	}
 
-    findOne(id : number) {
-        return this.todos.find(todo => todo.id === id)
-    }
+	quitGame(client : Socket, gameId : number)
+	{
+		//Todo fonction qui permet de stopper une game
+		let game = this.gamesRoom.find( game => {
+			game.instanceId === gameId
+		})
+	}
 
-    findAll() : Todo[] {
-        return this.todos
-    }
+	findGame(client : Socket, data : any) : {player2 : Socket | null, instanceId : number}
+	{
+		console.log("trying to find a game for ", client.id)
+		if (this.waitRoom.length >= 1)
+		{
+			//Todo create a game with two players
+			//Player 1 is left bar 
+			//Player 2 is right bar
+			let newGame : Game = new Game(this.gamesRoom.length, client, this.waitRoom.pop(), data.canvas, data.window)
+			this.gamesRoom.push(newGame)
+			newGame.startGame()
+			//Return le deuxième joueur au gateway pour pouvoir le prévenir
+			return ({player2 : newGame.player2Socket, instanceId : newGame.instanceId})
+		}
+		else
+		{
+			//Si moins de 2 joueurs on l'ajoute a la waitroom
+			this.addPlayerToWaitRoom(client)
+			return ({player2 : null, instanceId : -1})
+		}
+	}
 
-    createTodo(todo : CreateTodoDto) {
-        this.todos = [...this.todos, todo]
-    }
-
-    updateTodo(id : number, todo : CreateTodoDto) {
-        //Finding the todo to updte
-        const todoToUpdate =  this.todos.find( t => t.id === id)
-        if (!todoToUpdate) {
-            return new NotFoundException('Todo not found to update')
-        }
-
-        //Updating the todo without it having every propertys from todos
-        if (todo.hasOwnProperty('id'))
-        {
-            todoToUpdate.id = todo.id
-        }
-        //We should do this for every property possible to modify !
-
-        //Updating the todos !
-
-        const updatedTodos =  this.todos.map(t => t.id !== id ? t : todoToUpdate)
-        this.todos = updatedTodos
-
-        //We return some info on what we did here just for good practice
-        return {updatedTodo : 1, todo : todoToUpdate}
-    }
-
-    deleteTodo(id : number) {
-        const nbOfTodosBeforeDelete =  this.todos.length;
-
-        this.todos = [...this.todos.filter(t => t.id !== id)]
-        if (this.todos.length < nbOfTodosBeforeDelete)
-            return {deleted : 1, nbTodos : this.todos.length}
-        else
-        {
-            return {deleted : 0, nbTodos : this.todos.length}
-        }
-    }*/
+	updatePaddlePos(client : Socket, gameId : number, paddlePos : {xpos : number, ypos : number})
+	{
+		let game = this.gamesRoom.filter(game => {
+			game.instanceId === gameId
+		})
+		game[0].updatePaddlePos(client, paddlePos)
+	}
 }

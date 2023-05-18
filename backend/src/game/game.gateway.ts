@@ -1,7 +1,10 @@
 import { Body, OnModuleInit } from '@nestjs/common';
-import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server } from 'socket.io'
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io'
+import { GameService } from './game.service';
 
+
+//Todo Controler si les sockets sont ok avant de faire des actions
 
 @WebSocketGateway({
 	namespace: "/game",
@@ -14,6 +17,8 @@ export class GameGateway implements OnModuleInit {
 
   @WebSocketServer()
   server : Server;
+
+  constructor(private readonly gameService: GameService) {}
 
   onModuleInit() {
     this.server.on('connection', (socket) => {
@@ -33,7 +38,36 @@ export class GameGateway implements OnModuleInit {
     return 'Hello world!'; 
   }
 
-  @SubscribeMessage()
 
-  
+  //Todo Créer un dto sur la data a transférer pour le search game
+  @SubscribeMessage('searchGame')
+  onSearchGame(@ConnectedSocket() client: Socket, @MessageBody() data: any)
+  {
+	console.log("Searching for a game", client.id)
+	let findResult = this.gameService.findGame(client, data)
+	if (findResult.instanceId === -1)
+	{
+		client.emit("waitingMessage")
+	}
+	else
+	{
+		//On previent le front qu'une game est lancé
+		//Et on donne la position de la paddle
+		client.emit("foundGame", "left", findResult.instanceId)
+		findResult.player2.emit("foundGame", "right", findResult.instanceId)
+	}
+   }
+
+   @SubscribeMessage('stopWaiting')
+   onQuitWaiting(@ConnectedSocket() client: Socket)
+   {
+		this.gameService.quitWaitRoom(client)
+   }
+
+   //Todo créer un dto pour le transfertd e donnée
+   @SubscribeMessage('updatePaddle')
+   onUpdatePaddle(@ConnectedSocket() client : Socket, @MessageBody() data : any)
+   {
+	this.gameService.updatePaddlePos(client, data.gameId, data.paddlePos)
+   }
 }

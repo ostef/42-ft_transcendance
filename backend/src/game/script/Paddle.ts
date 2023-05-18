@@ -3,6 +3,7 @@ const SPEED = 0.5
 type Point = {x: number; y: number}
 type Segment = { A: Point; B : Point}
 
+
 export default class Paddle {
 	//Always use setter on ypos xpos height and width even inside class
 	#ypos : number = 0 // Center position of the paddle

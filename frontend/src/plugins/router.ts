@@ -10,7 +10,7 @@ const routes: VueRouter.RouteRecordRaw[] = [
 	{
 		path: '/',
 		redirect: {
-			name: 'testpage'
+			name: 'login'
 		}
 	},
 	{

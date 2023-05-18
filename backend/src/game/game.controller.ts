@@ -1,13 +1,9 @@
 import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
 import { GameService } from './game.service';
-import { Todo } from './interfaces/game.interface';
-import { CreateTodoDto } from './dto/createTodo.dto';
 
 
 @Controller('game')
 export class GameController {
-
-    constructor(private readonly gameService: GameService) {}
 
     /*Tests avec des todos pour apprendre
     @Get(':id')

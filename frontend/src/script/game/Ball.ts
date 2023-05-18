@@ -6,72 +6,72 @@ type Segment = { A: Point; B : Point}
 
 export default class Ball {
 	// Always use setter for xpos and ypos ! Getters are not mandatory inside class
-	#xpos: number
-	#ypos: number
+	xpos: number
+	ypos: number
 	radius : number
-	color: ""
+	color: string
 	direction: { x: number; y: number }
 	speed : number
 	mainCanvas : any
 	context : any
 	//No setter for centerpos, you should'nt change it manually, getter not mandatory inside class
-	#centerpos : Point
-	#nextpos : Point
+	centerpos : Point
+	nextpos : Point
 	isPlaying : boolean
 
 
-	constructor(maincanvas : "",  x :  number, y : number , direction : { x :  number; y : number}, color : "", radius : number) {
+	constructor(maincanvas : string,  x :  number, y : number , direction : { x :  number; y : number}, color : string, radius : number) {
 
-		this.#xpos = x
-		this.#ypos = y
+		this.xpos = x
+		this.ypos = y
 		this.direction = direction
 		this.color =  color
 		this.radius = radius
 		this.speed = 1
-		this.#centerpos = { x : this.#xpos, y : this.#ypos }
+		this.centerpos = { x : this.xpos, y : this.ypos }
 		this.mainCanvas = document.querySelector(maincanvas)
 		this.context = this.mainCanvas.getContext("2d")
 		this.isPlaying = true
-		this.#nextpos = { x : this.#centerpos.x + this.direction.x * (this.speed), 
-			y : this.#centerpos.y + this.direction.x * (this.speed)}
+		this.nextpos = { x : this.centerpos.x + this.direction.x * (this.speed), 
+			y : this.centerpos.y + this.direction.x * (this.speed)}
 
 		this.reset()
 	}
 
 	getxpos() 
 	{
-		return (this.#xpos)
+		return (this.xpos)
 	}
 
 	getypos()
 	{
-		return (this.#ypos)
+		return (this.ypos)
 	}
 
 	getcenterpos()
 	{
-		return (this.#centerpos)
+		return (this.centerpos)
 	}
 
 	setxpos(value : number)
 	{
-		this.#xpos = value
-		this.#centerpos.x = value
-		this.#nextpos.x = this.#centerpos.x + this.direction.x * (this.speed)
+		this.xpos = value
+		this.centerpos.x = value
+		this.nextpos.x = this.centerpos.x + this.direction.x * (this.speed)
 	}
 
 	setypos(value : number)
 	{
-		this.#ypos = value
-		this.#centerpos.y = this.#ypos
-		this.#nextpos.y = this.#centerpos.y + this.direction.y * (this.speed)
+		this.ypos = value
+		this.centerpos.y = this.ypos
+		this.nextpos.y = this.centerpos.y + this.direction.y * (this.speed)
 	}
 
 	draw()
 	{
 		this.context.beginPath()
-		this.context.arc(this.#xpos, this.#ypos, this.radius, 0, Math.PI * 2, this.color, false)
-		this.context.strokeStyle = "blue"
+		this.context.arc(this.xpos, this.ypos, this.radius, 0, Math.PI * 2, false)
+		this.context.strokeStyle = this.color
 		this.context.stroke()
 	}
 
@@ -111,11 +111,11 @@ export default class Ball {
 	}
 
 	update(delta : any, playerPos : any, computerPos : any) {
-		this.setxpos(this.#xpos + this.direction.x * this.speed)
-		this.setypos(this.#ypos + this.direction.y * this.speed)
+		this.setxpos(this.xpos + this.direction.x * this.speed)
+		this.setypos(this.ypos + this.direction.y * this.speed)
 		this.speed += direction_INCREASE
 		
-		if (this.#ypos + this.radius > this.mainCanvas.height || this.#ypos - this.radius < 0) {
+		if (this.ypos + this.radius > this.mainCanvas.height || this.ypos - this.radius < 0) {
 			this.direction.y *= -1
 		}
 		if (this.collisionDetection(playerPos, computerPos) && this.isPlaying)
@@ -160,12 +160,12 @@ export default class Ball {
 		//Intersection part
 		//Player inter with center
 		const frontPosPlayer = {
-			x : this.#centerpos.x - this.radius,
-			y : this.#centerpos.y
+			x : this.centerpos.x - this.radius,
+			y : this.centerpos.y
 		}
 		const frontNextPosPlayer = {
-			x : this.#nextpos.x - this.radius,
-			y : this.#nextpos.y
+			x : this.nextpos.x - this.radius,
+			y : this.nextpos.y
 		}
 		if (this.getIntersection(frontPosPlayer, frontNextPosPlayer, playerPos.front.A, playerPos.front.B) != null)
 		{
@@ -173,12 +173,12 @@ export default class Ball {
 		}
 
 		const frontPosComputer = {
-			x : this.#centerpos.x + this.radius,
-			y : this.#centerpos.y
+			x : this.centerpos.x + this.radius,
+			y : this.centerpos.y
 		}
 		const frontNextPosComputer = {
-			x : this.#nextpos.x + this.radius,
-			y : this.#nextpos.y
+			x : this.nextpos.x + this.radius,
+			y : this.nextpos.y
 		}
 
 

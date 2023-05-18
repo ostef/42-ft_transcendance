@@ -82,7 +82,7 @@ body {
 
 </style>
 
-<script  setup>
+<script setup>
 
 
 import { onMounted } from "vue"
@@ -114,6 +114,7 @@ onMounted(() => {
 	//Il faut set les dimensions du canvas pour que le reste du code fonctionne
 	canvas.height = window.innerHeight * CanvasAbsoluteSize
 	canvas.width =  window.innerWidth * CanvasAbsoluteSize
+
 	ball = new Ball("canvas", 100, 100, {x: 10 , y: 10}, "red", 8)
 	playerPaddle = new Paddle("canvas", "white", 5, true)
 	computerPaddle = new Paddle("canvas", "white", canvas.width - 5, false)
@@ -121,15 +122,13 @@ onMounted(() => {
 	computerScoreElem = document.getElementById("computer-score")
 
 	document.addEventListener("mousemove", e=> {
-	playerPaddle.setYpos(e.y)
-	playerPaddle.draw(0)
+
 	})
 
 	window.onresize = windowresize
-	window.requestAnimationFrame(update)
 })
 
-function windowresize() 
+function windowresize()
 {
 	const ballPosAbsolute = ball.getypos() / canvas.height
 	const ballXPosAbsolute = ball.getxpos() / canvas.width
@@ -141,7 +140,8 @@ function windowresize()
 	ball.canvas = canvas
 	playerPaddle.canvas = canvas
 	computerPaddle.canvas = canvas
-	//computerPaddle.setXpos(canvas.width - 15 + computerPaddle.getWidth() / 2)
+
+
 	playerPaddle.setHeight(canvas.height / 7)
 	computerPaddle.setHeight(canvas.height / 7)
 	computerPaddle.setXpos(canvas.width - 5)
@@ -149,6 +149,7 @@ function windowresize()
 	//Mise à jour de la balle en absolue pour éviter des tricks en window resize
 	ball.setypos(ballPosAbsolute * canvas.height)
 	ball.setxpos(ballXPosAbsolute * canvas.width)
+	
 	//Todo Besoin de regler encore des bugs de resize pour la balle ou elle stuck en bas
 }
 
