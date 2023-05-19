@@ -1,4 +1,4 @@
-const INITIAL_direction = 4
+const INITIAL_direction = 1.0000002
 const direction_INCREASE = 0.0001
 
 type Point = {x: number; y: number}
@@ -111,8 +111,8 @@ export default class Ball {
 	}
 
 	update(delta : any, playerPos : any, computerPos : any) {
-		this.setxpos(this.xpos + this.direction.x * this.speed)
-		this.setypos(this.ypos + this.direction.y * this.speed)
+		this.setxpos(this.xpos + this.direction.x * this.speed * delta)
+		this.setypos(this.ypos + this.direction.y * this.speed * delta)
 		this.speed += direction_INCREASE
 		
 		if (this.ypos + this.radius > this.mainCanvas.height || this.ypos - this.radius < 0) {

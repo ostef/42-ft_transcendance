@@ -21,6 +21,7 @@ export default class Paddle {
 	player : boolean
 
 	constructor(canvas : {width : number, height : number}, color : string, xpos : number, player : boolean) {
+		//True is left, False is right
 		this.player = player
 		this.#xpos = xpos + this.#width / 2
 		this.color = color
@@ -35,13 +36,13 @@ export default class Paddle {
 		this.setYpos(this.mainCanvas?.height / 2)
 		if (player)
 		{
-			this.#frontSegment = { A : { x : this.#xpos + this.#width / 2, y : this.#ypos - this.#height / 2}, 
-			B : {x : this.#xpos + this.#width / 2, y : this.#ypos + this.#height / 2}}
+			this.#frontSegment = { A : { x : this.#xpos, y : this.#ypos - this.#height / 2}, 
+			B : {x : this.#xpos, y : this.#ypos + this.#height / 2}}
 		}
 		else
 		{
-			this.#frontSegment = { A : { x : this.#xpos - this.#width / 2, y : this.#ypos - this.#height / 2}, 
-			B : {x : this.#xpos - this.#width / 2, y : this.#ypos + this.#height / 2}}
+			this.#frontSegment = { A : { x : this.#xpos, y : this.#ypos - this.#height / 2}, 
+			B : {x : this.#xpos, y : this.#ypos + this.#height / 2}}
 		}
 		this.#paddlePos = { height : this.#height, width : this.#width, 
 			centerPos : {x : this.#xpos, y : this.#ypos}, front : this.#frontSegment}
@@ -79,14 +80,14 @@ export default class Paddle {
 		this.#paddlePos.centerPos.x = value
 		if (this.player)
 		{
-			this.#frontSegment = { A : { x : this.#xpos + this.#width / 2, y : this.#ypos - this.#height / 2}, 
-			B : {x : this.#xpos + this.#width / 2, y : this.#ypos + this.#height / 2}}
+			this.#frontSegment = { A : { x : this.#xpos, y : this.#ypos - this.#height / 2}, 
+			B : {x : this.#xpos, y : this.#ypos + this.#height / 2}}
 			this.#paddlePos.front = this.#frontSegment
 		}
 		else
 		{
-			this.#frontSegment = { A : { x : this.#xpos - this.#width / 2, y : this.#ypos - this.#height / 2}, 
-			B : {x : this.#xpos + this.#width / 2, y : this.#ypos + this.#height / 2}}
+			this.#frontSegment = { A : { x : this.#xpos, y : this.#ypos - this.#height / 2}, 
+			B : {x : this.#xpos, y : this.#ypos + this.#height / 2}}
 			this.#paddlePos.front = this.#frontSegment
 		}
 	}
@@ -95,17 +96,16 @@ export default class Paddle {
 	{
 		this.#ypos = value
 		this.#paddlePos.centerPos.y = value
-		this.#paddlePos.centerPos.x = value
 		if (this.player)
 		{
-			this.#frontSegment = { A : { x : this.#xpos + this.#width / 2, y : this.#ypos - this.#height / 2}, 
-			B : {x : this.#xpos + this.#width / 2, y : this.#ypos + this.#height / 2}}
+			this.#frontSegment = { A : { x : this.#xpos, y : this.#ypos - this.#height / 2}, 
+			B : {x : this.#xpos, y : this.#ypos + this.#height / 2}}
 			this.#paddlePos.front = this.#frontSegment
 		}
 		else
 		{
-			this.#frontSegment = { A : { x : this.#xpos - this.#width / 2, y : this.#ypos - this.#height / 2}, 
-			B : {x : this.#xpos - this.#width / 2, y : this.#ypos + this.#height / 2}}
+			this.#frontSegment = { A : { x : this.#xpos, y : this.#ypos - this.#height / 2}, 
+			B : {x : this.#xpos, y : this.#ypos + this.#height / 2}}
 			this.#paddlePos.front = this.#frontSegment
 		}
 	}
@@ -116,14 +116,14 @@ export default class Paddle {
 		this.#paddlePos.height = value
 		if (this.player)
 		{
-			this.#frontSegment = { A : { x : this.#xpos + this.#width / 2, y : this.#ypos - this.#height / 2}, 
-			B : {x : this.#xpos + this.#width / 2, y : this.#ypos + this.#height / 2}}
+			this.#frontSegment = { A : { x : this.#xpos, y : this.#ypos - this.#height / 2}, 
+			B : {x : this.#xpos, y : this.#ypos + this.#height / 2}}
 			this.#paddlePos.front = this.#frontSegment
 		}
 		else
 		{
-			this.#frontSegment = { A : { x : this.#xpos - this.#width / 2, y : this.#ypos - this.#height / 2}, 
-			B : {x : this.#xpos - this.#width / 2, y : this.#ypos + this.#height / 2}}
+			this.#frontSegment = { A : { x : this.#xpos, y : this.#ypos - this.#height / 2}, 
+			B : {x : this.#xpos, y : this.#ypos + this.#height / 2}}
 			this.#paddlePos.front = this.#frontSegment
 		}
 	}
@@ -134,14 +134,14 @@ export default class Paddle {
 		this.#paddlePos.width = value
 		if (this.player)
 		{
-			this.#frontSegment = { A : { x : this.#xpos + this.#width / 2, y : this.#ypos - this.#height / 2}, 
-			B : {x : this.#xpos + this.#width / 2, y : this.#ypos + this.#height / 2}}
+			this.#frontSegment = { A : { x : this.#xpos, y : this.#ypos - this.#height / 2}, 
+			B : {x : this.#xpos, y : this.#ypos + this.#height / 2}}
 			this.#paddlePos.front = this.#frontSegment
 		}
 		else
 		{
-			this.#frontSegment = { A : { x : this.#xpos - this.#width / 2, y : this.#ypos - this.#height / 2}, 
-			B : {x : this.#xpos - this.#width / 2, y : this.#ypos + this.#height / 2}}
+			this.#frontSegment = { A : { x : this.#xpos, y : this.#ypos - this.#height / 2}, 
+			B : {x : this.#xpos, y : this.#ypos + this.#height / 2}}
 			this.#paddlePos.front = this.#frontSegment
 		}
 	}

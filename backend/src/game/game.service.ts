@@ -47,6 +47,7 @@ export class GameService {
 			//Player 1 is left bar 
 			//Player 2 is right bar
 			let newGame : Game = new Game(this.gamesRoom.length, client, this.waitRoom.pop(), data.canvas, data.window)
+			console.log("new game id : ", newGame.instanceId)
 			this.gamesRoom.push(newGame)
 			newGame.startGame()
 			//Return le deuxième joueur au gateway pour pouvoir le prévenir
@@ -60,11 +61,17 @@ export class GameService {
 		}
 	}
 
-	updatePaddlePos(client : Socket, gameId : number, paddlePos : {xpos : number, ypos : number})
+	updatePaddlePos(client : Socket, gameId : number, paddlePos : number)
 	{
-		let game = this.gamesRoom.filter(game => {
-			game.instanceId === gameId
-		})
-		game[0].updatePaddlePos(client, paddlePos)
+		let currentInstance = null
+		for (let game of this.gamesRoom)
+		{
+			if (game.instanceId == gameId)
+			{
+				currentInstance = game
+				break
+			}
+		}
+		currentInstance.updatePaddlePos(client, paddlePos)
 	}
 }

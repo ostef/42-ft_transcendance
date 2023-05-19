@@ -47,7 +47,9 @@ export default {
 			ownPaddle : "",
 			gameId : 0,
 			waiting : false as boolean,
-			intervalId : {} as ReturnType<typeof setInterval>
+			isPlaying : false as boolean,
+			intervalId : {} as ReturnType<typeof setInterval>,
+			delta : 16
         }
     },
     created () {
@@ -102,21 +104,40 @@ export default {
 			this.canvas.height = window.innerHeight * this.canvasAbsoluteSize
 			this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
 
-			this.ball = new Ball("canvas", 100, 100, {x: 10 , y: 10}, "red", 8)
+			this.ball = new Ball("canvas", 100, 100, {x: 10 , y: 10}, "red", 15)
 			this.paddleLeft = new Paddle("canvas", "white", 5, true)
-			this.paddleRight = new Paddle("canvas", "white", this.canvas!.width - 5, true)
+			this.paddleRight = new Paddle("canvas", "white", this.canvas.width - 5, false)
 			this.leftScore = document.getElementById("player1-score")
 			this.rightScore = document.getElementById("player2-score")
-			console.log(this.ball)
 		}
+		this.isPlaying = false
 
 		
 
 
 		document.addEventListener("mousemove", e => {
-
+			let mouseHeight = 0
+			if (this.isPlaying)
+			{
+				if (e.y <= window.innerHeight * this.canvasAbsoluteStart + this.paddleLeft.getHeight() / 2)
+				{
+					mouseHeight = this.paddleLeft.getHeight() / 2
+					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
+					return
+				}
+				else if (e.y >= window.innerHeight - window.innerHeight * this.canvasAbsoluteStart - this.paddleLeft.getHeight() / 2)
+				{
+					if (this.canvas)
+						mouseHeight = this.canvas.height - this.paddleLeft.getHeight() / 2
+					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
+					return
+				}
+				mouseHeight = e.y - window.innerHeight * this.canvasAbsoluteStart
+				console.log("mouseheight : ", mouseHeight)
+				this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
+			}
 		})
-
+		/*window.requestAnimationFrame(this.drawNextFrame)*/
 		window.onresize = this.windowresize
 
 	},
@@ -141,6 +162,8 @@ export default {
 		},
 
 		searchGame() {
+			console.log("Canvas :", this.canvas?.width, this.canvas?.height)
+			console.log("Window : ", window.innerWidth, window.innerHeight)
 			this.socket.emit("searchGame", {canvas : {width : this.canvas?.width, height : this.canvas?.height}, window  : { width : window.innerWidth, height : window.innerHeight} })
 		},
 		
@@ -150,6 +173,7 @@ export default {
 			this.gameId = gameId
 			clearInterval(this.intervalId)
 			this.waiting = false
+			this.isPlaying = true
 		},
 
 		//Event pour le déroulement de la partie
@@ -161,7 +185,6 @@ export default {
 		updateOwnPadle(ownPaddle : PaddlePos) {
 			if (this.ownPaddle === "left")
 			{
-				console.log("updating Paddle left ")
 				this.paddleLeft.setXpos(ownPaddle.centerPos.x)
 				this.paddleLeft.setYpos(ownPaddle.centerPos.y)
 			}
@@ -195,14 +218,25 @@ export default {
 
 		drawFrame()
 		{
-			console.log("yep drawing")
 			if (this.canvas)
 				this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
-			console.log(this.ball.getcenterpos().x)
-			console.log(this.paddleLeft.getPaddlePos().width)
 			this.ball.draw()
 			this.paddleLeft.draw(0)
 			this.paddleRight.draw(0)
+		},
+
+		drawNextFrame()
+		{
+			if (this.isPlaying)
+			{
+				if (this.canvas)
+					this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
+				this.ball.update(this.delta, this.paddleLeft.getPaddlePos(), this.paddleRight.getPaddlePos())
+				this.ball.draw()
+				this.paddleLeft.draw(0)
+				this.paddleRight.draw(0)
+			}
+			window.requestAnimationFrame(this.drawNextFrame)
 		}
 	}
 }

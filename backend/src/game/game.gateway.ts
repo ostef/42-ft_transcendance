@@ -68,6 +68,6 @@ export class GameGateway implements OnModuleInit {
    @SubscribeMessage('updatePaddle')
    onUpdatePaddle(@ConnectedSocket() client : Socket, @MessageBody() data : any)
    {
-	this.gameService.updatePaddlePos(client, data.gameId, data.paddlePos)
+	    this.gameService.updatePaddlePos(client, data.gameId, data.paddlePos)
    }
 }

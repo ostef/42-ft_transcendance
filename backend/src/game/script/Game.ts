@@ -30,7 +30,7 @@ export default class gameInstance {
 		this.player2Socket = player2
 		this.window = window
 		this.canvas = canvas
-		this.delta = 16
+		this.delta = 3
 		this.score.p1 = 0
 		this.score.p2 = 0
 	}
@@ -69,11 +69,13 @@ export default class gameInstance {
 		{
 			this.score.p1 += 1
 			this.player2Socket.emit('score', this.score)
+			this.player1Socket.emit('score', this.score)
 		}
 		else 
 		{
 			this.score.p2 += 1
 			this.player1Socket.emit('score', this.score)
+			this.player2Socket.emit('score', this.score)
 		}
 		this.ball.reset()
 		this.paddleLeft.reset()
@@ -83,12 +85,14 @@ export default class gameInstance {
 	startGame() 
 	{
 		//Lancement de la partie en dehors de la loop
-		this.ball = new Ball(this.canvas, 100, 100, {x: 10 , y: 10}, "red", 8)
+		this.ball = new Ball(this.canvas, 100, 100, {x: 10 , y: 10}, "red", 15)
 		this.paddleLeft = new Paddle(this.canvas, "white", 5, true)
 		this.paddleRight = new Paddle(this.canvas, "white", this.canvas.width - 5, true)
+		console.log(this.paddleRight.getXpos(), this.canvas.width)
 		this.score.p1 = 0
 		this.score.p2 = 0
-
+		console.log("Left Paddle pos :", this.paddleLeft.getXpos(), this.paddleLeft.getYpos())
+		console.log("Right Paddle pos :", this.paddleRight.getXpos(), this.paddleRight.getYpos())
 
 
 		//Lancement de la loop et déplacement balles et paddle
@@ -98,17 +102,16 @@ export default class gameInstance {
 		//Fin de la partie 
 	}
 
-	updatePaddlePos(player : Socket, paddlePos : {xpos : number, ypos : number})
+	updatePaddlePos(player : Socket, paddlePos : number)
 	{
+		console.log("updating paddle pos")
 		if (player.id === this.player1Socket.id)
 		{
-			this.paddleLeft.setXpos(paddlePos.xpos)
-			this.paddleLeft.setYpos(paddlePos.ypos)
+			this.paddleLeft.setYpos(paddlePos)
 		}
 		else if (player.id === this.player2Socket.id)
 		{
-			this.paddleRight.setXpos(paddlePos.xpos)
-			this.paddleRight.setYpos(paddlePos.ypos)
+			this.paddleRight.setYpos(paddlePos)
 		}
 	}
 

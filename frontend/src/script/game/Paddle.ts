@@ -20,6 +20,7 @@ export default class Paddle {
 	player : boolean
 
 	constructor(canvas : string, color :string, xpos : number, player : boolean) {
+		//True is left, False is right
 		this.player = player
 		this.xpos = xpos + this.width / 2
 		this.color = color
@@ -35,13 +36,13 @@ export default class Paddle {
 		this.setYpos(this.mainCanvas?.height / 2)
 		if (player)
 		{
-			this.frontSegment = { A : { x : this.xpos + this.width / 2, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos + this.width / 2, y : this.ypos + this.height / 2}}
+			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
+			B : {x : this.xpos, y : this.ypos + this.height / 2}}
 		}
 		else
 		{
-			this.frontSegment = { A : { x : this.xpos - this.width / 2, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos - this.width / 2, y : this.ypos + this.height / 2}}
+			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
+			B : {x : this.xpos, y : this.ypos + this.height / 2}}
 		}
 		this.paddlePos = { height : this.height, width : this.width, 
 			centerPos : {x : this.xpos, y : this.ypos}, front : this.frontSegment}
@@ -79,14 +80,14 @@ export default class Paddle {
 		this.paddlePos.centerPos.x = value
 		if (this.player)
 		{
-			this.frontSegment = { A : { x : this.xpos + this.width / 2, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos + this.width / 2, y : this.ypos + this.height / 2}}
+			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
+			B : {x : this.xpos, y : this.ypos + this.height / 2}}
 			this.paddlePos.front = this.frontSegment
 		}
 		else
 		{
-			this.frontSegment = { A : { x : this.xpos - this.width / 2, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos + this.width / 2, y : this.ypos + this.height / 2}}
+			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
+			B : {x : this.xpos, y : this.ypos + this.height / 2}}
 			this.paddlePos.front = this.frontSegment
 		}
 	}
@@ -95,17 +96,16 @@ export default class Paddle {
 	{
 		this.ypos = value
 		this.paddlePos.centerPos.y = value
-		this.paddlePos.centerPos.x = value
 		if (this.player)
 		{
-			this.frontSegment = { A : { x : this.xpos + this.width / 2, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos + this.width / 2, y : this.ypos + this.height / 2}}
+			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
+			B : {x : this.xpos, y : this.ypos + this.height / 2}}
 			this.paddlePos.front = this.frontSegment
 		}
 		else
 		{
-			this.frontSegment = { A : { x : this.xpos - this.width / 2, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos - this.width / 2, y : this.ypos + this.height / 2}}
+			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
+			B : {x : this.xpos, y : this.ypos + this.height / 2}}
 			this.paddlePos.front = this.frontSegment
 		}
 	}
@@ -116,14 +116,14 @@ export default class Paddle {
 		this.paddlePos.height = value
 		if (this.player)
 		{
-			this.frontSegment = { A : { x : this.xpos + this.width / 2, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos + this.width / 2, y : this.ypos + this.height / 2}}
+			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
+			B : {x : this.xpos, y : this.ypos + this.height / 2}}
 			this.paddlePos.front = this.frontSegment
 		}
 		else
 		{
-			this.frontSegment = { A : { x : this.xpos - this.width / 2, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos - this.width / 2, y : this.ypos + this.height / 2}}
+			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
+			B : {x : this.xpos, y : this.ypos + this.height / 2}}
 			this.paddlePos.front = this.frontSegment
 		}
 	}
@@ -134,14 +134,14 @@ export default class Paddle {
 		this.paddlePos.width = value
 		if (this.player)
 		{
-			this.frontSegment = { A : { x : this.xpos + this.width / 2, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos + this.width / 2, y : this.ypos + this.height / 2}}
+			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
+			B : {x : this.xpos, y : this.ypos + this.height / 2}}
 			this.paddlePos.front = this.frontSegment
 		}
 		else
 		{
-			this.frontSegment = { A : { x : this.xpos - this.width / 2, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos - this.width / 2, y : this.ypos + this.height / 2}}
+			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
+			B : {x : this.xpos, y : this.ypos + this.height / 2}}
 			this.paddlePos.front = this.frontSegment
 		}
 	}
@@ -152,24 +152,19 @@ export default class Paddle {
 		{
 			if (id === 0)
 			{
-				if (this.ypos <= window.innerHeight * this.canvasAbsoluteStart + this.height / 2)
+				if (this.player)
 				{
-					this.setYpos(this.height / 2)
+					
 					this.context.fillRect(this.xpos - this.width / 2, this.ypos - this.height / 2, this.width, this.height)
 					this.context.fillStyle = this.color
 					return
 				}
-				if (this.ypos >= window.innerHeight - window.innerHeight * this.canvasAbsoluteStart - this.height / 2)
+				else
 				{
-					this.setYpos(this.mainCanvas.height - this.height / 2)
 					this.context.fillRect(this.xpos - this.width / 2, this.ypos - this.height / 2, this.width, this.height)
 					this.context.fillStyle = this.color
 					return
 				}
-				this.setYpos(this.ypos - (window.innerHeight * this.canvasAbsoluteStart))
-				this.context.fillRect(this.xpos - this.width / 2, this.ypos - this.height / 2, this.width, this.height)
-				this.context.fillStyle = this.color
-				return
 			}
 			if (id === 1)
 			{

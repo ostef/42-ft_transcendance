@@ -122,9 +122,9 @@ onMounted(() => {
 	computerScoreElem = document.getElementById("computer-score")
 
 	document.addEventListener("mousemove", e=> {
-
+		playerPaddle.setYpos(e.y)
 	})
-
+	window.requestAnimationFrame(update)
 	window.onresize = windowresize
 })
 
