@@ -1,6 +1,5 @@
 import { Controller, Logger, Post, Body, HttpStatus, Response, SetMetadata } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { Public } from "./auth.module";
 
 type LoginData = {
     username: string;
