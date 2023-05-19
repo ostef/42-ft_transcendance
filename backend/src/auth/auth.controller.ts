@@ -18,7 +18,7 @@ export class AuthController
 
     @SetMetadata ("isPublic", true)
     @Post ("login")
-    async loginTaMere (@Response () resp, @Body () body: LoginData)
+    async login (@Response () resp, @Body () body: LoginData)
     {
         try
         {
