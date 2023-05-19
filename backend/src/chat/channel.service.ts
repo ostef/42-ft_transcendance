@@ -1,39 +1,259 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { FindOptionsRelations, Repository } from "typeorm";
 
-import { User } from "../users/user.entity";
-import { Channel } from "./entities/channel.entity";
-import { Message } from "./entities/message.entity";
-
-type ChannelParams = {
-	ownerId: number;
-	name: string;
-	password: string;
-}
+import { ChannelEntity } from "./entities/channel.entity";
+import { InviteEntity } from "./entities/invite.entity";
+import { CreateChannelDto, UpdateChannelDto } from "./entities/channel.dto";
+import { UsersService } from "src/users/users.service";
+import { UserEntity } from "src/users/entities/user.entity";
 
 @Injectable ()
 export class ChannelService
 {
-	constructor (
-		@InjectRepository (Channel)
-		private channelRepository: Repository<Channel>,
-	){}
+    constructor (
+        @InjectRepository (ChannelEntity)
+        private channelRepository: Repository<ChannelEntity>,
 
-	async findChannelsByName (name: string): Promise<Channel[]>
-	{
-		return this.channelRepository.findBy ({name: name});
-	}
+        @InjectRepository (InviteEntity)
+        private inviteRepository: Repository<InviteEntity>,
 
-	async createChannel (params: ChannelParams): Promise<Channel>
-	{
-		const newChannel = this.channelRepository.create ();
-		//newChannel.users.push (user);
+        private usersService: UsersService,
+    ) {}
 
-		return this.channelRepository.save (newChannel);
-	}
+    async findMultipleChannels (params: any, relations: FindOptionsRelations<ChannelEntity> = {}): Promise<ChannelEntity[]>
+    {
+        return await this.channelRepository.find ({where: params, relations: relations});
+    }
 
-	deleteChannel (channelId: number): void
-	{
-	}
+    // Returns the user entity that satisfies the params, null if it does not exist
+    async findChannelEntity (params: any, relations: FindOptionsRelations<ChannelEntity> = {}): Promise<ChannelEntity>
+    {
+        return await this.channelRepository.findOne ({where: params, relations: relations});
+    }
+
+    async createChannel (userId: string, params: CreateChannelDto)
+    {
+        const user = await this.usersService.findUserEntity ({id: userId });
+        if (!user)
+            throw new Error ("User " + userId + " does not exist");
+
+        const channel = this.channelRepository.create ();
+        channel.owner = user;
+        channel.users = [user];
+        channel.administrators = [user];
+        channel.name = params.name;
+        channel.description = params.description;
+        channel.isPrivate = params.isPrivate;
+        if (channel.password != undefined)
+            channel.password = params.password;
+
+        await this.channelRepository.save (channel);
+    }
+
+    // Throws and exception if:
+    // - channel does not exist
+    // - user does not exist
+    // - user is not an admin of channel
+    // Never returns null values
+    async findChannelAndAdminUser (channelId: string, userId: string, relations: FindOptionsRelations<ChannelEntity> = {}): Promise<{ channel: ChannelEntity, user: UserEntity }>
+    {
+        relations.administrators = true;
+
+        const channel = await this.findChannelEntity ({id: channelId}, relations);
+        if (!channel)
+            throw new Error ("Channel " + channelId + " does not exist");
+
+        const adminIdx = channel.administrators.findIndex ((val: UserEntity) => val.id == userId);
+        if (adminIdx == -1)
+            throw new Error ("User " + userId + " is not an administrator");
+
+        return { channel: channel, user: channel.administrators[adminIdx] };
+    }
+
+    async deleteChannel (fromUser: string, id: string)
+    {
+        const channelAndAdmin = await this.findChannelAndAdminUser (id, fromUser);
+
+        await this.channelRepository.remove (channelAndAdmin.channel);
+    }
+
+    async updateChannel (userId: string, params: UpdateChannelDto)
+    {
+        const channelAndAdmin = await this.findChannelAndAdminUser (
+            params.id, userId,
+            {
+                owner: true,
+                users: true,
+                bannedUsers: params.usersToBan != undefined || params.usersToUnban != undefined,
+                mutedUsers: params.usersToMute != undefined || params.usersToUnmute != undefined,
+            }
+        );
+        const channel = channelAndAdmin.channel;
+
+        if (params.name != undefined)
+            channel.name = params.name;
+
+        if (params.description != undefined)
+            channel.description = params.description;
+
+        // @Note (stefan): Should we cancel all pending invites when making
+        // channels private ?
+        if (params.isPrivate != undefined)
+            channel.isPrivate = params.isPrivate;
+
+        if (params.password != undefined)
+            channel.password = params.password;
+
+        if (params.usersToAdmin != undefined)
+        {
+            for (const otherId of params.usersToAdmin)
+            {
+                const indexInJoinedUsers = channel.users.findIndex ((val: UserEntity) => val.id == otherId);
+                if (indexInJoinedUsers != -1)
+                    throw new Error ("User " + otherId + " is not a member of channel " + channel.id);
+
+                const index = channel.administrators.findIndex ((val: UserEntity) => val.id == otherId);
+                if (index != -1)
+                    throw new Error ("User " + otherId + " is already an admin of channel " + channel.id);
+
+                const other = await this.usersService.findUserEntity ({id: otherId});
+                if (!other)
+                    throw new Error ("User " + otherId + " does not exist");
+
+                channel.administrators.push (other);
+            }
+        }
+
+        if (params.usersToUnadmin != undefined)
+        {
+            for (const otherId of params.usersToUnadmin)
+            {
+                const indexInJoinedUsers = channel.users.findIndex ((val: UserEntity) => val.id == otherId);
+                if (indexInJoinedUsers != -1)
+                    throw new Error ("User " + otherId + " is not a member of channel " + channel.id);
+
+                // @Note (stefan): should we allow unadmin self ?
+                if (otherId == userId)
+                    throw new Error ("Cannot unadmin self");
+
+                if (otherId == channel.owner.id)
+                    throw new Error ("Cannot unadmin channel owner");
+
+                const index = channel.administrators.findIndex ((val: UserEntity) => val.id == otherId);
+                if (index == -1)
+                    throw new Error ("User " + otherId + " is not an admin of channel " + channel.id);
+
+                delete channel.administrators[index];
+            }
+        }
+
+        if (params.usersToBan != undefined)
+        {
+            for (const otherId of params.usersToBan)
+            {
+                if (otherId == userId)
+                    throw new Error ("Cannot ban self");
+
+                if (otherId == channel.owner.id)
+                    throw new Error ("Cannot ban channel owner");
+
+                const user = await this.usersService.findUserEntity ({id: otherId});
+                if (!user)
+                    throw new Error ("User " + otherId + " does not exist");
+
+                const indexInBanned = channel.bannedUsers.findIndex ((val: UserEntity) => val.id == otherId);
+                if (indexInBanned != -1)
+                    throw new Error ("User " + otherId + " is already banned");
+
+                channel.bannedUsers.push (user);
+            }
+        }
+
+        if (params.usersToUnban != undefined)
+        {
+            for (const otherId of params.usersToUnban)
+            {
+                const user = await this.usersService.findUserEntity ({id: otherId});
+                if (!user)
+                    throw new Error ("User " + otherId + " does not exist");
+
+                const index = channel.bannedUsers.findIndex ((val: UserEntity) => val.id == otherId);
+                if (index == -1)
+                    throw new Error ("User " + otherId + " is not banned");
+
+                delete channel.bannedUsers[index];
+            }
+        }
+
+        if (params.usersToMute != undefined)
+        {
+            for (const otherId of params.usersToMute)
+            {
+                if (!channel.hasUser (otherId))
+                    throw new Error ("User " + otherId + " is not a member of channel " + channel.id);
+
+                const user = await this.usersService.findUserEntity ({id: otherId});
+                if (!user)
+                    throw new Error ("User " + otherId + " does not exist");
+
+                if (channel.isMuted (otherId))
+                    throw new Error ("User " + otherId + " is already muted");
+
+                if (channel.isAdmin (otherId))
+                    throw new Error ("Cannot mute admin");
+
+                channel.mutedUsers.push (user);
+            }
+        }
+
+        if (params.usersToUnmute != undefined)
+        {
+            for (const otherId of params.usersToUnmute)
+            {
+                if (!channel.hasUser (otherId))
+                    throw new Error ("User " + otherId + " is not a member of channel " + channel.id);
+
+                const index = channel.mutedUsers.findIndex ((val: UserEntity) => val.id == otherId);
+                if (index == -1)
+                    throw new Error ("User " + otherId + " is not muted");
+
+                delete channel.mutedUsers[index];
+            }
+        }
+
+        if (params.usersToKick != undefined)
+        {
+            for (const otherId of params.usersToKick)
+            {
+                const indexInJoinedUsers = channel.users.findIndex ((val: UserEntity) => val.id == otherId);
+                if (indexInJoinedUsers != -1)
+                    throw new Error ("User " + otherId + " is not a member of channel " + channel.id);
+
+                if (otherId == userId)
+                    throw new Error ("Cannot kick self");
+
+                if (otherId == channel.owner.id)
+                    throw new Error ("Cannot kick channel owner");
+
+                const adminIndex = channel.administrators.findIndex ((val: UserEntity) => val.id == otherId);
+                if (adminIndex != -1)
+                    throw new Error ("Cannot kick admin");
+
+                // @Todo (stefan): update user's joinedChannels array
+                // Or does it update automatically ?
+                delete channel.users[indexInJoinedUsers];
+            }
+        }
+
+        await this.channelRepository.save (channel);
+    }
+
+    // No verification is done here, this is just a function that is
+    // made for other services to use (i.e. the message service when
+    // appending messages to the channel)
+    async saveChannel (channel: ChannelEntity)
+    {
+        await this.channelRepository.save (channel);
+    }
 }

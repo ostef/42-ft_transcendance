@@ -1,57 +1,86 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  JoinColumn,
-  JoinTable,
-  OneToOne,
-  OneToMany,
-  ManyToOne,
-  ManyToMany,
-} from 'typeorm';
+    Entity,
+    PrimaryGeneratedColumn, Column, JoinColumn, CreateDateColumn,JoinTable,
+    OneToOne, OneToMany, ManyToOne, ManyToMany,
+} from "typeorm";
+import { UserEntity } from "src/users/entities/user.entity";
+import { MessageEntity } from "./message.entity";
 
-import { User } from '../../users/user.entity';
-import { ChannelInvite } from './invite.entity';
-import { Message } from './message.entity';
+// Public channel: listed in channel search, all users can join
+// Private channel: not listed in channel search, only invited users can join
+// Password: for both public and private channels
 
-@Entity()
-export class Channel {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Entity ()
+export class ChannelEntity
+{
+    @PrimaryGeneratedColumn ("uuid")
+    id: string;
 
-  @CreateDateColumn()
-  dateCreated: Date;
+    @CreateDateColumn ()
+    dateCreated: Date;
 
-  @Column({ nullable: true })
-  name: string;
+    @Column ({type: "varchar", length: 100})
+    name: string;
 
-  @Column()
-  isPrivate: boolean;
+    @Column ({type: "varchar", length: 512})
+    description: string;
 
-  @Column({ nullable: true })
-  password: string;
+    @Column ()
+    isPrivate: boolean;
 
-  @OneToMany(() => ChannelInvite, (invite) => invite.channel)
-  @JoinColumn()
-  pendingInvites: ChannelInvite[];
+    @Column ({nullable: true})
+    password: string;
 
-  @ManyToOne(() => User, { nullable: true })
-  @JoinColumn()
-  owner: User;
+    @ManyToOne (() => UserEntity)
+    owner: UserEntity;
 
-  @ManyToMany(() => User, (u) => u.joinedChannels)
-  @JoinTable()
-  users: User[];
+    @ManyToMany (() => UserEntity, (u) => u.joinedChannels)
+    users: UserEntity[];
 
-  @ManyToMany(() => User)
-  @JoinTable()
-  moderatorUsers: User[];
+    @ManyToMany (() => UserEntity)
+    @JoinTable ()
+    administrators: UserEntity[];
 
-  @ManyToMany(() => User)
-  @JoinTable()
-  bannedUsers: User[];
+    @ManyToMany (() => UserEntity)
+    @JoinTable ()
+    mutedUsers: UserEntity[];
 
-  @OneToMany(() => Message, (msg) => msg.toChannel)
-  messages: Message[];
+    @ManyToMany (() => UserEntity)
+    @JoinTable ()
+    bannedUsers: UserEntity[];
+
+    @OneToMany (() => MessageEntity, (msg) => msg.toChannel)
+    messages: MessageEntity[];
+
+    hasUser (user: string | UserEntity): boolean
+    {
+        if (typeof user == "string")
+            return this.users.findIndex ((val: UserEntity) => val.id == user) != -1;
+        else
+            return this.users.findIndex ((val: UserEntity) => val.id == user.id) != -1;
+    }
+
+    isAdmin (user: string | UserEntity): boolean
+    {
+        if (typeof user == "string")
+            return this.administrators.findIndex ((val: UserEntity) => val.id == user) != -1;
+        else
+            return this.administrators.findIndex ((val: UserEntity) => val.id == user.id) != -1;
+    }
+
+    isMuted (user: string | UserEntity): boolean
+    {
+        if (typeof user == "string")
+            return this.mutedUsers.findIndex ((val: UserEntity) => val.id == user) != -1;
+        else
+            return this.mutedUsers.findIndex ((val: UserEntity) => val.id == user.id) != -1;
+    }
+
+    isBanned (user: string | UserEntity): boolean
+    {
+        if (typeof user == "string")
+            return this.bannedUsers.findIndex ((val: UserEntity) => val.id == user) != -1;
+        else
+            return this.bannedUsers.findIndex ((val: UserEntity) => val.id == user.id) != -1;
+    }
 }

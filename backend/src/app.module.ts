@@ -1,40 +1,50 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
+import { Module } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
+import { UsersModule } from "./users/users.module";
 
-import { UsersModule } from './users/users.module';
-import { ChatModule } from './chat/chat.module';
-import { FilesModule } from './files/files.module';
+import { env } from "process";
+import { UserEntity } from "./users/entities/user.entity";
+import { FriendRequestEntity } from "./users/entities/friend_request.entity";
+import { ChannelEntity } from "./chat/entities/channel.entity";
+import { MessageEntity } from "./chat/entities/message.entity";
+import { InviteEntity } from "./chat/entities/invite.entity";
+import { PrivateConversationEntity } from "./chat/entities/private_conversation.entity";
 
-import * as process from 'process';
-import { ChannelInvite } from './chat/entities/invite.entity';
-import { Friendship, User } from './users/user.entity';
-import { Channel } from './chat/entities/channel.entity';
-import { Message } from './chat/entities/message.entity';
-import { UserToUser } from './chat/entities/user_to_user.entity';
+import { AuthModule } from "./auth/auth.module";
+import { JwtAuthGuard } from "./auth/jwt_auth.guard";
+import { ChatModule } from "./chat/chat.module";
 
 @Module({
-  imports: [
-    AuthModule,
-    UsersModule,
-    ChatModule,
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'database',
-      port: 5432,
-      username: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      database: process.env.POSTGRES_DB,
-      entities: [User, Channel, Message, UserToUser, ChannelInvite, Friendship],
-
-      //TODO: Change to false in production
-      synchronize: true,
-    }),
-    FilesModule,
-  ],
-  controllers: [AppController],
-  providers: [AppService],
+    imports: [
+        AuthModule,
+        UsersModule,
+        ChatModule,
+        TypeOrmModule.forRoot ({
+            type: "postgres",
+            host: "localhost",
+            port: 5432,
+            username: "postgres",
+            password: "postgres",
+            database: "postgres",
+            entities: [
+                UserEntity, FriendRequestEntity,
+                ChannelEntity, InviteEntity, PrivateConversationEntity, MessageEntity,
+            ],
+            // This will modify the database according to the
+            // definition of the entities
+            synchronize: true,
+        }),
+    ],
+    controllers: [AppController],
+    providers: [
+        AppService,
+        {
+            provide: APP_GUARD,
+            useClass: JwtAuthGuard,
+        },
+    ],
 })
 export class AppModule {}

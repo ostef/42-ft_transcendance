@@ -1,36 +1,34 @@
 import {
-  Entity,
-  Column,
-  CreateDateColumn,
-  JoinColumn,
-  JoinTable,
-  OneToOne,
-  OneToMany,
-  ManyToOne,
-  ManyToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+    Entity,
+    PrimaryGeneratedColumn, PrimaryColumn, Column, CreateDateColumn,
+    OneToOne, OneToMany, ManyToOne, ManyToMany,
+    JoinColumn, JoinTable,
+} from "typeorm";
+import { UserEntity } from "src/users/entities/user.entity";
+import { ChannelEntity } from "./channel.entity";
+import { MessageEntity } from "./message.entity";
 
-import { User } from '../../users/user.entity';
-import { Channel } from './channel.entity';
+@Entity ()
+export class InviteEntity
+{
+    @PrimaryColumn ({type: "int", name: "fromUserId"})
+    @ManyToOne (() => UserEntity, (user) => user.id, {eager: true})
+    fromUser: UserEntity;
 
-@Entity()
-export class ChannelInvite {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryColumn ({type: "int", name: "toUserId"})
+    @ManyToOne (() => UserEntity, (user) => user.id, {eager: true})
+    toUser: UserEntity;
 
-  @ManyToOne(() => User)
-  fromUser: User;
+    @PrimaryColumn ({type: "int", name: "channelId"})
+    @ManyToOne (() => ChannelEntity, (chan) => chan.id, {eager: true})
+    channel: ChannelEntity;
 
-  @ManyToOne(() => User, (u) => u.receivedInvites)
-  toUser: User;
+    @CreateDateColumn ()
+    date: Date;
 
-  @ManyToOne(() => Channel, (c) => c.pendingInvites)
-  channel: Channel;
+    @Column ()
+    expirationDate: Date;
 
-  @CreateDateColumn()
-  date: Date;
-
-  @Column('text')
-  message: string;
+    @OneToOne (() => MessageEntity, (msg) => msg.invite)
+    message: MessageEntity;
 }

@@ -1,36 +1,44 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
-import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from './constants';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 
-@Injectable()
-export class AuthService {
-  constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
-  ) {}
+import { UserEntity } from "src/users/entities/user.entity";
+import { UsersService } from "src/users/users.service";
+import { JwtPayload } from "./jwt.strategy";
 
-  //TODO: use bcrypt to hash the password ?
-  async validateUser(profile: any): Promise<any> {
-    const user = await this.usersService.findOne(profile.username);
-    if (user) {
-      const { password, ...result } = user;
-      return result;
+@Injectable ()
+export class AuthService
+{
+    constructor (
+        private usersService: UsersService,
+        private jwtService: JwtService,
+    ) {}
+
+    async validateUser (userId: string): Promise<UserEntity>
+    {
+        const user = await this.usersService.findUserEntity ({id: userId});
+        if (user)
+        {
+            const { password, ...result } = user;
+
+            return result as UserEntity;
+        }
+
+        return null;
     }
-    return null;
-  }
 
-  async login(user: any) {
-    if (!user) throw new BadRequestException('Unauthorized access');
-    let registeredUser = await this.usersService.findOne(user.username);
-    if (!registeredUser) {
-      //TODO: change this to create a new user
-      console.log('User not found, creating a new one');
-      registeredUser = await this.usersService.create(user);
-      console.log('Done creating user');
-    } else {
-      console.log('User found');
+    async login (username: string, password: string)
+    {
+        const user = await this.usersService.findUserEntity ({username: username});
+        if (!user)
+            throw new UnauthorizedException ();
+
+        if (user.password != password)
+            throw new UnauthorizedException ();
+
+        const payload: JwtPayload = { userId: user.id };
+
+        return {
+            access_token: await this.jwtService.signAsync (payload)
+        };
     }
-    return this.jwtService.sign({ username: registeredUser.username });
-  }
 }

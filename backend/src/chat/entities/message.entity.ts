@@ -1,33 +1,31 @@
 import {
-	Entity,
-	PrimaryGeneratedColumn, Column, CreateDateColumn, JoinColumn, JoinTable,
-	OneToOne, OneToMany, ManyToOne, ManyToMany
-} from 'typeorm';
-
-import { User } from '../../users/user.entity';
-import { Channel } from "./channel.entity";
-import { UserToUser } from './user_to_user.entity';
+    Entity,
+    PrimaryGeneratedColumn, Column, JoinColumn, JoinTable,
+    OneToOne, OneToMany, ManyToOne, ManyToMany,
+} from "typeorm";
+import { UserEntity } from "src/users/entities/user.entity";
+import { ChannelEntity } from "./channel.entity";
+import { InviteEntity } from "./invite.entity";
+import { PrivateConversationEntity } from "./private_conversation.entity";
 
 @Entity ()
-export class Message
+export class MessageEntity
 {
-	@PrimaryGeneratedColumn ()
-	id: number;
+    @PrimaryGeneratedColumn ("uuid")
+    id: number;
 
-	@CreateDateColumn ()
-	dateSent: Date;
+    @ManyToOne (() => UserEntity)
+    fromUser: UserEntity;
 
-	@OneToOne (() => User)
-	@JoinColumn ()
-	fromUser: User;
+    @ManyToOne (() => ChannelEntity, (chan) => chan.messages, {nullable: true})
+    toChannel: ChannelEntity;
 
-	@ManyToOne (() => UserToUser, (utu) => utu.messages, {nullable: true})
-	@JoinColumn ()
-	toUser: UserToUser;	// If direct message, can be null
+    @ManyToOne (() => PrivateConversationEntity, (conv) => conv.messages, {nullable: true})
+    toPrivateConversation: PrivateConversationEntity;
 
-	@ManyToOne (() => Channel, (chan) => chan.messages, {nullable: true})
-	toChannel: Channel;	// If sent to a channel, can be null
+    @Column ({type: "text"})
+    content: string;
 
-	@Column ("text")
-	content: string;
+    @OneToOne (() => InviteEntity, (inv) => inv.message, {nullable: true})
+    invite: InviteEntity;
 }
