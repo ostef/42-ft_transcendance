@@ -49,7 +49,7 @@ export default {
 			waiting : false as boolean,
 			isPlaying : false as boolean,
 			intervalId : {} as ReturnType<typeof setInterval>,
-			delta : 16
+			delta : 15
         }
     },
     created () {
@@ -100,11 +100,12 @@ export default {
 		this.canvas = document.querySelector("canvas")
 		if (this.canvas)
 		{
+			console.log("mounted")
 			this.context = this.canvas.getContext("2d")
 			this.canvas.height = window.innerHeight * this.canvasAbsoluteSize
 			this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
 
-			this.ball = new Ball("canvas", 100, 100, {x: 10 , y: 10}, "red", 15)
+			this.ball = new Ball("canvas", 100, 100, {x: 10 , y: 10}, "red", 10, this.delta)
 			this.paddleLeft = new Paddle("canvas", "white", 5, true)
 			this.paddleRight = new Paddle("canvas", "white", this.canvas.width - 5, false)
 			this.leftScore = document.getElementById("player1-score")
@@ -231,7 +232,7 @@ export default {
 			{
 				if (this.canvas)
 					this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
-				this.ball.update(this.delta, this.paddleLeft.getPaddlePos(), this.paddleRight.getPaddlePos())
+				this.ball.update(this.paddleLeft.getPaddlePos(), this.paddleRight.getPaddlePos())
 				this.ball.draw()
 				this.paddleLeft.draw(0)
 				this.paddleRight.draw(0)

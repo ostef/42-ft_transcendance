@@ -1,4 +1,4 @@
-const INITIAL_direction = 1.0000002
+const INITIAL_direction = 0.25
 const direction_INCREASE = 0.0001
 
 type Point = {x: number; y: number}
@@ -21,7 +21,7 @@ export default class Ball {
 	delta : number
 
 
-	constructor(maincanvas : {width : number, height : number},  x :  number, y : number , direction : { x :  number; y : number}, color : string, radius : number) {
+	constructor(maincanvas : {width : number, height : number},  x :  number, y : number , direction : { x :  number; y : number}, color : string, radius : number, delta : number) {
 
 		this.#xpos = x
 		this.#ypos = y
@@ -29,10 +29,11 @@ export default class Ball {
 		this.color =  color
 		this.radius = radius
 		this.speed = 1
+		this.delta = delta
 		this.#centerpos = { x : this.#xpos, y : this.#ypos }
 		this.isPlaying = true
-		this.#nextpos = { x : this.#centerpos.x + this.direction.x * (this.speed), 
-			y : this.#centerpos.y + this.direction.x * (this.speed)}
+		this.#nextpos = { x : this.#centerpos.x + this.direction.x * (this.speed) * this.delta, 
+			y : this.#centerpos.y + this.direction.x * (this.speed) * this.delta}
 		this.mainCanvas = maincanvas
 		this.reset()
 	}
@@ -56,7 +57,7 @@ export default class Ball {
 	{
 		this.#xpos = value
 		this.#centerpos.x = value
-		this.#nextpos.x = this.#centerpos.x + this.direction.x * (this.speed)
+		this.#nextpos.x = this.#centerpos.x + this.direction.x * (this.speed) * this.delta
 	}
 
 	setypos(value : number)
@@ -78,9 +79,9 @@ export default class Ball {
 		this.speed = INITIAL_direction
 	}
 
-	update(delta : any, playerPos : any, computerPos : any) {
-		this.setxpos(this.#xpos + this.direction.x * this.speed * delta)
-		this.setypos(this.#ypos + this.direction.y * this.speed * delta)
+	update(playerPos : any, computerPos : any) {
+		this.setxpos(this.#xpos + this.direction.x * this.speed * this.delta)
+		this.setypos(this.#ypos + this.direction.y * this.speed * this.delta)
 		this.speed += direction_INCREASE
 		
 		if (this.#ypos + this.radius > this.mainCanvas.height || this.#ypos - this.radius < 0) {

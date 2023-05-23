@@ -30,14 +30,14 @@ export default class gameInstance {
 		this.player2Socket = player2
 		this.window = window
 		this.canvas = canvas
-		this.delta = 3
+		this.delta = 15
 		this.score.p1 = 0
 		this.score.p2 = 0
 	}
 	
 	gameLoop()
 	{
-		this.ball.update(this.delta, this.paddleLeft.getPaddlePos(), this.paddleRight.getPaddlePos())
+		this.ball.update(this.paddleLeft.getPaddlePos(), this.paddleRight.getPaddlePos())
 		if (this.isLose())
 		{
 			this.handleLose()
@@ -85,14 +85,11 @@ export default class gameInstance {
 	startGame() 
 	{
 		//Lancement de la partie en dehors de la loop
-		this.ball = new Ball(this.canvas, 100, 100, {x: 10 , y: 10}, "red", 15)
+		this.ball = new Ball(this.canvas, 100, 100, {x: 10 , y: 10}, "red", 10, this.delta)
 		this.paddleLeft = new Paddle(this.canvas, "white", 5, true)
-		this.paddleRight = new Paddle(this.canvas, "white", this.canvas.width - 5, true)
-		console.log(this.paddleRight.getXpos(), this.canvas.width)
+		this.paddleRight = new Paddle(this.canvas, "white", this.canvas.width - 5, false)
 		this.score.p1 = 0
 		this.score.p2 = 0
-		console.log("Left Paddle pos :", this.paddleLeft.getXpos(), this.paddleLeft.getYpos())
-		console.log("Right Paddle pos :", this.paddleRight.getXpos(), this.paddleRight.getYpos())
 
 
 		//Lancement de la loop et déplacement balles et paddle
@@ -104,7 +101,6 @@ export default class gameInstance {
 
 	updatePaddlePos(player : Socket, paddlePos : number)
 	{
-		console.log("updating paddle pos")
 		if (player.id === this.player1Socket.id)
 		{
 			this.paddleLeft.setYpos(paddlePos)
