@@ -11,16 +11,16 @@ import { MessageEntity } from "./message.entity";
 @Entity ()
 export class InviteEntity
 {
-    @PrimaryColumn ({type: "int", name: "fromUserId"})
-    @ManyToOne (() => UserEntity, (user) => user.id, {eager: true})
+    @PrimaryGeneratedColumn ("uuid")
+    id: string;
+
+    @ManyToOne (() => UserEntity, {eager: true})
     fromUser: UserEntity;
 
-    @PrimaryColumn ({type: "int", name: "toUserId"})
-    @ManyToOne (() => UserEntity, (user) => user.id, {eager: true})
+    @ManyToOne (() => UserEntity, {eager: true})
     toUser: UserEntity;
 
-    @PrimaryColumn ({type: "int", name: "channelId"})
-    @ManyToOne (() => ChannelEntity, (chan) => chan.id, {eager: true})
+    @ManyToOne (() => ChannelEntity, {eager: true})
     channel: ChannelEntity;
 
     @CreateDateColumn ()
@@ -28,6 +28,9 @@ export class InviteEntity
 
     @Column ()
     expirationDate: Date;
+
+    @Column ()
+    accepted: boolean;
 
     @OneToOne (() => MessageEntity, (msg) => msg.invite)
     message: MessageEntity;
