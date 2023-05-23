@@ -163,6 +163,11 @@ export class UsersService
             await this.usersRepository.save (it);   // @Speed: use update if possible
     }
 
+    async saveUser (user: UserEntity)
+    {
+        await this.usersRepository.save (user);
+    }
+
     // Returns the user entity that satisfies the params, null if it does not exist
     async findFriendRequest (params: any): Promise<FriendRequestEntity>
     {

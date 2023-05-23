@@ -9,7 +9,7 @@ import { UsersService } from "src/users/users.service";
 import { UserEntity } from "src/users/entities/user.entity";
 
 @Injectable ()
-export class ChannelService
+export class ChannelsService
 {
     constructor (
         @InjectRepository (ChannelEntity)
@@ -64,7 +64,7 @@ export class ChannelService
         if (!channel)
             throw new Error ("Channel " + channelId + " does not exist");
 
-        const adminIdx = channel.administrators.findIndex ((val: UserEntity) => val.id == userId);
+        const adminIdx = channel.administrators.findIndex ((val) => val.id == userId);
         if (adminIdx == -1)
             throw new Error ("User " + userId + " is not an administrator");
 
@@ -109,11 +109,11 @@ export class ChannelService
         {
             for (const otherId of params.usersToAdmin)
             {
-                const indexInJoinedUsers = channel.users.findIndex ((val: UserEntity) => val.id == otherId);
+                const indexInJoinedUsers = channel.users.findIndex ((val) => val.id == otherId);
                 if (indexInJoinedUsers != -1)
                     throw new Error ("User " + otherId + " is not a member of channel " + channel.id);
 
-                const index = channel.administrators.findIndex ((val: UserEntity) => val.id == otherId);
+                const index = channel.administrators.findIndex ((val) => val.id == otherId);
                 if (index != -1)
                     throw new Error ("User " + otherId + " is already an admin of channel " + channel.id);
 
@@ -140,7 +140,7 @@ export class ChannelService
                 if (otherId == channel.owner.id)
                     throw new Error ("Cannot unadmin channel owner");
 
-                const index = channel.administrators.findIndex ((val: UserEntity) => val.id == otherId);
+                const index = channel.administrators.findIndex ((val) => val.id == otherId);
                 if (index == -1)
                     throw new Error ("User " + otherId + " is not an admin of channel " + channel.id);
 
@@ -162,7 +162,7 @@ export class ChannelService
                 if (!user)
                     throw new Error ("User " + otherId + " does not exist");
 
-                const indexInBanned = channel.bannedUsers.findIndex ((val: UserEntity) => val.id == otherId);
+                const indexInBanned = channel.bannedUsers.findIndex ((val) => val.id == otherId);
                 if (indexInBanned != -1)
                     throw new Error ("User " + otherId + " is already banned");
 
@@ -178,7 +178,7 @@ export class ChannelService
                 if (!user)
                     throw new Error ("User " + otherId + " does not exist");
 
-                const index = channel.bannedUsers.findIndex ((val: UserEntity) => val.id == otherId);
+                const index = channel.bannedUsers.findIndex ((val) => val.id == otherId);
                 if (index == -1)
                     throw new Error ("User " + otherId + " is not banned");
 
@@ -214,7 +214,7 @@ export class ChannelService
                 if (!channel.hasUser (otherId))
                     throw new Error ("User " + otherId + " is not a member of channel " + channel.id);
 
-                const index = channel.mutedUsers.findIndex ((val: UserEntity) => val.id == otherId);
+                const index = channel.mutedUsers.findIndex ((val) => val.id == otherId);
                 if (index == -1)
                     throw new Error ("User " + otherId + " is not muted");
 
@@ -256,4 +256,127 @@ export class ChannelService
     {
         await this.channelRepository.save (channel);
     }
+
+    async joinChannel (channelId: string, userId: string, password?: string)
+    {
+        const channel = await this.findChannelEntity ({id: channelId}, {users: true});
+        if (!channel)
+            throw new Error ("Channel " + channelId + " does not exist");
+
+        const user = await this.usersService.findUserEntity ({id: userId}, {joinedChannels: true});
+        if (!user)
+            throw new Error ("User " + userId + " does not exist");
+
+        if (channel.hasUser (user))
+            throw new Error ("User " + userId + " is already in channel " + channelId);
+
+        if (channel.isPrivate)
+            throw new Error ("Channel is private, you need to be invited");
+
+        if (!channel.password && password != undefined)
+            throw new Error ("Channel password invalid");
+
+        if (channel.password && channel.password != password)
+            throw new Error ("Channel password invalid");
+
+        channel.users.push (user);
+        this.saveChannel (channel);
+
+        user.joinedChannels.push (channel);
+        this.usersService.saveUser (user);
+    }
+
+    async leaveChannel (channelId: string, userId: string, newOwnerId?: string)
+    {
+        const channel = await this.findChannelEntity ({id: channelId}, {owner: true, users: true, administrators: true});
+        if (!channel)
+            throw new Error ("Channel " + channelId + " does not exist");
+
+        const user = await this.usersService.findUserEntity ({id: userId}, {joinedChannels: true});
+        if (!user)
+            throw new Error ("User " + userId + " does not exist");
+
+        if (channel.owner.id == user.id)
+        {
+            if (newOwnerId == undefined)
+                throw new Error ("Leaving channel as owner without specifying new owner");
+
+            if (!channel.hasUser (newOwnerId))
+                throw new Error ("Specified new owner is not in channel");
+
+            const newOwner = await this.usersService.findUserEntity ({id: newOwnerId});
+            if (!newOwner)
+                throw new Error ("User " + newOwnerId + " does not exist");
+
+            if (!channel.isAdmin (newOwnerId))
+                channel.administrators.push (newOwner);
+
+            channel.owner = newOwner;
+        }
+
+        if (!channel.hasUser (userId))
+            throw new Error ("User is not in channel");
+
+        const userIndex = channel.users.findIndex ((val) => val.id == userId);
+        delete channel.users[userIndex];
+
+        const channelIndex = user.joinedChannels.findIndex ((val) => val.id == channelId);
+        delete user.joinedChannels[channelIndex];
+
+        this.saveChannel (channel);
+        this.usersService.saveUser (user);
+    }
+
+    /*
+    async findInviteEntity (params: any, relations: FindOptionsRelations<InviteEntity> = {}): Promise<InviteEntity>
+    {
+        return await this.inviteRepository.findOne ({where: params, relations: relations});
+    }
+
+    async inviteToChannel (fromUserId: string, toUserId: string, channelId: string)
+    {
+        const channel = await this.findChannelEntity ({id: channelId});
+        if (!channel)
+            throw new Error ("Channel " + channelId + " does not exist");
+
+        const fromUser = await this.usersService.findUserEntity ({id: fromUserId});
+        if (!fromUser)
+            throw new Error ("User " + fromUserId + " does not exist");
+
+        const toUser = await this.usersService.findUserEntity ({id: toUserId});
+        if (!toUser)
+            throw new Error ("User " + toUserId + " does not exist");
+
+        let invite = await this.findInviteEntity ({fromUser: fromUser, toUser: toUser, channel: channel});
+        if (invite)
+        {
+            invite.accepted = false;
+            invite.expirationDate = new Date (Date.now () + 48 * 60 * 60 * 1000);   // Expiration date is 48h from now
+        }
+    }
+
+    async acceptInvite (inviteId: string, userId: string)
+    {
+        const invite = await this.findInviteEntity (
+            {fromUser: fromUserId, toUser: toUserId, channel: channelId},
+            {toUser: {joinedChannels: true}, channel: {users: true}}
+        );
+
+        if (!invite)
+            throw new Error ("Invite does not exist");
+
+        if (invite.accepted)
+            throw new Error ("Invite has already been accepted");
+
+        if (new Date () > invite.expirationDate)
+            throw new Error ("Invite has expired");
+
+        invite.accepted = true;
+        invite.channel.users.push (invite.toUser);
+        await this.saveChannel (invite.channel);
+
+        invite.toUser.joinedChannels.push (invite.channel);
+        await this.usersService.saveUser (invite.toUser);
+    }
+    */
 }

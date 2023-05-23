@@ -6,7 +6,7 @@ import { ChannelEntity } from "./entities/channel.entity";
 import { PrivateConversationEntity } from "./entities/private_conversation.entity";
 import { MessageEntity } from "./entities/message.entity";
 import { InviteEntity } from "./entities/invite.entity";
-import { ChannelService } from "./channel.service";
+import { ChannelsService } from "./channels.service";
 import { ChannelsController } from "./channels.controller";
 import { MessageService } from "./message.service";
 import { UsersModule } from "src/users/users.module";
@@ -20,6 +20,6 @@ import { UsersModule } from "src/users/users.module";
         ]),
     ],
     controllers: [ChannelsController],
-    providers: [ChatGateway, ChannelService, MessageService],
+    providers: [ChatGateway, ChannelsService, MessageService],
 })
 export class ChatModule {}

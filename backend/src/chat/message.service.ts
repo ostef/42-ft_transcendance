@@ -5,7 +5,7 @@ import { FindOptionsRelations, Repository } from "typeorm";
 import { ChannelEntity } from "./entities/channel.entity";
 import { InviteEntity } from "./entities/invite.entity";
 import { CreateChannelDto, UpdateChannelDto } from "./entities/channel.dto";
-import { ChannelService } from "./channel.service";
+import { ChannelsService } from "./channels.service";
 
 import { UsersService } from "src/users/users.service";
 import { UserEntity } from "src/users/entities/user.entity";
@@ -23,7 +23,7 @@ export class MessageService
         private privConvRepository: Repository<PrivateConversationEntity>,
 
         private usersService: UsersService,
-        private channelService: ChannelService,
+        private channelService: ChannelsService,
     ) {}
 
     async findOrCreatePrivConversation (first: UserEntity, second: UserEntity): Promise<PrivateConversationEntity>

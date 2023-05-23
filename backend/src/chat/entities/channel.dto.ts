@@ -20,6 +20,7 @@ export class UpdateChannelDto extends
 {
     @IsNotEmpty ()
     id: string;
+
     usersToAdmin?: string[];
     usersToUnadmin?: string[];
     usersToBan?: string[];
@@ -29,10 +30,10 @@ export class UpdateChannelDto extends
     usersToKick?: string[];
 }
 
-export class InviteDto
+export class LeaveChannelDto
 {
     @IsNotEmpty ()
-    toUser: string;
+    newOwnerId?: string;
 }
 
 export class MessageDto

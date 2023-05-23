@@ -5,8 +5,8 @@ import {
     Request,
 } from "@nestjs/common";
 
-import { ChannelService } from "./channel.service";
-import { CreateChannelDto, InviteDto, MessageDto } from "./entities/channel.dto";
+import { ChannelsService } from "./channels.service";
+import { CreateChannelDto, LeaveChannelDto, MessageDto } from "./entities/channel.dto";
 import { MessageService } from "./message.service";
 import { JwtAuthGuard } from "src/auth/jwt_auth.guard";
 
@@ -32,7 +32,7 @@ export class ChannelsController
     private logger: Logger = new Logger ("ChannelsController");
 
     constructor (
-        private channelService: ChannelService,
+        private channelService: ChannelsService,
         private msgService: MessageService,
     ) {}
 
@@ -90,15 +90,31 @@ export class ChannelsController
         }
     }
 
-    @Put (":id/join")
-    async joinChannel (@Param ("id") id: string, @Body () body : any)
+    @Post (":id/join")
+    async joinChannel (@Request () req, @Param ("id") id: string, @Body () body : any)
     {
-
+        try
+        {
+            await this.channelService.joinChannel (id, req.user.id, body.password);
+        }
+        catch (err)
+        {
+            this.logger.error (err);
+            throw new BadRequestException (err.message);
+        }
     }
 
-    @Post (":id/invite")
-    async inviteToChannel (@Param ("id") id: string, @Body () body : InviteDto)
+    @Post (":id/leave")
+    async leaveChannel (@Request () req, @Param ("id") id: string, @Body () body: LeaveChannelDto)
     {
-
+        try
+        {
+            await this.channelService.leaveChannel (id, req.user.id, body.newOwnerId);
+        }
+        catch (err)
+        {
+            this.logger.error (err);
+            throw new BadRequestException (err.message);
+        }
     }
 }
