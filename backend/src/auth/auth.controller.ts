@@ -1,8 +1,13 @@
 import { Controller, Logger, Post, Body, HttpStatus, Response, SetMetadata } from "@nestjs/common";
+import { IsNotEmpty } from "class-validator";
 import { AuthService } from "./auth.service";
 
-type LoginData = {
+class LoginData
+{
+    @IsNotEmpty ()
     username: string;
+
+    @IsNotEmpty ()
     password: string;
 }
 
