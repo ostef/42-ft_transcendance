@@ -20,7 +20,7 @@ export default class Paddle {
 	#frontSegment : Segment
 	player : boolean
 
-	constructor(canvas : {width : number, height : number}, color : string, xpos : number, player : boolean) {
+	constructor(canvas : {width : number, height : number}, color : string, xpos : number, player : boolean, difficulty : number) {
 		//True is left, False is right
 		this.player = player
 		this.#xpos = xpos
@@ -28,7 +28,7 @@ export default class Paddle {
 		this.#ypos = 0
 		this.canvasAbsoluteStart = 20 / 100
 		this.mainCanvas = canvas
-		this.#height = this.mainCanvas.height / 7
+		this.#height = this.setDifficulty(difficulty) // this.mainCanvas.height / 7 
 		this.#width = 10
 		this.#frontSegment = { A : {x : 0, y : 0}, B : {x : 0, y : 0} }
 		this.#paddlePos = { height : this.#height, width : this.#width, 
@@ -73,6 +73,23 @@ export default class Paddle {
 	{
 		return(this.#width)
 	}
+	
+	setDifficulty(difficulty : number) : number
+	{
+		if (difficulty === 1)
+		{
+			return (this.mainCanvas.height / 7)
+		}
+		if (difficulty === 2)
+		{
+			return (this.mainCanvas.height / 9)
+		}
+		if (difficulty === 3)
+		{
+			return (this.mainCanvas.height / 11)
+		}
+		return (0)
+	}
 
 	setXpos(value : number)
 	{
@@ -98,7 +115,7 @@ export default class Paddle {
 		this.#paddlePos.centerPos.y = value
 
 		this.#frontSegment.A.y = this.#ypos - this.#height / 2
-		this.#frontSegment.B.y = this.#ypos - this.#height / 2
+		this.#frontSegment.B.y = this.#ypos + this.#height / 2
 		this.#paddlePos.front = this.#frontSegment
 	}
 
@@ -108,7 +125,7 @@ export default class Paddle {
 		this.#paddlePos.height = value
 
 		this.#frontSegment.A.y = this.#ypos - this.#height / 2
-		this.#frontSegment.B.y = this.#ypos - this.#height / 2
+		this.#frontSegment.B.y = this.#ypos + this.#height / 2
 		this.#paddlePos.front = this.#frontSegment
 	}
 

@@ -1,3 +1,4 @@
+import { GameService } from "../game.service"
 import Ball from "./Ball"
 import Paddle from "./Paddle"
 import { Socket } from 'socket.io'
@@ -21,9 +22,12 @@ export default class gameInstance {
 	//Information sur les dimensions du canvas par rapport à la fenetre
 	canvasStart : number
 	delta : number
+	difficulty : number
+	gameService : GameService
+	isReady : boolean
 
 
-	constructor(instanceId : number, player1 : Socket, player2 : Socket, canvas : {width : number, height : number}, window : {width : number, height : number})
+	constructor(instanceId : number, player1 : Socket, player2 : Socket, canvas : {width : number, height : number}, window : {width : number, height : number}, gameService : GameService)
 	{
 		this.instanceId = instanceId
 		this.player1Socket = player1
@@ -33,6 +37,27 @@ export default class gameInstance {
 		this.delta = 15
 		this.score.p1 = 0
 		this.score.p2 = 0
+		this.difficulty = 1
+		this.gameService = gameService
+		this.isReady = false
+	}
+
+	waitForDifficulty()
+	{
+	}
+
+	createGame()
+	{
+		console.log("emitting difficulty event")
+		this.player1Socket.emit("chooseDifficulty", this.instanceId)
+		this.timerId = setInterval(this.waitForDifficulty.bind(this), 50)
+	}
+
+	addDifficulty(data : number)
+	{
+		clearInterval(this.timerId)
+		this.difficulty = data
+		console.log("Added the difficulty")
 	}
 	
 	gameLoop()
@@ -41,6 +66,10 @@ export default class gameInstance {
 		if (this.isLose())
 		{
 			this.handleLose()
+		}
+		if (this.score.p1 >= 10 || this.score.p2 >= 10)
+		{
+			this.handleWin()
 		}
 		this.player1Socket.emit('ballUpdate', this.ball.getcenterpos())
 		this.player1Socket.emit('ownPaddle', this.paddleLeft.getPaddlePos())
@@ -82,12 +111,28 @@ export default class gameInstance {
 		this.paddleRight.reset()
 	}
 
+	handleWin()
+	{
+		if (this.score.p1 >= 10)
+		{
+			this.player1Socket.emit("winGame")
+			this.player2Socket.emit("looseGame")
+			this.stopGame()
+		}
+		if (this.score.p2 >= 10)
+		{
+			this.player2Socket.emit("winGame")
+			this.player1Socket.emit("looseGame")
+			this.stopGame()
+		}
+	}
+
 	startGame() 
 	{
 		//Lancement de la partie en dehors de la loop
 		this.ball = new Ball(this.canvas, 100, 100, {x: 10 , y: 10}, "red", 10, this.delta)
-		this.paddleLeft = new Paddle(this.canvas, "white", 5, true)
-		this.paddleRight = new Paddle(this.canvas, "white", this.canvas.width - 5, false)
+		this.paddleLeft = new Paddle(this.canvas, "white", 5, true, this.difficulty)
+		this.paddleRight = new Paddle(this.canvas, "white", this.canvas.width - 5, false, this.difficulty)
 		this.score.p1 = 0
 		this.score.p2 = 0
 
@@ -114,5 +159,6 @@ export default class gameInstance {
 	stopGame()
 	{
 		clearInterval(this.timerId)
+		this.gameService.stopGame(this.instanceId)
 	}
 }

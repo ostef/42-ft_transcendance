@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Socket } from 'socket.io';
 
 import Game from "./script/Game"
+import { read } from 'fs';
 
 @Injectable()
 export class GameService {
@@ -15,6 +16,8 @@ export class GameService {
 	//on peut lancer une game a deux, sinon il est ajouté à la wairoom
 	waitRoom : Socket[] = []
 	gamesRoom : Game[] = []
+	gamesWaitingRoom : Game[] = []
+	gamesCreateRoom : Game[] = []
 
 
 
@@ -38,26 +41,112 @@ export class GameService {
 		})
 	}
 
-	findGame(client : Socket, data : any) : {player2 : Socket | null, instanceId : number}
+	createGame(client : Socket, data : any)
 	{
-		console.log("trying to find a game for ", client.id)
 		if (this.waitRoom.length >= 1)
 		{
-			//Todo create a game with two players
-			//Player 1 is left bar 
-			//Player 2 is right bar
-			let newGame : Game = new Game(this.gamesRoom.length, client, this.waitRoom.pop(), data.canvas, data.window)
+			let newGame : Game = new Game(this.gamesRoom.length, client, this.waitRoom.pop() , data.canvas, data.window, this)
 			console.log("new game id : ", newGame.instanceId)
-			this.gamesRoom.push(newGame)
-			newGame.startGame()
-			//Return le deuxième joueur au gateway pour pouvoir le prévenir
-			return ({player2 : newGame.player2Socket, instanceId : newGame.instanceId})
+			newGame.createGame()
+			newGame.isReady = true
+			this.gamesCreateRoom.push(newGame)
+			return
 		}
 		else
 		{
-			//Si moins de 2 joueurs on l'ajoute a la waitroom
-			this.addPlayerToWaitRoom(client)
-			return ({player2 : null, instanceId : -1})
+			console.log("empty newgame")
+			let newGame : Game = new Game(this.gamesRoom.length, client, client , data.canvas, data.window, this)
+			console.log("new game id : ", newGame.instanceId)
+			newGame.createGame()
+			newGame.isReady = false
+			this.gamesCreateRoom.push(newGame)
+		}
+	}
+
+	findGame(client : Socket, data : any) : {player1 : Socket | null, instanceId : number, difficulty : number}
+	{
+		console.log("trying to find a game for ", client.id)
+		if (this.gamesWaitingRoom.length >= 1)
+		{
+			//Player 1 is left bar 
+			//Player 2 is right bar
+			let newGame = this.gamesWaitingRoom.shift()
+			this.gamesRoom.push(newGame)
+			newGame.player2Socket = client
+			newGame.startGame()
+			//Return le deuxième joueur au gateway pour pouvoir le prévenir
+			return ({player1 : newGame.player1Socket, instanceId : newGame.instanceId, difficulty : newGame.difficulty})
+		}
+		else if (this.waitRoom.length >= 1)
+		{
+			//Si il y a un autre joueur en attente on créé une game par défault
+			let client2 = this.waitRoom.pop()
+
+			this.addWaitingGame(client, client2, data, true)
+			console.log("Created a game with a difficulty")
+			return ({player1 : null, instanceId : -2, difficulty : 0})
+		}
+		else
+		{
+			//Sinon on l'ajoute à la waitroom
+			this.waitRoom.push(client)
+			console.log("adding player to waitroom")
+			return ({player1 : null, instanceId : -1, difficulty : 0})
+
+		}
+	}
+
+	addWaitingGame(client : Socket, client2 : Socket, data : any, ready : boolean)
+	{
+		let newGame : Game = new Game(this.gamesRoom.length, client, client2 , data.canvas, data.window, this)
+		console.log("new game id : ", newGame.instanceId)
+		if (ready === true)
+		{
+			newGame.isReady = true
+		}
+		newGame.createGame()
+		this.gamesCreateRoom.push(newGame)
+	}
+
+	addDifficulty(client : Socket, data : any)
+	{
+		console.log("adding diffuclty")
+		let currentInstance = null
+		for (let game of this.gamesCreateRoom)
+		{
+			if (game.instanceId == data.gameId)
+			{
+				currentInstance = game
+				break
+			}
+		}
+		currentInstance.addDifficulty(data.difficulty)
+		this.redirectGame(currentInstance)
+		//this.gamesWaitingRoom.push(currentInstance)
+	}
+
+	redirectGame(currentGame : Game)
+	{
+		if (currentGame.isReady === false)
+		{
+			console.log("adding diffuclty")
+			this.gamesWaitingRoom.push(currentGame)
+			let index = this.gamesCreateRoom.findIndex(game => {
+				game.instanceId == currentGame.instanceId
+			})
+			this.gamesCreateRoom.splice(index, 1)
+		}
+		else
+		{
+			this.gamesRoom.push(currentGame)
+			let index = this.gamesCreateRoom.findIndex(game => {
+				game.instanceId == currentGame.instanceId
+			})
+			this.gamesCreateRoom.splice(index, 1)
+			currentGame.startGame()
+			currentGame.player1Socket.emit("foundGame", "left", currentGame.instanceId, currentGame.difficulty)
+			currentGame.player2Socket.emit("foundGame", "right", currentGame.instanceId, currentGame.difficulty)
+			
 		}
 	}
 
@@ -73,5 +162,14 @@ export class GameService {
 			}
 		}
 		currentInstance.updatePaddlePos(client, paddlePos)
+	}
+
+	stopGame(gameId : number)
+	{
+		let index = this.gamesRoom.findIndex((game) => {
+			game.instanceId == gameId
+		})
+		console.log(index)
+		this.gamesRoom.splice(index, 1)
 	}
 }
