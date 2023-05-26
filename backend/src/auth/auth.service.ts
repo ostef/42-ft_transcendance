@@ -30,10 +30,10 @@ export class AuthService
     {
         const user = await this.usersService.findUserEntity ({username: username});
         if (!user)
-            throw new UnauthorizedException ();
+            throw new UnauthorizedException ("Invalid username");
 
         if (user.password != password)
-            throw new UnauthorizedException ();
+            throw new UnauthorizedException ("Invalid password");
 
         const payload: JwtPayload = { userId: user.id };
 
