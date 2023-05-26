@@ -1,17 +1,23 @@
 import {
-    Controller, Logger,
-    Get, Post, Put, Body, Param, Delete,
-    BadRequestException, NotFoundException,
-    Response, Request,
-    HttpStatus,
+    BadRequestException,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Logger,
+    NotFoundException,
+    Param,
+    Post, Put,
+    Request,
+    SetMetadata,
+
+    Injectable, NestInterceptor, ExecutionContext, CallHandler, UseInterceptors
 } from "@nestjs/common";
 
 import { UsersService } from "./users.service";
 
 import { CreateUserDto, UpdateUserDto, UserDto } from "./entities/user.dto";
 import { UserEntity } from "./entities/user.entity";
-
-import { ReceivedFriendRequestDto, SentFriendRequestDto } from "./entities/friend_request.dto";
 
 @Controller ("users")
 export class UsersController
@@ -34,6 +40,7 @@ export class UsersController
         return result as UserDto;
     }
 
+    @SetMetadata ("isPublic", true)
     @Post ()
     async createUser (@Body () body: CreateUserDto): Promise<string>
     {
