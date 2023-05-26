@@ -9,19 +9,19 @@ export type JwtPayload = {
     userId: string;
 };
 
+export const extractJwt = (req) => {
+    let token = null;
+    if (req && req.cookies)
+        token = req.cookies["access_token"];
+
+    return token || ExtractJwt.fromAuthHeaderAsBearerToken () (req);
+};
+
 @Injectable ()
 export class JwtStrategy extends PassportStrategy (Strategy, "jwtt")
 {
     constructor (private readonly authService: AuthService)
     {
-        const extractJwt = (req) => {
-            let token = null;
-            if (req && req.cookies)
-                token = req.cookies["access_token"];
-
-            return token || ExtractJwt.fromAuthHeaderAsBearerToken () (req);
-        };
-
         super ({
             jwtFromRequest: extractJwt,
             ignoreExpiration: false,
