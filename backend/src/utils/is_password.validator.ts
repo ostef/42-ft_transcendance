@@ -17,6 +17,9 @@ export class IsPasswordConstraint implements ValidatorConstraintInterface
 {
     validate (value: string, args: ValidationArguments): boolean
     {
+        if (value == undefined)
+            return false;
+
         if (value.length < 8)
             return false;
 

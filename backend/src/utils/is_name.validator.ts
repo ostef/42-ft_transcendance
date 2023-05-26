@@ -17,6 +17,9 @@ export class IsNameConstraint implements ValidatorConstraintInterface
 {
     validate (value: string, args: ValidationArguments): boolean
     {
+        if (value == undefined)
+            return false;
+
         if (value.length < 1)
             return false;
         if (value.length > 100)
