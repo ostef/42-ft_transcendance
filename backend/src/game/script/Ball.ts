@@ -56,7 +56,7 @@ export default class Ball {
 	{
 		this.#xpos = value
 		this.#centerpos.x = value
-		this.#nextpos.x = this.#centerpos.x + this.direction.x * (this.speed)
+		this.#nextpos.x = this.#centerpos.x + this.direction.x * (this.speed) * this.delta
 	}
 
 	setypos(value : number)
