@@ -3,7 +3,8 @@
     <div class="leftbar"></div>
     <div class="rightbar"></div>
     <div class="navbar"></div>
-	<button class="startGame" @click="searchGame()"></button>
+	<button class="searchGame" @click="searchGame()">Search Game</button>
+	<button class="createGame" @click="createGame()">Create Game</button>
     <div class="score">
         <div id="player1-score">0</div>
         <div id="player2-score">0</div>
@@ -49,7 +50,8 @@ export default {
 			waiting : false as boolean,
 			isPlaying : false as boolean,
 			intervalId : {} as ReturnType<typeof setInterval>,
-			delta : 16
+			delta : 15,
+			difficulty : 1 as number
         }
     },
     created () {
@@ -68,11 +70,23 @@ export default {
 
 		//Events to join waiting room or games
 		this.socket.on("waitingMessage", data => {
-			this.launchWaitRoom()
+			//this.launchWaitRoom()
 		})
-		this.socket.on("foundGame", (playerPos, gameId) => {
+		this.socket.on("foundGame", (playerPos, gameId, difficulty) => {
 			console.log("Found a game with game id : ", gameId)
-			this.joinGame(playerPos, gameId)
+			if (playerPos === "right")
+			{
+				if (this.canvas)
+				{
+					this.paddleLeft = new Paddle("canvas", "white", 5, true, difficulty)
+					this.paddleRight = new Paddle("canvas", "white", this.canvas.width - 5, false, difficulty)
+				}
+			}
+			this.joinGame(playerPos, gameId, difficulty)
+		})
+		this.socket.on("chooseDifficulty", (gameId) => {
+			console.log("choosing a difficulty")
+			this.chooseDifficulty(gameId)
 		})
 
 
@@ -93,6 +107,16 @@ export default {
 			this.updateScore(data)
 		})
         
+
+		//Game events for the end of the game
+		this.socket.on("winGame", data => {
+			console.log("Won the game")
+			this.handleWin()
+		})
+		this.socket.on("looseGame", data => {
+			console.log("Lost the game")
+			this.handleLoose()
+		})
     },
 
 	mounted() {
@@ -100,13 +124,12 @@ export default {
 		this.canvas = document.querySelector("canvas")
 		if (this.canvas)
 		{
+			console.log("mounted")
 			this.context = this.canvas.getContext("2d")
 			this.canvas.height = window.innerHeight * this.canvasAbsoluteSize
 			this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
 
-			this.ball = new Ball("canvas", 100, 100, {x: 10 , y: 10}, "red", 15)
-			this.paddleLeft = new Paddle("canvas", "white", 5, true)
-			this.paddleRight = new Paddle("canvas", "white", this.canvas.width - 5, false)
+			this.ball = new Ball("canvas", 100, 100, {x: 10 , y: 10}, "red", 10, this.delta)
 			this.leftScore = document.getElementById("player1-score")
 			this.rightScore = document.getElementById("player2-score")
 		}
@@ -149,11 +172,8 @@ export default {
 		//Event pour waiting room et game
 		launchWaitRoom() {
 			this.waiting = true
-
-			//Todo waitroom avec des set interval ?
-			console.log(this.intervalId)
+			//Todo est-ce que c'est toujours utile ?
 			this.intervalId = setInterval(this.waitRoom.bind(this), 1000)
-			console.log(this.intervalId)
 		},
 
 		waitRoom()
@@ -166,46 +186,76 @@ export default {
 			console.log("Window : ", window.innerWidth, window.innerHeight)
 			this.socket.emit("searchGame", {canvas : {width : this.canvas?.width, height : this.canvas?.height}, window  : { width : window.innerWidth, height : window.innerHeight} })
 		},
+
+		createGame()
+		{
+			console.log("creating a Game")
+			this.socket.emit("createGame", {canvas : {width : this.canvas?.width, height : this.canvas?.height}, window  : { width : window.innerWidth, height : window.innerHeight} })
+		},
+
+		chooseDifficulty(gameId : number)
+		{
+			this.gameId = gameId
+			//Todo Doit attendre une difficulty du joueur et créer les paddle en fonction
+			//et emit au serveur
+			if (this.canvas)
+			{
+				this.paddleLeft = new Paddle("canvas", "white", 5, true, 1)
+				this.paddleRight = new Paddle("canvas", "white", this.canvas.width - 5, false, 1)
+			}
+			this.socket.emit("difficultyChoice", {gameId : this.gameId, difficulty : 1})
+		},
 		
-		joinGame(playerPos : string, gameId : number) {
+		joinGame(playerPos : string, gameId : number, difficulty : number) {
 			console.log("joined a game")
 			this.ownPaddle = playerPos
 			this.gameId = gameId
 			clearInterval(this.intervalId)
 			this.waiting = false
 			this.isPlaying = true
+			this.difficulty = difficulty
 		},
 
 		//Event pour le déroulement de la partie
 		updateBall( ballCenter : Point ) {
-			this.ball.setxpos(ballCenter.x)
-			this.ball.setypos(ballCenter.y)
+			if (this.isPlaying)
+			{
+				this.ball.setxpos(ballCenter.x)
+				this.ball.setypos(ballCenter.y)
+			}
 		},
 
-		updateOwnPadle(ownPaddle : PaddlePos) {
-			if (this.ownPaddle === "left")
+		updateOwnPadle(ownPaddle : PaddlePos) 
+		{
+			if (this.isPlaying)
 			{
-				this.paddleLeft.setXpos(ownPaddle.centerPos.x)
-				this.paddleLeft.setYpos(ownPaddle.centerPos.y)
-			}
-			else if (this.ownPaddle === "right")
-			{
-				this.paddleRight.setXpos(ownPaddle.centerPos.x)
-				this.paddleRight.setYpos(ownPaddle.centerPos.y)
-			}
+				if (this.ownPaddle === "left")
+				{
+					this.paddleLeft.setXpos(ownPaddle.centerPos.x)
+					this.paddleLeft.setYpos(ownPaddle.centerPos.y)
+				}
+				else if (this.ownPaddle === "right")
+				{
+					this.paddleRight.setXpos(ownPaddle.centerPos.x)
+					this.paddleRight.setYpos(ownPaddle.centerPos.y)
+				}
+			}	
 		},
 
 		updateOtherPaddle(otherPaddle : PaddlePos)
 		{
-			if (this.ownPaddle === "right")
+			if (this.isPlaying)
 			{
-				this.paddleLeft.setXpos(otherPaddle.centerPos.x)
-				this.paddleLeft.setYpos(otherPaddle.centerPos.y)
-			}
-			else if (this.ownPaddle === "left")
-			{
-				this.paddleRight.setXpos(otherPaddle.centerPos.x)
-				this.paddleRight.setYpos(otherPaddle.centerPos.y)
+				if (this.ownPaddle === "right")
+				{
+					this.paddleLeft.setXpos(otherPaddle.centerPos.x)
+					this.paddleLeft.setYpos(otherPaddle.centerPos.y)
+				}
+				else if (this.ownPaddle === "left")
+				{
+					this.paddleRight.setXpos(otherPaddle.centerPos.x)
+					this.paddleRight.setYpos(otherPaddle.centerPos.y)
+				}
 			}
 		},
 
@@ -218,11 +268,14 @@ export default {
 
 		drawFrame()
 		{
-			if (this.canvas)
-				this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
-			this.ball.draw()
-			this.paddleLeft.draw(0)
-			this.paddleRight.draw(0)
+			if (this.isPlaying)
+			{
+				if (this.canvas)
+					this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
+				this.ball.draw()
+				this.paddleLeft.draw(0)
+				this.paddleRight.draw(0)
+			}
 		},
 
 		drawNextFrame()
@@ -231,13 +284,33 @@ export default {
 			{
 				if (this.canvas)
 					this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
-				this.ball.update(this.delta, this.paddleLeft.getPaddlePos(), this.paddleRight.getPaddlePos())
+				this.ball.update(this.paddleLeft.getPaddlePos(), this.paddleRight.getPaddlePos())
 				this.ball.draw()
 				this.paddleLeft.draw(0)
 				this.paddleRight.draw(0)
 			}
 			window.requestAnimationFrame(this.drawNextFrame)
-		}
+		},
+
+		handleWin()
+		{
+			//Todo Coder la partie ou la page nous affiche que l'on a gagné
+			this.isPlaying = false
+			if (this.canvas)
+			{
+				this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
+			}
+		},
+
+		handleLoose()
+		{
+			//Todo Coder la partie ou la page nous affiche la défaite
+			this.isPlaying = false
+			if (this.canvas)
+			{
+				this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
+			}
+		},
 	}
 }
 
@@ -291,10 +364,18 @@ top : 0px;
 height: 20%;
 }
 
-.startGame {
+.searchGame {
 	position: absolute;
 	top : 0px;
 	height: 20%;
+	left : 20%
+}
+
+.createGame {
+	position: absolute;
+	top : 0px;
+	height: 20%;
+	left : 70%
 }
 
 .score {

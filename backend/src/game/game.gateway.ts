@@ -49,13 +49,24 @@ export class GameGateway implements OnModuleInit {
 	{
 		client.emit("waitingMessage")
 	}
+	else if (findResult.instanceId === -2)
+	{
+		//do nothing for now
+	}
 	else
 	{
 		//On previent le front qu'une game est lancé
 		//Et on donne la position de la paddle
-		client.emit("foundGame", "left", findResult.instanceId)
-		findResult.player2.emit("foundGame", "right", findResult.instanceId)
+		client.emit("foundGame", "right", findResult.instanceId, findResult.difficulty)
+		findResult.player1.emit("foundGame", "left", findResult.instanceId, findResult.difficulty)
 	}
+   }
+
+   @SubscribeMessage('createGame')
+   onCreateGame(@ConnectedSocket() client : Socket, @MessageBody() data : any)
+   {
+		let createResult = this.gameService.createGame(client, data)
+
    }
 
    @SubscribeMessage('stopWaiting')
@@ -70,4 +81,11 @@ export class GameGateway implements OnModuleInit {
    {
 	    this.gameService.updatePaddlePos(client, data.gameId, data.paddlePos)
    }
+
+   @SubscribeMessage('difficultyChoice')
+   onDifficulty(@ConnectedSocket() client : Socket, @MessageBody() data : any)
+   {
+		this.gameService.addDifficulty(client, data)
+   }   
+
 }

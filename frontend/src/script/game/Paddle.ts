@@ -19,15 +19,15 @@ export default class Paddle {
 	frontSegment : Segment
 	player : boolean
 
-	constructor(canvas : string, color :string, xpos : number, player : boolean) {
+	constructor(canvas : string, color :string, xpos : number, player : boolean, difficulty : number) {
 		//True is left, False is right
 		this.player = player
-		this.xpos = xpos + this.width / 2
+		this.xpos = xpos
 		this.color = color
 		this.ypos = 0
 		this.canvasAbsoluteStart = 20 / 100
 		this.mainCanvas = document.querySelector(canvas)
-		this.height = this.mainCanvas.height / 7
+		this.height = this.setDifficulty(difficulty)
 		this.width = 10
 		this.context = this.mainCanvas.getContext("2d")
 		this.frontSegment = { A : {x : 0, y : 0}, B : {x : 0, y : 0} }
@@ -36,13 +36,13 @@ export default class Paddle {
 		this.setYpos(this.mainCanvas?.height / 2)
 		if (player)
 		{
-			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos, y : this.ypos + this.height / 2}}
+			this.frontSegment = { A : { x : this.xpos + this.width / 2, y : this.ypos - this.height / 2}, 
+			B : {x : this.xpos + this.width / 2, y : this.ypos + this.height / 2}}
 		}
 		else
 		{
-			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos, y : this.ypos + this.height / 2}}
+			this.frontSegment = { A : { x : this.xpos - this.width / 2, y : this.ypos - this.height / 2}, 
+			B : {x : this.xpos - this.width / 2, y : this.ypos + this.height / 2}}
 		}
 		this.paddlePos = { height : this.height, width : this.width, 
 			centerPos : {x : this.xpos, y : this.ypos}, front : this.frontSegment}
@@ -74,58 +74,59 @@ export default class Paddle {
 		return(this.width)
 	}
 
-	setXpos(value : number)
+	setDifficulty(difficulty : number) : number
+	{
+		if (difficulty === 1)
+		{
+			return this.mainCanvas.height / 7
+		}
+		if (difficulty === 2)
+		{
+			return (this.mainCanvas.height / 9)
+		}
+		if (difficulty === 3)
+		{
+			return this.mainCanvas.height / 11
+		}
+		return 0
+	}
+
+	setXpos(value : number) : void
 	{
 		this.xpos = value
 		this.paddlePos.centerPos.x = value
 		if (this.player)
 		{
-			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos, y : this.ypos + this.height / 2}}
+			this.frontSegment.A.x = this.xpos + this.width / 2
+			this.frontSegment.B.x = this.xpos + this.width / 2
 			this.paddlePos.front = this.frontSegment
 		}
 		else
 		{
-			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos, y : this.ypos + this.height / 2}}
+			this.frontSegment.A.x = this.xpos - this.width / 2
+			this.frontSegment.B.x = this.xpos - this.width / 2
 			this.paddlePos.front = this.frontSegment
 		}
 	}
 
-	setYpos(value : number)
+	setYpos(value : number) : void
 	{
 		this.ypos = value
 		this.paddlePos.centerPos.y = value
-		if (this.player)
-		{
-			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos, y : this.ypos + this.height / 2}}
-			this.paddlePos.front = this.frontSegment
-		}
-		else
-		{
-			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos, y : this.ypos + this.height / 2}}
-			this.paddlePos.front = this.frontSegment
-		}
+
+		this.frontSegment.A.y = this.ypos - this.height / 2
+		this.frontSegment.B.y = this.ypos + this.height / 2
+		this.paddlePos.front = this.frontSegment
 	}
 
-	setHeight(value : number)
+	setHeight(value : number): void
 	{
 		this.height = value
 		this.paddlePos.height = value
-		if (this.player)
-		{
-			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos, y : this.ypos + this.height / 2}}
-			this.paddlePos.front = this.frontSegment
-		}
-		else
-		{
-			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos, y : this.ypos + this.height / 2}}
-			this.paddlePos.front = this.frontSegment
-		}
+
+		this.frontSegment.A.y = this.ypos - this.height / 2
+		this.frontSegment.B.y = this.ypos + this.height / 2
+		this.paddlePos.front = this.frontSegment
 	}
 
 	setWidth(value : number)
@@ -134,14 +135,14 @@ export default class Paddle {
 		this.paddlePos.width = value
 		if (this.player)
 		{
-			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos, y : this.ypos + this.height / 2}}
+			this.frontSegment.A.x = this.xpos + this.width / 2
+			this.frontSegment.B.x = this.xpos + this.width / 2
 			this.paddlePos.front = this.frontSegment
 		}
 		else
 		{
-			this.frontSegment = { A : { x : this.xpos, y : this.ypos - this.height / 2}, 
-			B : {x : this.xpos, y : this.ypos + this.height / 2}}
+			this.frontSegment.A.x = this.xpos - this.width / 2
+			this.frontSegment.B.x = this.xpos - this.width / 2
 			this.paddlePos.front = this.frontSegment
 		}
 	}
