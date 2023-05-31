@@ -54,6 +54,9 @@ export class ChannelEntity
 
     hasUser (user: string | UserEntity): boolean
     {
+        if (this.users == undefined)
+            throw new Error ("Channel entity's users relation is not loaded");
+
         if (typeof user == "string")
             return this.users.findIndex ((val: UserEntity) => val.id == user) != -1;
         else
@@ -62,6 +65,9 @@ export class ChannelEntity
 
     isAdmin (user: string | UserEntity): boolean
     {
+        if (this.administrators == undefined)
+            throw new Error ("Channel entity's administrators relation is not loaded");
+
         if (typeof user == "string")
             return this.administrators.findIndex ((val: UserEntity) => val.id == user) != -1;
         else
@@ -70,6 +76,9 @@ export class ChannelEntity
 
     isMuted (user: string | UserEntity): boolean
     {
+        if (this.mutedUsers == undefined)
+            throw new Error ("Channel entity's mutedUsers relation is not loaded");
+
         if (typeof user == "string")
             return this.mutedUsers.findIndex ((val: UserEntity) => val.id == user) != -1;
         else
@@ -78,6 +87,9 @@ export class ChannelEntity
 
     isBanned (user: string | UserEntity): boolean
     {
+        if (this.bannedUsers == undefined)
+            throw new Error ("Channel entity's bannedUsers relation is not loaded");
+
         if (typeof user == "string")
             return this.bannedUsers.findIndex ((val: UserEntity) => val.id == user) != -1;
         else
