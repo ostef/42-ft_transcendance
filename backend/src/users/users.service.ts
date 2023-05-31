@@ -21,20 +21,17 @@ export class UsersService
         private friendRequestsRepository: Repository<FriendRequestEntity>,
     ) {}
 
-    // Returns the id of the user, or null if the user was not found
-    async findUserId (params: any): Promise<string>
-    {
-        const user = await this.usersRepository.findOneBy (params);
-        if (user == null)
-            return null;
-
-        return user.id;
-    }
-
     // Returns the user entity that satisfies the params, null if it does not exist
     async findUserEntity (params: any, relations: FindOptionsRelations<UserEntity> = {}): Promise<UserEntity>
     {
-        return await this.usersRepository.findOne ({where: params, relations: relations});
+        try
+        {
+            return await this.usersRepository.findOne ({where: params, relations: relations});
+        }
+        catch (err)
+        {
+            return null;
+        }
     }
 
     async createUser (params: CreateUserDto): Promise<UserEntity>
