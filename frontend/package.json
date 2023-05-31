@@ -10,10 +10,13 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false"
   },
   "dependencies": {
+    "@iconify/tailwind": "^0.1.2",
+    "@iconify/vue": "^4.1.1",
     "axios": "^1.4.0",
     "daisyui": "^2.52.0",
     "pinia": "^2.0.36",
     "vue": "^3.3.2",
+    "vue-axios": "^3.5.2",
     "vue-router": "^4.2.0"
   },
   "devDependencies": {
