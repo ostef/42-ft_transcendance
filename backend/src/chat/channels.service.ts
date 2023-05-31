@@ -29,7 +29,14 @@ export class ChannelsService
     // Returns the user entity that satisfies the params, null if it does not exist
     async findChannelEntity (params: any, relations: FindOptionsRelations<ChannelEntity> = {}): Promise<ChannelEntity>
     {
-        return await this.channelRepository.findOne ({where: params, relations: relations});
+        try
+        {
+            return await this.channelRepository.findOne ({where: params, relations: relations});
+        }
+        catch (err)
+        {
+            return null;
+        }
     }
 
     async createChannel (userId: string, params: CreateChannelDto)
