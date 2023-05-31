@@ -26,6 +26,11 @@ export class AuthService
         return null;
     }
 
+    getPayloadFromToken (token: string): JwtPayload
+    {
+        return this.jwtService.decode (token) as JwtPayload;
+    }
+
     async login (username: string, password: string)
     {
         const user = await this.usersService.findUserEntity ({username: username});
