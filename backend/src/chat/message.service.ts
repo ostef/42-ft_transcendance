@@ -26,13 +26,19 @@ export class MessageService
         private channelService: ChannelsService,
     ) {}
 
-    async findOrCreatePrivConversation (first: UserEntity, second: UserEntity): Promise<PrivateConversationEntity>
+    async findOrCreatePrivConversation (first: UserEntity, second: UserEntity, relations: FindOptionsRelations<PrivateConversationEntity> = {}): Promise<PrivateConversationEntity>
     {
+        if (relations.firstUser == undefined)
+            relations.firstUser = true;
+
+        if (relations.secondUser == undefined)
+            relations.secondUser = true;
+
         const firstKey = first.id.localeCompare (second.id) < 0 ? first : second;
         const secondKey = first.id.localeCompare (second.id) < 0 ? second : first;
         let conv = await this.privConvRepository.findOne ({
             where: {firstUser: {id: firstKey.id}, secondUser: {id: secondKey.id}},
-            relations: {firstUser: true, secondUser: true, messages: true}
+            relations: relations
         });
 
         if (conv)
@@ -45,11 +51,11 @@ export class MessageService
 
     async sendMessageToUser (senderId: string, userId: string, content: string, invite: InviteEntity = null)
     {
-        const sender = await this.usersService.findUserEntity ({id: senderId});
+        const sender = await this.usersService.findUserEntity ({id: senderId}, {blockedUsers: true});
         if (!sender)
             throw new Error ("User " + senderId + " does not exist");
 
-        const receiver = await this.usersService.findUserEntity ({id: userId});
+        const receiver = await this.usersService.findUserEntity ({id: userId}, {blockedUsers: true});
         if (!receiver)
             throw new Error ("User " + userId + " does not exist");
 
@@ -81,7 +87,7 @@ export class MessageService
         if (!sender)
             throw new Error ("User " + senderId + " does not exist");
 
-        const channel = await this.channelService.findChannelEntity ({id: channelId});
+        const channel = await this.channelService.findChannelEntity ({id: channelId}, {users: true, mutedUsers: true});
         if (!channel)
             throw new Error ("Channel " + channelId + " does not exist");
 
