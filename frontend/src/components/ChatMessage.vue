@@ -1,5 +1,7 @@
 <script setup lang="ts">
 
+import UserAvatar from "./UserAvatar.vue";
+
 defineProps ({
     username: String,
     picture: String,
@@ -12,11 +14,8 @@ defineProps ({
 
 <template>
     <div class="chat m-4" :class="mine ? 'chat-end' : 'chat-start'">
-        <div class="chat-image avatar">
-            <div class="h-12 w-12 rounded-full overflow-hidden">
-                <img :src="picture" />
-                <!-- <iconify-icon icon="ri:account-circle-line" class="h-12 w-12 rounded-full" /> -->
-            </div>
+        <div class="chat-image">
+            <UserAvatar :username="username" :picture="picture" :left="mine" />
         </div>
 
         <div class="chat-header">
