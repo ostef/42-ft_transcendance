@@ -10,7 +10,10 @@
                 <ul tabindex="0" class="menu menu-compact dropdown-content shadow bg-base-100">
                     <li><router-link to="/home">Home</router-link></li>
                     <li><router-link to="/game">Play</router-link></li>
-                    <li><router-link to="/chat">Chat</router-link></li>
+                    <div class="indicator">
+                        <span class="indicator-item badge badge-sm badge-primary"></span>
+                        <li><router-link to="/chat">Chat</router-link></li>
+                    </div>
                 </ul>
             </div>
 
@@ -25,9 +28,12 @@
         horizontally layed out buttons -->
         <div class="navbar-center p-[6px] bg-secondary-200 flex-grow hidden md:flex">
             <ul class="menu menu-horizontal">
-                <li><router-link to="/home" class="h-[60px] border-black border-r-2">Home</router-link></li>
-                <li><router-link to="/game" class="h-[60px] border-black border-r-2">Play</router-link></li>
-                <li><router-link to="/chat" class="h-[60px] border-black border-r-2">Chat</router-link></li>
+                <li><router-link to="/home" class="h-[50px]">Home</router-link></li>
+                <li><router-link to="/game" class="h-[50px]">Play</router-link></li>
+                <div class="indicator">
+                    <span class="indicator-item badge badge-sm badge-primary"></span>
+                    <li><router-link to="/chat" class="h-[50px]">Chat</router-link></li>
+                </div>
             </ul>
         </div>
 
@@ -38,11 +44,14 @@
                 </label>
                 <ul tabindex="0" class="menu menu-compact dropdown-content shadow bg-base-100">
                     <li><router-link to="/profile">Profile</router-link></li>
-                    <li><router-link to="/profile/friends">Friends</router-link></li>
+                    <div class="indicator">
+                        <span class="indicator-item badge badge-sm badge-primary"></span>
+                        <li><router-link to="/profile/friends">Friends</router-link></li>
+                    </div>
                     <li><router-link to="/">Logout</router-link></li>
                 </ul>
             </div>
-            <div>
+            <div class="avatar">
                 <iconify-icon icon="ri:account-circle-line" class="h-[60px] w-12" />
             </div>
         </div>
