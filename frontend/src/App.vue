@@ -7,7 +7,9 @@ import { RouterView } from "vue-router";
 </script>
 
 <template>
-    <Header />
+    <div class="h-screen">
+        <Header />
 
-    <RouterView />
+        <RouterView />
+    </div>
 </template>
