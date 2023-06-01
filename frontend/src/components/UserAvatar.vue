@@ -3,15 +3,16 @@
 defineProps ({
     username: String,
     picture: String,
+    online: Boolean,
     left: Boolean,
 });
 
 </script>
 
 <template>
-    <div class="online dropdown flex" :class="left ? 'dropdown-left' : 'dropdown-right'" >
-        <label tabindex="0">
-            <div class="avatar h-12 w-12 btn btn-circle overflow-hidden">
+    <div class="dropdown flex" :class="left ? 'dropdown-left' : 'dropdown-right'" >
+        <label tabindex="0" class="avatar" :class="online ? 'online' : 'offline'">
+            <div class="h-12 w-12 btn btn-circle overflow-hidden">
                 <img :src="picture" />
             </div>
         </label>
