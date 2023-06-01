@@ -7,10 +7,10 @@ import ChatMessage from "../components/ChatMessage.vue";
 <template>
     <div class="flex w-full h-3/4">
         <!-- <ChatDiscussionList /> -->
-        <div class="w-1/4 overflow-y-scroll p-4 bg-base-200">
+        <div class="w-1/4 overflow-y-auto mx-2 p-4 bg-base-200">
         </div>
 
-        <div class="w-3/4 overflow-y-scroll p-4 bg-base-200">
+        <div class="w-3/4 overflow-y-auto mx-2 p-4 bg-base-200">
             <ChatMessage username="soumanso" picture="https://cdn.iconscout.com/icon/free/png-256/free-avatar-370-456322.png?f=webp" time="12:45" content="Hello Sailor 1" :mine=false />
             <ChatMessage username="soumanso" picture="https://cdn.iconscout.com/icon/free/png-256/free-avatar-370-456322.png?f=webp" time="12:45" content="Hello Sailor 2" :mine=false />
             <ChatMessage username="soumanso" picture="https://cdn.iconscout.com/icon/free/png-256/free-avatar-370-456322.png?f=webp" time="12:45" content="Hello Sailor 3" :mine=true />
@@ -26,7 +26,7 @@ import ChatMessage from "../components/ChatMessage.vue";
             <ChatMessage username="soumanso" picture="https://cdn.iconscout.com/icon/free/png-256/free-avatar-370-456322.png?f=webp" time="12:45" content="Hello Sailor 13" :mine=false />
         </div>
 
-        <div class="w-1/4 overflow-y-scroll p-4 bg-base-200">
+        <div class="w-1/4 overflow-y-auto mx-2 p-4 bg-base-200">
         </div>
     </div>
 </template>
