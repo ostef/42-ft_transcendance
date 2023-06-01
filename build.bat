@@ -7,4 +7,3 @@ pushd frontend
 call npm install
 start cmd /C npm run dev
 popd
-
