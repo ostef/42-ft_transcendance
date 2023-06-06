@@ -28,7 +28,7 @@ const router = createRouter ({
 async function getAuthenticationStatus (): Promise<boolean>
 {
     const token = localStorage.getItem ("token");
-    if (token)
+    if (!token)
         return false;
 
     const res = await axios.get ("/auth/check-jwt", { headers: { Authorization: "Bearer " + token } });
