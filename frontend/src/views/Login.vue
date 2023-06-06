@@ -22,22 +22,12 @@ async function login ()
     if (username.value == "" || password.value == "")
         return;
 
-    try
-    {
-        const res = await axios.post ("auth/login", { username: username.value, password: password.value });
+    const res = await axios.post ("auth/login", { username: username.value, password: password.value });
 
-        const token: string = res.data.access_token;
-        localStorage.setItem ("token", token);
+    const token: string = res.data.access_token;
+    localStorage.setItem ("token", token);
 
-        router.replace ("/");
-    }
-    catch (err: any)
-    {
-        if (err.response)
-            console.log ("Could not log in: ", err.response.data);
-        else
-            console.log ("Could not log in");
-    }
+    router.replace ("/");
 }
 
 </script>
