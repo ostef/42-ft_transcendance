@@ -14,16 +14,8 @@ export class JwtStrategy extends PassportStrategy (Strategy, "jwtt")
 {
     constructor (private readonly authService: AuthService)
     {
-        const extractJwt = (req) => {
-            let token = null;
-            if (req && req.cookies)
-                token = req.cookies["access_token"];
-
-            return token || ExtractJwt.fromAuthHeaderAsBearerToken () (req);
-        };
-
         super ({
-            jwtFromRequest: extractJwt,
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken (),
             ignoreExpiration: false,
             secretOrKey: "secret",
         });
