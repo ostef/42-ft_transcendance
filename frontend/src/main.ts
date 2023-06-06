@@ -12,11 +12,14 @@ import App from "./App.vue";
 
 const app = createApp (App);
 
+app.use (VueAxios, axios);
 app.use (createPinia ());
 app.use (router);
-app.use (VueAxios, axios);
+
 app.component ("iconify-icon", Icon)
 
 axios.defaults.baseURL = "http://" + location.hostname + ":3000";
+axios.defaults.headers.common["Authorization"] = "Bearer " + localStorage.getItem ("token");
+
 
 app.mount ("#app");
