@@ -3,7 +3,7 @@
 import { onErrorCaptured, ref } from "vue";
 
 import { isAxiosError } from "axios";
-import Header from "./components/Header.vue";
+import Header from "@/components/Header.vue";
 
 import { RouterView } from "vue-router";
 
@@ -15,7 +15,7 @@ onErrorCaptured ((err, vm, info) =>
     if (isAxiosError (err))
     {
         if (err.response)
-            lastError.value = err.response.data;
+            lastError.value = err.response.data.message;
         else
             lastError.value = err.message;
 
@@ -24,6 +24,8 @@ onErrorCaptured ((err, vm, info) =>
 
         return false;
     }
+
+    return true;
 });
 
 </script>
