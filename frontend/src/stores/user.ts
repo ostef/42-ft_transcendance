@@ -4,7 +4,7 @@ import { computed, ref } from "vue";
 export type User =
 {
     id: string;
-    profilePictureUrl: string;
+    avatarFile: string;
     username: string;
     nickname: string;
     isFriend: boolean;
@@ -13,7 +13,7 @@ export type User =
 
 export const useUserStore = defineStore ("user", () =>
 {
-    const user = ref ({} as User);
+    const user = ref (null as User | null);
 
     return { user };
 });

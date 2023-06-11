@@ -4,7 +4,7 @@
             type="text" placeholder="Username" v-model="username" />
         <input class="input input-bordered w-full max-w-xs m-2"
             type="password" placeholder="Password" v-model="password" />
-        <button class="btn normal-case m-2 max-w-xs" @click="login ()">Login</button>
+        <button class="btn normal-case m-2 max-w-xs" @click="submitLogin ()">Login</button>
     </div>
 </template>
 
@@ -14,18 +14,18 @@ import { ref } from "vue";
 import axios from "axios";
 import router from "@/router";
 
+import { useUserStore } from "@/stores/user";
+import { login } from "@/authentication";
+
 const username = ref ("");
 const password = ref ("");
 
-async function login ()
+async function submitLogin ()
 {
     if (username.value == "" || password.value == "")
         return;
 
-    const res = await axios.post ("auth/login", { username: username.value, password: password.value });
-
-    const token: string = res.data.access_token;
-    localStorage.setItem ("token", token);
+    await login (username.value, password.value);
 
     router.replace ("/");
 }
