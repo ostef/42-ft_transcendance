@@ -1,3 +1,17 @@
+<script setup lang="ts">
+
+import { storeToRefs } from "pinia";
+import { useUserStore } from "@/stores/user";
+import axios from "axios";
+
+import { logout } from "@/authentication";
+
+const userStore = useUserStore ();
+const { user } = storeToRefs (userStore);
+
+
+</script>
+
 <template>
     <div class="navbar bg-primary-100">
         <!-- Navbar when the width is small: display a
@@ -37,7 +51,8 @@
             </ul>
         </div>
 
-        <div class="navbar-end">
+        <div class="navbar-end" v-if="user != null">
+            {{ user?.nickname }} <br> {{ user?.username }}
             <div class="dropdown dropdown-left flex">
                 <label tabindex="0" class="p-[14px] hover:bg-gray-300">
                     <iconify-icon icon="ri:menu-2-line" class="h-5 w-5" />
@@ -48,7 +63,7 @@
                         <span class="indicator-item badge badge-sm badge-primary"></span>
                         <li><router-link to="/profile/friends">Friends</router-link></li>
                     </div>
-                    <li><router-link to="/">Logout</router-link></li>
+                    <li><router-link to="/login" @click="logout ()">Logout</router-link></li>
                 </ul>
             </div>
             <div class="avatar">
