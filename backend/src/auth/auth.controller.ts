@@ -1,4 +1,4 @@
-import { Controller, Logger, Post, Body, HttpStatus, Response, Request, SetMetadata, Get } from "@nestjs/common";
+import { Controller, Logger, Post, Body, HttpStatus, Response, Request, SetMetadata, Get, BadRequestException } from "@nestjs/common";
 import { IsNotEmpty } from "class-validator";
 import { AuthService } from "./auth.service";
 import { ExtractJwt } from "passport-jwt";
@@ -23,18 +23,18 @@ export class AuthController
 
     @SetMetadata ("isPublic", true)
     @Post ("login")
-    async login (@Response () resp, @Body () body: LoginData)
+    async login (@Body () body: LoginData)
     {
         try
         {
             const token = await this.authService.login (body.username, body.password);
 
-            resp.send (token);
+            return token;
         }
         catch (err)
         {
             this.logger.error (err);
-            resp.status (HttpStatus.BAD_REQUEST).send (err.message);
+            throw new BadRequestException (err.message);
         }
     }
 
