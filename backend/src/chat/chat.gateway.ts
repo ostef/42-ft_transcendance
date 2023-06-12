@@ -110,6 +110,10 @@ export class ChatGateway
             if (!user)
                 continue;
 
+            // Avoid duplicate entries
+            if (userList.findIndex ((val) => val.id == user.id) != -1)
+                continue;
+
             userList.push ({
                 id: user.id,
                 username: user.username,
