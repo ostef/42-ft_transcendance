@@ -1,18 +1,19 @@
 <script setup lang="ts">
 
-import { reactive, computed, getCurrentInstance, onMounted, onUnmounted } from "vue";
+import { reactive, computed, getCurrentInstance, onMounted, onUnmounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 
 import ChatMessage from "@/components/ChatMessage.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
 
-import { useChatStore } from "@/stores/chat";
+import { useChatStore, type Message } from "@/stores/chat";
 import { useUserStore } from "@/stores/user";
 import { chatSocket, connectChatSocket, disconnectChatSocket } from "@/chat";
 import { onBeforeRouteLeave } from "vue-router";
 
 const chat = useChatStore ();
 const { user } = storeToRefs (useUserStore ());
+const messageToSend = ref ("");
 
 onMounted (() =>
 {
@@ -27,9 +28,20 @@ onBeforeRouteLeave ((to, from, next) =>
     next ();
 });
 
-function selectDiscussionAndLoadMessages (index: number)
+function sendMessage ()
 {
+    chatSocket.emit ("newMessage", messageToSend.value);
+}
 
+function getMessageDateTimeString (msg: Message)
+{
+    const now = new Date ();
+    if (msg.date.getDate () != now.getDate ()
+    || msg.date.getMonth () != now.getMonth ()
+    || msg.date.getFullYear () != now.getFullYear ())
+        return msg.date.toLocaleString ();
+
+    return msg.date.toLocaleTimeString ();
 }
 
 </script>
@@ -41,7 +53,6 @@ function selectDiscussionAndLoadMessages (index: number)
             <button class="btn btn-block normal-case"
                 v-for="(disc, index) in chat.discussions"
                 :key="index"
-                @click="selectDiscussionAndLoadMessages (index)"
             >
                 <div v-if="disc.isDirect">
                 </div>
@@ -63,15 +74,15 @@ function selectDiscussionAndLoadMessages (index: number)
                     :username="msg.sender.username"
                     :nickname="msg.sender.nickname"
                     :picture="msg.sender.avatarFile"
-                    time="12:45"
+                    :time="getMessageDateTimeString (msg)"
                     :content="msg.content"
                     :mine="msg.sender.id == user?.id"
                 />
             </div>
 
             <div class="p-4 h-1/6 mt-4">
-                <input type="text" placeholder="Write something" class="input input-bordered w-4/6" />
-                <button class="btn normal-case mx-4 w-1/6">Send</button>
+                <input type="text" placeholder="Write something" class="input input-bordered w-4/6" v-model="messageToSend" />
+                <button class="btn normal-case mx-4 w-1/6" @click="sendMessage ()" >Send</button>
             </div>
         </div>
 

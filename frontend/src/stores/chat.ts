@@ -29,6 +29,7 @@ export type Message =
 {
     sender: User;
     content: string;
+    date: Date;
 }
 
 export const useChatStore = defineStore ("chat", () =>

@@ -6,6 +6,8 @@ export let chatSocket: Socket;
 
 export function connectChatSocket ()
 {
+    const store = useChatStore ();
+
     chatSocket = io (
         "http://localhost:3000/chat",
         {
@@ -21,6 +23,13 @@ export function connectChatSocket ()
         const chatStore = useChatStore ();
 
         chatStore.users = users;
+    });
+    chatSocket.on ("newMessage", (msg) => {
+        const user = store.users.find ((val) => val.id == msg.sender);
+        console.log (user);
+
+        if (user != undefined)
+            store.messages.push ({sender: user, content: msg.content, date: new Date (msg.date)});
     });
 }
 

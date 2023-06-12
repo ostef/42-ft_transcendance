@@ -131,6 +131,16 @@ export class ChatGateway
             this.server.emit ("updateUserList", userList);
     }
 
+    @SubscribeMessage ("newMessage")
+    async handleMessage (client: Socket, content: string)
+    {
+        this.server.emit ("newMessage", {
+            sender: client.data.userId,
+            content: content,
+            date: new Date ()
+        });
+    }
+
     /*
     @SubscribeMessage ("getClientInfo")
     async sendClientUserInfo (client: Socket)
