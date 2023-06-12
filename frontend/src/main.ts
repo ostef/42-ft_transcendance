@@ -11,9 +11,6 @@ import router from "@/router";
 
 import App from "@/App.vue";
 
-import { useChatStore, type Discussion, type Channel, type UserInChannel } from "./stores/chat";
-import { useUserStore } from "./stores/user";
-
 const app = createApp (App);
 
 app.component ("iconify-icon", Icon)

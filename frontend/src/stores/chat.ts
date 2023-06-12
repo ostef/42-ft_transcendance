@@ -34,16 +34,19 @@ export type Message =
 export const useChatStore = defineStore ("chat", () =>
 {
     const discussions = ref ([] as Discussion[]);
-    const selectedDiscussionIndex = ref (0);
+    const selectedDiscussionIndex = ref (-1);
     const messages = ref ([] as Message[]);
 
     const selectedDiscussion = computed (() =>
-        discussions.value.length > 0 ? discussions.value[selectedDiscussionIndex.value] : null);
+        selectedDiscussionIndex.value >= 0 ? discussions.value[selectedDiscussionIndex.value] : null);
 
-    function selectDiscussion (index: number)
+    const users = ref ([] as User[]);
+
+    function setDiscussion (index: number)
     {
         selectedDiscussionIndex.value = index;
+        messages.value.length = 0;
     }
- 
-    return { discussions, selectedDiscussionIndex, messages, selectedDiscussion, selectDiscussion };
+
+    return { users, discussions, selectedDiscussionIndex, messages, selectedDiscussion, setDiscussion };
 });

@@ -72,7 +72,7 @@ export class ChatGateway
     onModuleInit ()
     {
         this.server.use ((socket, next) => {
-            const payload = this.authService.getPayloadFromToken (socket.handshake.headers.authorization);
+            const payload = this.authService.getPayloadFromToken (socket.handshake.auth.token);
 
             if (!payload || !this.authService.validateUser (payload.userId))
             {
@@ -80,22 +80,67 @@ export class ChatGateway
             }
             else
             {
-                socket.data.userId = payload.userId;
-                next ();
+               socket.data.userId = payload.userId;
+               next ();
             }
         });
 
         this.server.on ("connection", async (socket) => {
             const user = await this.usersService.findUserEntity ({id: socket.data.userId});
-            this.logger.log ("New connection (" + socket.id + ")");
-            this.logger.log ("User " + user.username);
+            this.logger.log ("New connection (" + socket.id + "), user " + user.username);
+            this.sendUserList ();
+
+            socket.on ("disconnect", async () =>
+            {
+                const user = await this.usersService.findUserEntity ({id: socket.data.userId});
+                this.logger.log ("User " + user.username + " has disconnected");
+                this.sendUserList ();
+            });
         });
     }
 
+    @SubscribeMessage ("getUserList")
+    async sendUserList (client: Socket | null = null)
+    {
+        const userList = [];
+        const socks = await this.server.fetchSockets ();
+        for (const sock of socks)
+        {
+            const user = await this.usersService.findUserEntity ({id: sock.data.userId});
+            if (!user)
+                continue;
+
+            userList.push ({
+                id: user.id,
+                username: user.username,
+                nickname: user.nickname,
+                avatarFile: user.avatarFile,
+            });
+        }
+
+        // Sort user list by nickname
+        userList.sort ((a, b) => a.nickname.localeCompare (b.nickname));
+
+        if (client)
+            client.emit ("updateUserList", userList);
+        else
+            this.server.emit ("updateUserList", userList);
+    }
+
+    /*
     @SubscribeMessage ("getClientInfo")
     async sendClientUserInfo (client: Socket)
     {
-        const user = await this.usersService.findUserEntity ({id: client.data.userId}, {joinedChannels: true});
+        const user = await this.usersService.findUserEntity ({id: client.data.userId}, {
+            joinedChannels: {
+                owner: true,
+                users: true,
+                administrators: true,
+                mutedUsers: true
+            },
+            privateConversations: true, blockedUsers: true, friends: true
+        });
+
         if (!user)
         {
             client.disconnect (true);
@@ -103,6 +148,7 @@ export class ChatGateway
         }
 
         const {password, ...result} = user;
+        result.joinedChannels.forEach ((val) => delete val.password);
 
         client.emit ("updateClientInfo", result);
     }
@@ -241,7 +287,8 @@ export class ChatGateway
                     fromUserId: client.data.userId,
                     toUserId: params.userId,
                     content: params.content
-                });
+                },
+                to: params.userId);
             }
             else
             {
@@ -253,4 +300,5 @@ export class ChatGateway
             throw new WsException (err);
         }
     }
+    */
 }

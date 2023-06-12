@@ -13,7 +13,7 @@ defineProps ({
 </script>
 
 <template>
-    <div class="chat m-4" :class="mine ? 'chat-end' : 'chat-start'">
+    <div class="chat m-2" :class="mine ? 'chat-end' : 'chat-start'">
         <div class="chat-image">
             <UserAvatar :username="username" :picture="picture" :left="mine" />
         </div>
