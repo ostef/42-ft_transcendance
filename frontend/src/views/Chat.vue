@@ -61,6 +61,7 @@ function selectDiscussionAndLoadMessages (index: number)
             <div class="overflow-y-auto p-4 h-4/6">
                 <ChatMessage v-for="msg of chat.messages"
                     :username="msg.sender.username"
+                    :nickname="msg.sender.nickname"
                     :picture="msg.sender.avatarFile"
                     time="12:45"
                     :content="msg.content"

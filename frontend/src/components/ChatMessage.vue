@@ -4,6 +4,7 @@ import UserAvatar from "./UserAvatar.vue";
 
 defineProps ({
     username: String,
+    nickname: String,
     picture: String,
     time: String,
     mine: Boolean,
@@ -19,7 +20,7 @@ defineProps ({
         </div>
 
         <div class="chat-header">
-            {{ username }}
+            {{ nickname }}
         </div>
 
         <div class="chat-bubble" :class="mine ? 'chat-bubble-primary' : 'chat-bubble-secondary'">
