@@ -81,13 +81,13 @@ export class MessageService
         await this.privConvRepository.save (conv);
     }
 
-    async sendMessageToChannel (senderId: string, channelId: string, content: string, invite: InviteEntity = null)
+    async sendMessageToChannel (senderId: string, channelId: string, content: string, invite: InviteEntity = null): MessageEntity
     {
         const sender = await this.usersService.findUserEntity ({id: senderId});
         if (!sender)
             throw new Error ("User " + senderId + " does not exist");
 
-        const channel = await this.channelService.findChannelEntity ({id: channelId}, {users: true, mutedUsers: true});
+        const channel = await this.channelService.findChannelEntity ({id: channelId}, {users: true, mutedUsers: true, messages: true});
         if (!channel)
             throw new Error ("Channel " + channelId + " does not exist");
 
@@ -109,5 +109,7 @@ export class MessageService
         channel.messages.push (msg);
 
         await this.channelService.saveChannel (channel);
+
+        return msg;
     }
 }
