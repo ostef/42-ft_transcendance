@@ -36,7 +36,7 @@ export class UsersService
 
     async createUser (params: CreateUserDto): Promise<UserEntity>
     {
-        params.validate ();
+        CreateUserDto.validate (params);
 
         if (!await this.isUsernameAvailable (params.username))
             throw new Error ("Username '" + params.username + "' is not available");
@@ -60,7 +60,7 @@ export class UsersService
 
     async updateUser (id: string, params: UpdateUserDto)
     {
-        params.validate ();
+        UpdateUserDto.validate (params);
 
         // All fields of params must have been validated so we don't
         // check them here. This is kind of the way things are supposed
@@ -178,7 +178,7 @@ export class UsersService
 
     async sendFriendRequest (params: FriendRequestDto)
     {
-        params.validate ();
+        FriendRequestDto.validate (params);
 
         if (params.fromUser == params.toUser)
             throw new Error ("Cannot send friend request to self");
@@ -206,7 +206,7 @@ export class UsersService
 
     async acceptFriendRequest (params: FriendRequestDto)
     {
-        params.validate ();
+        FriendRequestDto.validate (params);
 
         const req = await this.findFriendRequest (params);
         if (req == null)
@@ -228,7 +228,7 @@ export class UsersService
 
     async cancelFriendRequest (params: FriendRequestDto)
     {
-        params.validate ();
+        FriendRequestDto.validate (params);
 
         const req = await this.findFriendRequest (params);
         if (!req)

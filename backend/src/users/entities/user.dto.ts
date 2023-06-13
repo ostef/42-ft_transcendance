@@ -8,15 +8,15 @@ export class UserDto
     has2FA: boolean;
     avatarFile: string;
 
-    validate ()
+    static validate (value: UserDto)
     {
-        if (!validateName (this.username))
+        if (!validateName (value.username))
             throw new Error ("Invalid username");
 
-        if (!validateName (this.nickname))
+        if (!validateName (value.nickname))
             throw new Error ("Invalid nickname");
 
-        if (!validatePngFilename (this.avatarFile))
+        if (!validatePngFilename (value.avatarFile))
             throw new Error ("Avatar file must be a PNG file");
     }
 }
@@ -27,15 +27,15 @@ export class CreateUserDto
     nickname: string;
     password: string;
 
-    validate ()
+    static validate (value: CreateUserDto)
     {
-        if (!validateName (this.username))
+        if (!validateName (value.username))
             throw new Error ("Invalid username");
 
-        if (!validateName (this.nickname))
+        if (!validateName (value.nickname))
             throw new Error ("Invalid nickname");
 
-        if (!validatePassword (this.password))
+        if (!validatePassword (value.password))
             throw new Error ("Password too weak");
     }
 }
@@ -52,18 +52,18 @@ export class UpdateUserDto
     usersToBlock?: string[];
     usersToUnblock?: string[];
 
-    validate ()
+    static validate (value: UpdateUserDto)
     {
-        if (this.username != undefined && !validateName (this.username))
+        if (value.username != undefined && !validateName (value.username))
             throw new Error ("Invalid username");
 
-        if (this.nickname != undefined && !validateName (this.nickname))
+        if (value.nickname != undefined && !validateName (value.nickname))
             throw new Error ("Invalid nickname");
 
-        if (this.password != undefined && !validatePassword (this.password))
+        if (value.password != undefined && !validatePassword (value.password))
             throw new Error ("Password too weak");
 
-        if (this.avatarFile != undefined && !validatePngFilename (this.avatarFile))
+        if (value.avatarFile != undefined && !validatePngFilename (value.avatarFile))
             throw new Error ("Avatar file must be a PNG file");
     }
 }

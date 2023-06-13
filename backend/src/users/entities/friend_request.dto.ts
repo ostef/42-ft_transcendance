@@ -5,12 +5,12 @@ export class FriendRequestDto
     fromUser: string;
     toUser: string;
 
-    validate ()
+    static validate (value: FriendRequestDto)
     {
-        if (this.fromUser != undefined && this.fromUser.length <= 0)
+        if (value.fromUser != undefined && value.fromUser.length <= 0)
             throw new Error ("fromUser should not be empty");
 
-        if (this.toUser != undefined && this.toUser.length <= 0)
+        if (value.toUser != undefined && value.toUser.length <= 0)
             throw new Error ("toUser should not be empty");
     }
 }
