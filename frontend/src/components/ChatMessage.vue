@@ -3,12 +3,16 @@
 import UserAvatar from "./UserAvatar.vue";
 
 defineProps ({
+    userId: String,
     username: String,
-    nickname: String,
     picture: String,
-    time: String,
+    online: Boolean,
+    isBlocked: Boolean,
+    isFriend: Boolean,
+    nickname: String,
     mine: Boolean,
     content: String,
+    time: String,
 });
 
 </script>
@@ -16,7 +20,15 @@ defineProps ({
 <template>
     <div class="chat m-2" :class="mine ? 'chat-end' : 'chat-start'">
         <div class="chat-image">
-            <UserAvatar :username="username" :picture="picture" :left="mine" />
+            <UserAvatar
+                :userId="userId"
+                :username="username"
+                :picture="picture"
+                :online="online"
+                :isBlocked="isBlocked"
+                :isFriend="isFriend"
+                :left="mine"
+            />
         </div>
 
         <div class="chat-header">
