@@ -1,6 +1,11 @@
 <script setup lang="ts">
 
 import axios from "axios";
+import { storeToRefs } from "pinia";
+
+import { useUserStore } from "@/stores/user";
+
+const { user } = storeToRefs (useUserStore ());
 
 defineProps ({
     userId: String,
@@ -54,14 +59,15 @@ async function unblockUser (id: string | undefined)
             </div>
         </label>
         <ul tabindex="0" class="menu menu-compact dropdown-content w-40 m-2 shadow rounded bg-base-300">
-            <li>
+            <li v-if="user?.id != userId">
                 <a v-if="!isFriend" @click="sendFriendRequest (userId)">Add Friend</a>
                 <a v-else @click="removeFriend (userId)">Remove Friend</a>
-
             </li>
-            <li><a :class="isBlocked ? 'btn-disabled' : ''">Invite To Play</a></li>
+            <li v-if="user?.id != userId">
+                <a :class="isBlocked ? 'btn-disabled' : ''">Invite To Play</a>
+            </li>
             <li><a>See User Profile</a></li>
-            <li>
+            <li v-if="user?.id != userId">
                 <a v-if="!isBlocked" class="bg-accent hover:bg-accent-focus" @click="blockUser (userId)">Block User</a>
                 <a v-else class="bg-accent hover:bg-accent-focus" @click="unblockUser (userId)">Unblock User</a>
             </li>
