@@ -52,7 +52,7 @@ export class ChannelsService
         channel.name = params.name;
         channel.description = params.description;
         channel.isPrivate = params.isPrivate;
-        if (channel.password != undefined)
+        if (params.password != undefined)
             channel.password = params.password;
 
         await this.channelRepository.save (channel);
