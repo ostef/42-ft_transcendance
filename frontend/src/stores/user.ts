@@ -9,6 +9,7 @@ export type User =
     nickname: string;
     isFriend: boolean;
     isBlocked: boolean;
+    isOnline: boolean;
 }
 
 export const useUserStore = defineStore ("user", () =>
