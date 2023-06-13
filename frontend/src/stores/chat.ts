@@ -4,7 +4,6 @@ import type { User } from "./user";
 
 export type UserInChannel =
 {
-    isOwner: boolean;
     isAdmin: boolean;
     isMuted: boolean;
     user: User;
@@ -15,14 +14,9 @@ export type Channel =
     id: string;
     name: string;
     description: string;
-    users: UserInChannel[];
-}
-
-export type Discussion =
-{
-    isDirect: boolean;
-    channel?: Channel;
-    otherUser?: User;
+    isPrivate: boolean;
+    isPasswordProtected: boolean;
+    ownerId: string;
 }
 
 export type Message =
@@ -34,20 +28,18 @@ export type Message =
 
 export const useChatStore = defineStore ("chat", () =>
 {
-    const discussions = ref ([] as Discussion[]);
-    const selectedDiscussionIndex = ref (-1);
     const messages = ref ([] as Message[]);
-
-    const selectedDiscussion = computed (() =>
-        selectedDiscussionIndex.value >= 0 ? discussions.value[selectedDiscussionIndex.value] : null);
-
     const users = ref ([] as User[]);
+    const channels = ref ([] as Channel[]);
+    const selectedChannelIndex = ref (-1);
 
-    function setDiscussion (index: number)
+    const selectedChannel = computed ((): Channel | null =>
     {
-        selectedDiscussionIndex.value = index;
-        messages.value.length = 0;
-    }
+        if (selectedChannelIndex.value < 0)
+            return null;
 
-    return { users, discussions, selectedDiscussionIndex, messages, selectedDiscussion, setDiscussion };
+        return channels.value[selectedChannelIndex.value];
+    });
+
+    return { users, messages, channels, selectedChannelIndex, selectedChannel };
 });

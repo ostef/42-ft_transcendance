@@ -88,57 +88,43 @@ export class ChatGateway
         this.server.on ("connection", async (socket) => {
             const user = await this.usersService.findUserEntity ({id: socket.data.userId});
             this.logger.log ("New connection (" + socket.id + "), user " + user.username);
-            this.sendUserList ();
 
             socket.on ("disconnect", async () =>
             {
                 const user = await this.usersService.findUserEntity ({id: socket.data.userId});
                 this.logger.log ("User " + user.username + " has disconnected");
-                this.sendUserList ();
+
+                const rooms = Array.from (socket.rooms.keys ());
+                socket.to (rooms).emit ("userOffline", socket.data.userId);
             });
         });
-    }
-
-    @SubscribeMessage ("getUserList")
-    async sendUserList (client: Socket | null = null)
-    {
-        const userList = [];
-        const socks = await this.server.fetchSockets ();
-        for (const sock of socks)
-        {
-            const user = await this.usersService.findUserEntity ({id: sock.data.userId});
-            if (!user)
-                continue;
-
-            // Avoid duplicate entries
-            if (userList.findIndex ((val) => val.id == user.id) != -1)
-                continue;
-
-            userList.push ({
-                id: user.id,
-                username: user.username,
-                nickname: user.nickname,
-                avatarFile: user.avatarFile,
-            });
-        }
-
-        // Sort user list by nickname
-        userList.sort ((a, b) => a.nickname.localeCompare (b.nickname));
-
-        if (client)
-            client.emit ("updateUserList", userList);
-        else
-            this.server.emit ("updateUserList", userList);
     }
 
     @SubscribeMessage ("newMessage")
-    async handleMessage (client: Socket, content: string)
+    async handleMessage (client: Socket, msg: MessageParams)
     {
-        this.server.emit ("newMessage", {
-            sender: client.data.userId,
-            content: content,
-            date: new Date ()
-        });
+        if (msg.channelId != undefined)
+        {
+            const sent = await this.messageService.sendMessageToChannel (client.data.userId, msg.channelId, msg.content);
+
+            this.server.to ("Channel#" + msg.channelId).emit ("newMessage", {
+                sender: client.data.userId,
+                content: msg.content,
+                date: sent.timestamp
+            });
+        }
+    }
+
+    @SubscribeMessage ("watchChannel")
+    watchChannel (client: Socket, channelId: string)
+    {
+        client.join ("Channel#" + channelId);
+    }
+
+    @SubscribeMessage ("unwatchChannel")
+    unwatchChannel (client: Socket, channelId: string)
+    {
+        client.leave ("Channel#" + channelId);
     }
 
     /*

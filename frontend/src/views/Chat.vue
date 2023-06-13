@@ -8,7 +8,12 @@ import UserAvatar from "@/components/UserAvatar.vue";
 
 import { useChatStore, type Message } from "@/stores/chat";
 import { useUserStore } from "@/stores/user";
-import { chatSocket, connectChatSocket, disconnectChatSocket } from "@/chat";
+
+import {
+    chatSocket, connectChatSocket, disconnectChatSocket,
+    fetchChannels, fetchUsers, watchChannel, unwatchChannel, fetchMessages
+} from "@/chat";
+
 import { onBeforeRouteLeave } from "vue-router";
 
 const chat = useChatStore ();
@@ -18,70 +23,96 @@ const messageToSend = ref ("");
 onMounted (() =>
 {
     connectChatSocket ();
-    console.log ("Mounted");
+    fetchChannels ();
 });
 
 onBeforeRouteLeave ((to, from, next) =>
 {
     disconnectChatSocket ();
-    console.log ("Leaving...");
     next ();
 });
 
 function sendMessage ()
 {
-    chatSocket.emit ("newMessage", messageToSend.value);
+    if (!chat.selectedChannel)
+        return;
+
+    chatSocket.emit ("newMessage", {
+        channelId: chat.selectedChannel.id,
+        content: messageToSend.value
+    });
+
+    messageToSend.value = "";
+}
+
+async function selectChannel (channelId: string)
+{
+    await fetchUsers (channelId);
+    await fetchMessages (channelId);
+
+    if (chat.selectedChannel)
+        unwatchChannel (chat.selectedChannel.id);
+
+    watchChannel (channelId);
+    chat.selectedChannelIndex = chat.channels.findIndex ((val) => val.id == channelId);
 }
 
 function getMessageDateTimeString (msg: Message)
 {
     const now = new Date ();
-    if (msg.date.getDate () != now.getDate ()
-    || msg.date.getMonth () != now.getMonth ()
-    || msg.date.getFullYear () != now.getFullYear ())
-        return msg.date.toLocaleString ();
+    const date = new Date (msg.date);
 
-    return msg.date.toLocaleTimeString ();
+    if (date.getDate () != now.getDate ()
+    || date.getMonth () != now.getMonth ()
+    || date.getFullYear () != now.getFullYear ())
+        return date.toLocaleString ();
+
+    return date.toLocaleTimeString ();
 }
 
 </script>
 
 <template>
     <div class="flex w-full h-3/4">
-        <!-- <ChatDiscussionList /> -->
         <div class="w-1/4 overflow-y-auto mx-2 p-4 rounded-lg bg-base-200">
+            <button class="btn btn-block normal-case">
+                Join or Create Channel
+            </button>
+
             <button class="btn btn-block normal-case"
-                v-for="(disc, index) in chat.discussions"
+                v-for="(chan, index) in chat.channels"
                 :key="index"
+                @click="selectChannel (chan.id)"
             >
-                <div v-if="disc.isDirect">
-                </div>
-                <div v-else>
-                    {{ disc.channel?.name }} <br>
-                    {{ disc.channel?.description }} <br>
-                </div>
+                {{ chan.name }}
             </button>
         </div>
 
         <div class="w-3/4 mx-2 overflow-hidden rounded-lg bg-base-200">
-            <div class="h-1/6 m-4">
-                <b><em>#</em></b> {{ chat.selectedDiscussion?.channel?.name }}<br />
-                <small><i>{{ chat.selectedDiscussion?.channel?.description }}</i></small>
+            <div class="h-1/6">
+                {{ chat.selectedChannel?.name }} <br>
+                {{ chat.selectedChannel?.description }}
             </div>
 
-            <div class="overflow-y-auto p-4 h-4/6">
-                <ChatMessage v-for="msg of chat.messages"
-                    :username="msg.sender.username"
-                    :nickname="msg.sender.nickname"
-                    :picture="msg.sender.avatarFile"
-                    :time="getMessageDateTimeString (msg)"
-                    :content="msg.content"
-                    :mine="msg.sender.id == user?.id"
-                />
+            <div class="overflow-y-auto p-4 h-4/6 flex flex-col-reverse">
+                <div>
+                    <ChatMessage v-for="msg of chat.messages"
+                        :userId="msg.sender.id"
+                        :username="msg.sender.username"
+                        :nickname="msg.sender.nickname"
+                        :picture="msg.sender.avatarFile"
+                        :online="msg.sender.isOnline"
+                        :isBlocked="msg.sender.isBlocked"
+                        :isFriend="msg.sender.isFriend"
+                        :time="getMessageDateTimeString (msg)"
+                        :content="msg.content"
+                        :mine="msg.sender.id == user?.id"
+                    />
+                </div>
             </div>
 
             <div class="p-4 h-1/6 mt-4">
-                <input type="text" placeholder="Write something" class="input input-bordered w-4/6" v-model="messageToSend" />
+                <input type="text" placeholder="Write something" class="input input-bordered w-4/6" v-model="messageToSend" @keyup.enter="sendMessage ()" />
                 <button class="btn normal-case mx-4 w-1/6" @click="sendMessage ()" >Send</button>
             </div>
         </div>
@@ -91,7 +122,7 @@ function getMessageDateTimeString (msg: Message)
             <div class="flex bg-base-300 rounded-lg m-2" v-for="user of chat.users">
                 <UserAvatar class="m-2"
                     :userId="user.id" :username="user.username" :picture="user.avatarFile"
-                    :isBlocked="user.isBlocked" :isFriend="user.isFriend"
+                    :isBlocked="user.isBlocked" :isFriend="user.isFriend" :isOnline="user.isOnline"
                 />
 
                 <div>{{ user.nickname }}</div>
