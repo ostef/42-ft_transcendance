@@ -56,10 +56,9 @@ export default {
     },
     created () {
         console.log("Starting connection to websocket server")
-        this.socket = io("http://" + window.location.hostname + ":3000/game", {
-        transportOptions: {
-            polling: { extraHeaders: { authorization: "Bearer " + localStorage.getItem ("token") } }},
-        })
+        this.socket = io("http://" + window.location.hostname + ":3000/game", 
+			
+		)
 
 		//Todo Coder toutes les fonctions des listens
 
@@ -72,7 +71,7 @@ export default {
 		this.socket.on("waitingMessage", data => {
 			//this.launchWaitRoom()
 		})
-		this.socket.on("foundGame", (playerPos, gameId, difficulty) => {
+		this.socket.on("foundGame", (playerPos, gameId, difficulty, color) => {
 			console.log("Found a game with game id : ", gameId)
 			if (playerPos === "right")
 			{
@@ -82,11 +81,16 @@ export default {
 					this.paddleRight = new Paddle("canvas", "white", this.canvas.width - 5, false, difficulty)
 				}
 			}
-			this.joinGame(playerPos, gameId, difficulty)
+			console.log("the color is : " + color)
+			this.joinGame(playerPos, gameId, difficulty, color)
 		})
 		this.socket.on("chooseDifficulty", (gameId) => {
 			console.log("choosing a difficulty")
 			this.chooseDifficulty(gameId)
+		})
+		this.socket.on("chooseColor", (gameId) => {
+			console.log("choosing a color")
+			this.chooseColor(gameId)
 		})
 
 
@@ -117,6 +121,7 @@ export default {
 			console.log("Lost the game")
 			this.handleLoose()
 		})
+		//Todo : Coder la recpetion d'event de deconnexion pour stop la game
     },
 
 	mounted() {
@@ -205,8 +210,14 @@ export default {
 			}
 			this.socket.emit("difficultyChoice", {gameId : this.gameId, difficulty : 1})
 		},
+
+		chooseColor(gameId : number)
+		{
+			//Todo : choisir la color en front et l'envoyer au back
+			this.socket.emit("addColor", {gameId : this.gameId, color : "green"})
+		},
 		
-		joinGame(playerPos : string, gameId : number, difficulty : number) {
+		joinGame(playerPos : string, gameId : number, difficulty : number, color : string) {
 			console.log("joined a game")
 			this.ownPaddle = playerPos
 			this.gameId = gameId
@@ -214,6 +225,7 @@ export default {
 			this.waiting = false
 			this.isPlaying = true
 			this.difficulty = difficulty
+			this.ball.color = color
 		},
 
 		//Event pour le déroulement de la partie
@@ -273,8 +285,8 @@ export default {
 				if (this.canvas)
 					this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
 				this.ball.draw()
-				this.paddleLeft.draw(0)
 				this.paddleRight.draw(0)
+				this.paddleLeft.draw(0)
 			}
 		},
 

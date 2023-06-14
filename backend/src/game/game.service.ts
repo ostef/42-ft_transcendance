@@ -27,18 +27,24 @@ export class GameService {
 		this.waitRoom = this.waitRoom.filter( socket => socket.id !== client.id)
 	}
 
+	quitGameWaitingRoom(socketId : string, gameIndex : number)
+	{
+		console.log("Quitting the gamewaiting room for " + socketId)
+		this.gamesWaitingRoom = this.gamesWaitingRoom.filter(game => game.player1Socket.id !== socketId)
+		this.gamesWaitingRoom = this.gamesWaitingRoom.filter(game => game.player2Socket.id !== socketId)
+	}
+
+	quitGameCreateRoom(socketId : string, gameIndex : number)
+	{
+		console.log("Quitting the gamecreateroom room for " + socketId)
+		this.gamesCreateRoom = this.gamesCreateRoom.filter(game => game.player1Socket.id !== socketId)
+		this.gamesCreateRoom = this.gamesCreateRoom.filter(game => game.player2Socket.id !== socketId)
+	}
+
 	addPlayerToWaitRoom(client : Socket)
 	{
 		console.log("adding client to wait room", client.id)
 		this.waitRoom.push(client)
-	}
-
-	quitGame(client : Socket, gameId : number)
-	{
-		//Todo fonction qui permet de stopper une game
-		let game = this.gamesRoom.find( game => {
-			game.instanceId === gameId
-		})
 	}
 
 	createGame(client : Socket, data : any)
@@ -63,7 +69,7 @@ export class GameService {
 		}
 	}
 
-	findGame(client : Socket, data : any) : {player1 : Socket | null, instanceId : number, difficulty : number}
+	findGame(client : Socket, data : any) : {player1 : Socket | null, instanceId : number, difficulty : number, color : string}
 	{
 		console.log("trying to find a game for ", client.id)
 		if (this.gamesWaitingRoom.length >= 1)
@@ -75,7 +81,7 @@ export class GameService {
 			newGame.player2Socket = client
 			newGame.startGame()
 			//Return le deuxième joueur au gateway pour pouvoir le prévenir
-			return ({player1 : newGame.player1Socket, instanceId : newGame.instanceId, difficulty : newGame.difficulty})
+			return ({player1 : newGame.player1Socket, instanceId : newGame.instanceId, difficulty : newGame.difficulty, color : newGame.color})
 		}
 		else if (this.waitRoom.length >= 1)
 		{
@@ -84,14 +90,14 @@ export class GameService {
 
 			this.addWaitingGame(client, client2, data, true)
 			console.log("Created a game with a difficulty")
-			return ({player1 : null, instanceId : -2, difficulty : 0})
+			return ({player1 : null, instanceId : -2, difficulty : 0, color : ""})
 		}
 		else
 		{
 			//Sinon on l'ajoute à la waitroom
 			this.waitRoom.push(client)
 			console.log("adding player to waitroom")
-			return ({player1 : null, instanceId : -1, difficulty : 0})
+			return ({player1 : null, instanceId : -1, difficulty : 0, color : ""})
 
 		}
 	}
@@ -125,27 +131,43 @@ export class GameService {
 		//this.gamesWaitingRoom.push(currentInstance)
 	}
 
+	addColor(client : Socket, data : any)
+	{
+		console.log("adding color")
+		let currentInstance = null
+		for (let game of this.gamesCreateRoom)
+		{
+			if (game.instanceId == data.gameId)
+			{
+				currentInstance = game
+				break
+			}
+		}
+		console.log(data.color)
+		currentInstance.addColor(data.color)
+		console.log(currentInstance.color)
+	}
+
 	redirectGame(currentGame : Game)
 	{
 		if (currentGame.isReady === false)
 		{
-			console.log("adding diffuclty")
 			this.gamesWaitingRoom.push(currentGame)
-			let index = this.gamesCreateRoom.findIndex(game => {
+			let index = this.gamesCreateRoom.findIndex(game => 
 				game.instanceId == currentGame.instanceId
-			})
+			)
 			this.gamesCreateRoom.splice(index, 1)
 		}
 		else
 		{
 			this.gamesRoom.push(currentGame)
-			let index = this.gamesCreateRoom.findIndex(game => {
+			let index = this.gamesCreateRoom.findIndex(game => 
 				game.instanceId == currentGame.instanceId
-			})
+			)
 			this.gamesCreateRoom.splice(index, 1)
 			currentGame.startGame()
-			currentGame.player1Socket.emit("foundGame", "left", currentGame.instanceId, currentGame.difficulty)
-			currentGame.player2Socket.emit("foundGame", "right", currentGame.instanceId, currentGame.difficulty)
+			currentGame.player1Socket.emit("foundGame", "left", currentGame.instanceId, currentGame.difficulty, currentGame.color)
+			currentGame.player2Socket.emit("foundGame", "right", currentGame.instanceId, currentGame.difficulty, currentGame.color)
 			
 		}
 	}
@@ -159,6 +181,7 @@ export class GameService {
 			{
 				currentInstance = game
 				break
+
 			}
 		}
 		currentInstance.updatePaddlePos(client, paddlePos)
@@ -169,7 +192,92 @@ export class GameService {
 		let index = this.gamesRoom.findIndex((game) => {
 			game.instanceId == gameId
 		})
-		console.log(index)
 		this.gamesRoom.splice(index, 1)
+	}
+
+
+	disconnectPlayer(socketId : string)
+	{
+		//On check si le joueur etait en game et si oui on la coupe pour deconnexion
+		let index = this.isGaming(socketId)
+		if (index != -1)
+		{
+			if (this.gamesRoom[index].player1Socket.id == socketId)
+				this.gamesRoom[index].disconnectPlayer1();
+			else if (this.gamesRoom[index].player2Socket.id == socketId)
+			{
+				this.gamesRoom[index].disconnectPlayer2();
+			}
+		}
+		//Ensuite on check si il etait en waitroom et on l'enleve
+		index = this.isWaiting(socketId)
+		if (index != -1)
+		{
+			this.quitWaitRoom(this.waitRoom[index])
+		}
+		
+		//On eleve les game de la create room en cas de deconnexion
+		index = this.isGameCreating(socketId)
+		if (index != -1)
+		{
+			console.log(index)
+			console.log(this.gamesCreateRoom[index])
+			if (this.gamesCreateRoom[index].player1Socket.id == socketId)
+			{
+				this.gamesCreateRoom[index].disconnectPlayer1()
+			}
+			else if (this.gamesCreateRoom[index].player2Socket.id == socketId)
+			{
+				this.gamesCreateRoom[index].disconnectPlayer2()
+			}
+			this.quitGameCreateRoom(socketId, index)
+		}
+		// Todo : Enelever si il y a une game en waitGameroom
+		index = this.isGameWaiting(socketId)
+		if (index != -1)
+		{
+			this.gamesWaitingRoom[index].disconnectPlayer1()
+			this.quitGameWaitingRoom(socketId, index)
+		}
+	}
+
+	isGaming(socketId : string)
+	{
+		let index = this.gamesRoom.findIndex(game => 
+			game.player1Socket.id == socketId 
+		)
+		if (index == -1)
+		{
+			index = this.gamesRoom.findIndex(game => 
+				game.player2Socket.id == socketId 
+			)
+		}
+		return (index)
+	}
+
+	isWaiting(socketId : string)
+	{
+		let index =  this.waitRoom.findIndex(id => id.id == socketId)
+		return (index)
+	}
+
+	isGameCreating(socketId : string)
+	{
+		let index  = this.gamesCreateRoom.findIndex(game => game.player1Socket.id == socketId)
+		if (index == -1)
+		{
+			index  = this.gamesCreateRoom.findIndex(game => game.player2Socket.id == socketId)
+		}
+		return (index)
+	}
+
+	isGameWaiting(socketId : string)
+	{
+		let index = this.gamesWaitingRoom.findIndex(game => game.player1Socket.id == socketId)
+		if (index == -1)
+		{
+			index  = this.gamesWaitingRoom.findIndex(game => game.player2Socket.id == socketId)
+		}
+		return (index)
 	}
 }

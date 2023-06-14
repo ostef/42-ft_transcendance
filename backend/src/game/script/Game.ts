@@ -25,6 +25,7 @@ export default class gameInstance {
 	difficulty : number
 	gameService : GameService
 	isReady : boolean
+	color : string
 
 
 	constructor(instanceId : number, player1 : Socket, player2 : Socket, canvas : {width : number, height : number}, window : {width : number, height : number}, gameService : GameService)
@@ -40,24 +41,37 @@ export default class gameInstance {
 		this.difficulty = 1
 		this.gameService = gameService
 		this.isReady = false
-	}
-
-	waitForDifficulty()
-	{
+		this.timerId
+		this.color = "red"
 	}
 
 	createGame()
 	{
-		console.log("emitting difficulty event")
+		console.log("emitting color event")
+		this.player1Socket.emit("chooseColor", this.instanceId)
+	}
+
+	addColor(color : string)
+	{
+		console.log("Added color")
+		if (color == "default")
+		{
+			this.player1Socket.emit("chooseDifficulty", this.instanceId)
+			return ;
+		}
+		this.color = color
 		this.player1Socket.emit("chooseDifficulty", this.instanceId)
-		this.timerId = setInterval(this.waitForDifficulty.bind(this), 50)
+
 	}
 
 	addDifficulty(data : number)
 	{
-		clearInterval(this.timerId)
-		this.difficulty = data
 		console.log("Added the difficulty")
+		if (data == 0)
+		{
+			return ;
+		}
+		this.difficulty = data
 	}
 	
 	gameLoop()
@@ -130,11 +144,14 @@ export default class gameInstance {
 	startGame() 
 	{
 		//Lancement de la partie en dehors de la loop
-		this.ball = new Ball(this.canvas, 100, 100, {x: 10 , y: 10}, "red", 10, this.delta)
+		this.ball = new Ball(this.canvas, 100, 100, {x: 10 , y: 10}, this.color, 10, this.delta)
 		this.paddleLeft = new Paddle(this.canvas, "white", 5, true, this.difficulty)
 		this.paddleRight = new Paddle(this.canvas, "white", this.canvas.width - 5, false, this.difficulty)
 		this.score.p1 = 0
 		this.score.p2 = 0
+		console.log("starting a game with ")
+		console.log(this.player1Socket.id)
+		console.log(this.player2Socket.id)
 
 
 		//Lancement de la loop et déplacement balles et paddle
@@ -160,5 +177,19 @@ export default class gameInstance {
 	{
 		clearInterval(this.timerId)
 		this.gameService.stopGame(this.instanceId)
+	}
+
+	disconnectPlayer1()
+	{
+		console.log("Disconnect from player 1")
+		this.player2Socket.emit("otherPlayerDisconnected")
+		this.stopGame()
+	}
+
+	disconnectPlayer2()
+	{
+		console.log("Disconnect from player 2")
+		this.player1Socket.emit("otherPlayerDisconnected")
+		this.stopGame()
 	}
 }

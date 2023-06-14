@@ -1,5 +1,6 @@
-import { Body, OnModuleInit } from '@nestjs/common';
+import { Body, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { find } from 'rxjs';
 import { Server, Socket } from 'socket.io'
 import { GameService } from './game.service';
 
@@ -13,21 +14,52 @@ import { GameService } from './game.service';
 		methods: ["GET", "POST"]
 	}
 })
-export class GameGateway implements OnModuleInit {
+export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
+  
+  sockets : string [] = []
 
   @WebSocketServer()
   server : Server;
 
-  constructor(private readonly gameService: GameService) {}
 
+  constructor(private readonly gameService: GameService) {
+  }
+  
   onModuleInit() {
+    
+  }
+  
+  onApplicationBootstrap() {
     this.server.on('connection', (socket) => {
-      console.log(socket.id)
-
+      console.log(socket.id);
+      this.sockets.push(socket.id);
+      console.log(this.sockets)
       this.server.emit ("onConnection", {
-				id: socket.id,
+        id: socket.id,
 			});
+      socket.on("disconnect", (reason) => {
+        console.log(this.sockets)
+        console.log("Disconnecting id : " + socket.id);
+        this.sockets.splice(this.sockets.findIndex(id =>
+          id == socket.id
+        ), 1)
+        console.log(this.sockets)
+        this.gameService.disconnectPlayer(socket.id)
+      })
     })
+  }
+
+  isSocket(id : string)
+  {
+    for (let i = 0; i <= this.sockets.length; i++)
+    {
+      if (id === this.sockets[i])
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
   
   @SubscribeMessage('msgToServer')
@@ -43,28 +75,36 @@ export class GameGateway implements OnModuleInit {
   @SubscribeMessage('searchGame')
   onSearchGame(@ConnectedSocket() client: Socket, @MessageBody() data: any)
   {
-	console.log("Searching for a game", client.id)
-	let findResult = this.gameService.findGame(client, data)
-	if (findResult.instanceId === -1)
-	{
-		client.emit("waitingMessage")
-	}
-	else if (findResult.instanceId === -2)
-	{
-		//do nothing for now
-	}
-	else
-	{
-		//On previent le front qu'une game est lancé
-		//Et on donne la position de la paddle
-		client.emit("foundGame", "right", findResult.instanceId, findResult.difficulty)
-		findResult.player1.emit("foundGame", "left", findResult.instanceId, findResult.difficulty)
-	}
+    if (this.isSocket(client.id) === false)
+    {
+      return ;
+    }
+    console.log("Searching for a game", client.id)
+    let findResult = this.gameService.findGame(client, data)
+    if (findResult.instanceId === -1)
+    {
+      client.emit("waitingMessage")
+    }
+    else if (findResult.instanceId === -2)
+    {
+      //do nothing for now
+    }
+    else
+    {
+      //On previent le front qu'une game est lancé
+      //Et on donne la position de la paddle
+      client.emit("foundGame", "right", findResult.instanceId, findResult.difficulty, findResult.color)
+      findResult.player1.emit("foundGame", "left", findResult.instanceId, findResult.difficulty, findResult.color)
+    }
    }
 
    @SubscribeMessage('createGame')
    onCreateGame(@ConnectedSocket() client : Socket, @MessageBody() data : any)
    {
+    if (this.isSocket(client.id) === false)
+    {
+      return ;
+    }
 		let createResult = this.gameService.createGame(client, data)
 
    }
@@ -72,6 +112,10 @@ export class GameGateway implements OnModuleInit {
    @SubscribeMessage('stopWaiting')
    onQuitWaiting(@ConnectedSocket() client: Socket)
    {
+    if (this.isSocket(client.id) === false)
+    {
+      return ;
+    }
 		this.gameService.quitWaitRoom(client)
    }
 
@@ -79,13 +123,31 @@ export class GameGateway implements OnModuleInit {
    @SubscribeMessage('updatePaddle')
    onUpdatePaddle(@ConnectedSocket() client : Socket, @MessageBody() data : any)
    {
+      if (this.isSocket(client.id) === false)
+      {
+        return ;
+      }
 	    this.gameService.updatePaddlePos(client, data.gameId, data.paddlePos)
    }
 
    @SubscribeMessage('difficultyChoice')
    onDifficulty(@ConnectedSocket() client : Socket, @MessageBody() data : any)
    {
+    if (this.isSocket(client.id) === false)
+    {
+      return ;
+    }
 		this.gameService.addDifficulty(client, data)
-   }   
+   }
+   
+   @SubscribeMessage('addColor')
+   onColorChoice(@ConnectedSocket() client : Socket, @MessageBody() data : any)
+   {
+    if (this.isSocket(client.id) === false)
+    {
+      return ;
+    }
+    this.gameService.addColor(client, data)
+   }
 
 }

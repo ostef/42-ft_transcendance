@@ -1,4 +1,4 @@
-const INITIAL_direction = 0.25
+const INITIAL_direction = 0.70
 const direction_INCREASE = 0.0001
 
 type Point = {x: number; y: number}
@@ -71,7 +71,7 @@ export default class Ball {
 		this.setxpos(this.mainCanvas.width / 2)
 		this.setypos(this.mainCanvas.height / 2)
 		this.direction = {x: 0, y: 0}
-		while (Math.abs(this.direction.x) <= .2 || Math.abs(this.direction.x) >= .9) 
+		while (Math.abs(this.direction.x) <= .5 || Math.abs(this.direction.x) >= .9) 
 		{
 			const heading = randomNumberBewteen(0, 2 * Math.PI)
 			this.direction = {x: Math.cos(heading), y: Math.sin(heading)}
@@ -87,8 +87,25 @@ export default class Ball {
 		if (this.#ypos + this.radius > this.mainCanvas.height || this.#ypos - this.radius < 0) {
 			this.direction.y *= -1
 		}
-		if (this.collisionDetection(playerPos, computerPos) && this.isPlaying)
+		let resultCollision = this.collisionDetection(playerPos, computerPos)
+		if ((resultCollision.x != 0 && resultCollision.y != 0) && this.isPlaying)
 		{
+			if (resultCollision.x <= this.mainCanvas.width / 2)
+			{
+				this.setxpos(resultCollision.x + this.radius)
+				this.setypos(resultCollision.y)
+				//Left paddle collision
+				let ydiff = (resultCollision.y - playerPos.centerPos.y) / playerPos.height
+				this.direction.y = ydiff
+			}
+			else
+			{
+				//Right Paddle collision
+				this.setxpos(resultCollision.x - this.radius)
+				this.setypos(resultCollision.y)
+				let ydiff = (resultCollision.y - computerPos.centerPos.y) / computerPos.height
+				this.direction.y = ydiff
+			}
 			this.direction.x *= -1
 		}
 	}
@@ -117,14 +134,15 @@ export default class Ball {
 				})
 			}
 		}
-		return (null)
+		return ({
+			x : 0,
+			y : 0
+		})
 	}
 
 	collisionDetection(playerPos : {height : number, width: number, centerPos : {x : number, y : number}, front : Segment}, 
 		computerPos : {height : number, width: number, centerPos : {x : number, y : number}, front : Segment})
 	{
-
-
 		//Intersection part
 		//Player inter with center
 		const frontPosPlayer = {
@@ -135,12 +153,12 @@ export default class Ball {
 			x : this.#nextpos.x - this.radius,
 			y : this.#nextpos.y
 		}
-		if (this.getIntersection(frontPosPlayer, frontNextPosPlayer, playerPos.front.A, playerPos.front.B) != null)
-		{
-			return (1)
-		}
 
-		
+		let resultInter = this.getIntersection(frontPosPlayer, frontNextPosPlayer, playerPos.front.A, playerPos.front.B)
+		if (resultInter.x != 0)
+		{
+			return (resultInter)
+		}
 		
 		//Computer front intersection
 		const frontPosComputer = {
@@ -152,13 +170,16 @@ export default class Ball {
 			y : this.#nextpos.y
 		}
 
-
-		if (this.getIntersection(frontPosComputer, frontNextPosComputer, computerPos.front.A, computerPos.front.B) != null)
+		resultInter = this.getIntersection(frontPosComputer, frontNextPosComputer, computerPos.front.A, computerPos.front.B)
+		if (resultInter.x != 0)
 		{
-			return (1)
+			return (resultInter)
 		}
 
-		return (0)
+		return ({
+			x : 0,
+			y : 0
+		})
 	}
 }
 

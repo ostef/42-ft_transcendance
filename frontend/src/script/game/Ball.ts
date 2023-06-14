@@ -73,6 +73,8 @@ export default class Ball {
 	{
 		this.context.beginPath()
 		this.context.arc(this.xpos, this.ypos, this.radius, 0, Math.PI * 2, false)
+		this.context.fillStyle = this.color
+		this.context.fill()
 		this.context.strokeStyle = this.color
 		this.context.stroke()
 	}

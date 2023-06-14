@@ -156,14 +156,14 @@ export default class Paddle {
 				if (this.player)
 				{
 					
-					this.context.fillRect(this.xpos - this.width / 2, this.ypos - this.height / 2, this.width, this.height)
 					this.context.fillStyle = this.color
+					this.context.fillRect(this.xpos - this.width / 2, this.ypos - this.height / 2, this.width, this.height)
 					return
 				}
 				else
 				{
-					this.context.fillRect(this.xpos - this.width / 2, this.ypos - this.height / 2, this.width, this.height)
 					this.context.fillStyle = this.color
+					this.context.fillRect(this.xpos - this.width / 2, this.ypos - this.height / 2, this.width, this.height)
 					return
 				}
 			}
@@ -177,8 +177,8 @@ export default class Paddle {
 				{
 					this.setYpos(this.mainCanvas.height - this.height / 2)
 				}
-				this.context.fillRect(this.xpos - this.width / 2, this.ypos - this.height / 2, this.width , this.height)
 				this.context.fillStyle = this.color
+				this.context.fillRect(this.xpos - this.width / 2, this.ypos - this.height / 2, this.width , this.height)
 			}
 		}
 	}
