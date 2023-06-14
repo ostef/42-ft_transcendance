@@ -81,7 +81,7 @@ export class MessageService
         await this.privConvRepository.save (conv);
     }
 
-    async sendMessageToChannel (senderId: string, channelId: string, content: string, invite: InviteEntity = null): MessageEntity
+    async sendMessageToChannel (senderId: string, channelId: string, content: string, invite: InviteEntity = null): Promise<MessageEntity>
     {
         const sender = await this.usersService.findUserEntity ({id: senderId});
         if (!sender)
