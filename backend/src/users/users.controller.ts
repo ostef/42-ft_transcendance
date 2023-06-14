@@ -18,8 +18,9 @@ import { UsersService } from "./users.service";
 
 import { CreateUserDto, UpdateUserDto, UserDto } from "./entities/user.dto";
 import { UserEntity } from "./entities/user.entity";
+import { FriendRequestDto } from "./entities/friend_request.dto";
 
-@Controller ("users")
+@Controller ("user")
 export class UsersController
 {
     private logger: Logger = new Logger ("UsersController");
@@ -37,7 +38,7 @@ export class UsersController
 
         const { password, ...result } = entity;
 
-        return result as UserDto;
+        return result as unknown as UserDto;
     }
 
     @SetMetadata ("isPublic", true)
@@ -52,15 +53,9 @@ export class UsersController
         }
         catch (err)
         {
-            this.logger.error (err);
+            this.logger.error (err.stack);
             throw new BadRequestException (err.message);
         }
-    }
-
-    @Delete ()
-    async deleteUser (@Request () req)
-    {
-        await this.usersService.deleteUser (req.user.id);
     }
 
     @Put ()
@@ -72,7 +67,7 @@ export class UsersController
         }
         catch (err)
         {
-            this.logger.error (err);
+            this.logger.error (err.stack);
             throw new BadRequestException (err.message);
         }
     }
@@ -92,11 +87,11 @@ export class UsersController
     {
         try
         {
-            await this.usersService.sendFriendRequest ({fromUser: req.user.id, toUser: id});
+            await this.usersService.sendFriendRequest ({fromUser: req.user.id, toUser: id} as FriendRequestDto);
         }
         catch (err)
         {
-            this.logger.error (err);
+            this.logger.error (err.stack);
             throw new BadRequestException (err.message);
         }
     }
@@ -106,11 +101,11 @@ export class UsersController
     {
         try
         {
-            await this.usersService.acceptFriendRequest ({fromUser: id, toUser: req.user.id});
+            await this.usersService.acceptFriendRequest ({fromUser: id, toUser: req.user.id} as FriendRequestDto);
         }
         catch (err)
         {
-            this.logger.error (err);
+            this.logger.error (err.stack);
             throw new BadRequestException (err.message);
         }
     }
@@ -120,11 +115,11 @@ export class UsersController
     {
         try
         {
-            await this.usersService.declineFriendRequest ({fromUser: id, toUser: req.user.id});
+            await this.usersService.declineFriendRequest ({fromUser: id, toUser: req.user.id} as FriendRequestDto);
         }
         catch (err)
         {
-            this.logger.error (err);
+            this.logger.error (err.stack);
             throw new BadRequestException (err.message);
         }
     }
@@ -138,6 +133,6 @@ export class UsersController
 
         const { password, ...result } = entity;
 
-        return result as UserDto;
+        return result as unknown as UserDto;
     }
 }

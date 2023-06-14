@@ -36,6 +36,8 @@ export class UsersService
 
     async createUser (params: CreateUserDto): Promise<UserEntity>
     {
+        CreateUserDto.validate (params);
+
         if (!await this.isUsernameAvailable (params.username))
             throw new Error ("Username '" + params.username + "' is not available");
 
@@ -49,11 +51,6 @@ export class UsersService
         return await this.usersRepository.save (user);
     }
 
-    async deleteUser (id: string)
-    {
-        await this.usersRepository.delete (id);
-    }
-
     async isUsernameAvailable (username: string): Promise<boolean>
     {
         const entity = await this.usersRepository.findOneBy ({username: username});
@@ -63,6 +60,8 @@ export class UsersService
 
     async updateUser (id: string, params: UpdateUserDto)
     {
+        UpdateUserDto.validate (params);
+
         // All fields of params must have been validated so we don't
         // check them here. This is kind of the way things are supposed
         // to be done even though I don't really like it...
@@ -108,12 +107,12 @@ export class UsersService
             {
                 const toRemove = await this.findUserEntity ({id: remId}, {friends: true});
                 if (!toRemove)
-                    throw new Error ("User " + remId + " does not exist");
+                    throw new Error ("User does not exist");
 
                 const userIdx = user.friends.findIndex ((val: UserEntity) => val.id == toRemove.id);
                 const toRemoveIdx = toRemove.friends.findIndex ((val: UserEntity) => val.id == user.id);
                 if (userIdx == -1 || toRemoveIdx == -1)
-                    throw new Error ("User " + remId + " is not a friend of " + id);
+                    throw new Error ("You are not a friends with this user");
 
                 delete user.friends[userIdx];
                 delete toRemove.friends[toRemoveIdx];
@@ -131,7 +130,7 @@ export class UsersService
 
                 const other = await this.findUserEntity ({id: otherId});
                 if (!other)
-                    throw new Error ("User " + other.id + " does not exist");
+                    throw new Error ("User does not exist");
 
                 if (user.blockedUsers.findIndex ((val: UserEntity) => val.id == other.id) != -1)
                     user.blockedUsers.push (other);
@@ -144,11 +143,11 @@ export class UsersService
             {
                 const other = await this.findUserEntity ({id: otherId});
                 if (!other)
-                    throw new Error ("User " + otherId + " does not exist");
+                    throw new Error ("User does not exist");
 
                 const index = user.blockedUsers.findIndex ((val: UserEntity) => val.id == other.id);
                 if (index == -1)
-                    throw new Error ("User " + other.id + " is not blocked");
+                    throw new Error ("User is not blocked");
 
                 delete user.blockedUsers[index];
             }
@@ -179,22 +178,24 @@ export class UsersService
 
     async sendFriendRequest (params: FriendRequestDto)
     {
+        FriendRequestDto.validate (params);
+
         if (params.fromUser == params.toUser)
             throw new Error ("Cannot send friend request to self");
 
         const fromUser = await this.findUserEntity ({id: params.fromUser }, {friends: true});
         if (!fromUser)
-            throw new Error ("User " + params.fromUser + " does not exist");
+            throw new Error ("User does not exist");
 
         const toUser = await this.findUserEntity ({id: params.toUser }, {friends: true});
         if (!toUser)
-            throw new Error ("User " + params.toUser + " does not exist");
+            throw new Error ("User does not exist");
 
         if (fromUser.friends.findIndex ((val: UserEntity) => val.id == params.toUser) != -1)
-            throw new Error ("User " + params.toUser + " is already friends with " + params.fromUser);
+            throw new Error ("You are already friends with this user");
 
         if (toUser.friends.findIndex ((val: UserEntity) => val.id == params.fromUser) != -1)
-            throw new Error ("User " + params.fromUser + " is already friends with " + params.toUser);
+            throw new Error ("You are already friends with this user");
 
         const req = this.friendRequestsRepository.create ();
         req.fromUser = fromUser;
@@ -205,6 +206,8 @@ export class UsersService
 
     async acceptFriendRequest (params: FriendRequestDto)
     {
+        FriendRequestDto.validate (params);
+
         const req = await this.findFriendRequest (params);
         if (req == null)
             throw new Error ("Friend request does not exist");
@@ -225,6 +228,8 @@ export class UsersService
 
     async cancelFriendRequest (params: FriendRequestDto)
     {
+        FriendRequestDto.validate (params);
+
         const req = await this.findFriendRequest (params);
         if (!req)
             throw new Error ("Friend request does not exist");

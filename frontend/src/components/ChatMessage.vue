@@ -3,23 +3,37 @@
 import UserAvatar from "./UserAvatar.vue";
 
 defineProps ({
+    userId: String,
     username: String,
     picture: String,
-    time: String,
+    online: Boolean,
+    isBlocked: Boolean,
+    isFriend: Boolean,
+    nickname: String,
     mine: Boolean,
     content: String,
+    time: String,
 });
 
 </script>
 
 <template>
-    <div class="chat m-4" :class="mine ? 'chat-end' : 'chat-start'">
+    <div class="chat m-2" :class="mine ? 'chat-end' : 'chat-start'">
         <div class="chat-image">
-            <UserAvatar :username="username" :picture="picture" :left="mine" />
+            <UserAvatar
+                :userId="userId"
+                :username="username"
+                :nickname="nickname"
+                :picture="picture"
+                :online="online"
+                :isBlocked="isBlocked"
+                :isFriend="isFriend"
+                :left="mine"
+            />
         </div>
 
         <div class="chat-header">
-            {{ username }}
+            {{ nickname }}
         </div>
 
         <div class="chat-bubble" :class="mine ? 'chat-bubble-primary' : 'chat-bubble-secondary'">

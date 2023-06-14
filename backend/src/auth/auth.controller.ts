@@ -1,6 +1,7 @@
-import { Controller, Logger, Post, Body, HttpStatus, Response, SetMetadata } from "@nestjs/common";
+import { Controller, Logger, Post, Body, HttpStatus, Response, Request, SetMetadata, Get, BadRequestException } from "@nestjs/common";
 import { IsNotEmpty } from "class-validator";
 import { AuthService } from "./auth.service";
+import { ExtractJwt } from "passport-jwt";
 
 class LoginData
 {
@@ -22,23 +23,31 @@ export class AuthController
 
     @SetMetadata ("isPublic", true)
     @Post ("login")
-    async login (@Response () resp, @Body () body: LoginData)
+    async login (@Body () body: LoginData)
     {
         try
         {
             const token = await this.authService.login (body.username, body.password);
 
-            resp.cookie("access_token", token, {
-                secure: false,
-                sameSite: "strict",
-                maxAge: 3600 * 1000, // 1 hour
-            });
-
-            resp.send (token);
+            return token;
         }
         catch (err)
         {
-            resp.status (HttpStatus.BAD_REQUEST).send (err.message);
+            this.logger.error (err);
+            throw new BadRequestException (err.message);
         }
+    }
+
+    @SetMetadata ("isPublic", true)
+    @Get ("check-jwt")
+    async checkJwt (@Request () req)
+    {
+        const token = ExtractJwt.fromAuthHeaderAsBearerToken () (req);
+
+        const payload = this.authService.getPayloadFromToken (token);
+        if (!payload)
+            return false;
+
+        return true;
     }
 }

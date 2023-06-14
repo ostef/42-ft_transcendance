@@ -1,39 +1,69 @@
 import { PartialType, PickType } from "@nestjs/mapped-types";
-import { IsNotEmpty } from "class-validator";
-import { IsPassword } from "src/utils/is_password.validator";
-import { IsName } from "src/utils/is_name.validator";
+import { validateName, validatePassword, validatePngFilename } from "src/validation";
 
 export class UserDto
 {
-    @IsNotEmpty ()
-    @IsName ({message: "invalid username"})
     username: string;
-
-    @IsNotEmpty ()
-    @IsName ({message: "invalid nickname"})
     nickname: string;
-
-    @IsNotEmpty ()
     has2FA: boolean;
-
-    @IsNotEmpty ()
     avatarFile: string;
+
+    static validate (value: UserDto)
+    {
+        if (!validateName (value.username))
+            throw new Error ("Invalid username");
+
+        if (!validateName (value.nickname))
+            throw new Error ("Invalid nickname");
+
+        if (!validatePngFilename (value.avatarFile))
+            throw new Error ("Avatar file must be a PNG file");
+    }
 }
 
-export class CreateUserDto extends PickType (UserDto, ["username", "nickname"] as const)
+export class CreateUserDto
 {
-    @IsNotEmpty ()
-    @IsPassword ({message: "password too weak"})
+    username: string;
+    nickname: string;
     password: string;
+
+    static validate (value: CreateUserDto)
+    {
+        if (!validateName (value.username))
+            throw new Error ("Invalid username");
+
+        if (!validateName (value.nickname))
+            throw new Error ("Invalid nickname");
+
+        if (!validatePassword (value.password))
+            throw new Error ("Password too weak");
+    }
 }
 
-export class UpdateUserDto extends PartialType (UserDto)
+export class UpdateUserDto
 {
-    @IsNotEmpty ()
-    @IsPassword ({message: "password too weak"})
+    username?: string;
+    nickname?: string;
+    has2FA?: boolean;
+    avatarFile?: string;
     password?: string;
 
     friendsToRemove?: string[];
     usersToBlock?: string[];
     usersToUnblock?: string[];
+
+    static validate (value: UpdateUserDto)
+    {
+        if (value.username != undefined && !validateName (value.username))
+            throw new Error ("Invalid username");
+
+        if (value.nickname != undefined && !validateName (value.nickname))
+            throw new Error ("Invalid nickname");
+
+        if (value.password != undefined && !validatePassword (value.password))
+            throw new Error ("Password too weak");
+
+        if (value.avatarFile != undefined && !validatePngFilename (value.avatarFile))
+            throw new Error ("Avatar file must be a PNG file");
+    }
 }
