@@ -113,7 +113,7 @@ function getMessageDateTimeString (msg: Message)
 
             <div class="p-4 h-1/6 mt-4">
                 <input type="text" placeholder="Write something" class="input input-bordered w-4/6" v-model="messageToSend" @keyup.enter="sendMessage ()" />
-                <button class="btn normal-case mx-4 w-1/6" @click="sendMessage ()" >Send</button>
+                <button class="btn normal-case mx-4 w-1/6" @click="sendMessage ()">Send</button>
             </div>
         </div>
 
@@ -121,7 +121,10 @@ function getMessageDateTimeString (msg: Message)
         <div class="w-1/4 overflow-y-auto mx-2 p-2 rounded-lg bg-base-200">
             <div class="flex bg-base-300 rounded-lg m-2" v-for="user of chat.users">
                 <UserAvatar class="m-2"
-                    :userId="user.id" :username="user.username" :picture="user.avatarFile"
+                    :userId="user.id"
+                    :username="user.username"
+                    :nickname="user.nickname"
+                    :picture="user.avatarFile"
                     :isBlocked="user.isBlocked" :isFriend="user.isFriend" :isOnline="user.isOnline"
                 />
 

@@ -10,6 +10,7 @@ const { user } = storeToRefs (useUserStore ());
 defineProps ({
     userId: String,
     username: String,
+    nickname: String,
     picture: String,
     online: Boolean,
     left: Boolean,
@@ -53,15 +54,20 @@ async function unblockUser (id: string | undefined)
 
 <template>
     <div class="tooltip dropdown flex" :class="left ? 'dropdown-left' : 'dropdown-right'" :data-tip="username" >
-        <label tabindex="0" class="avatar" :class="online ? 'online' : 'offline'">
-            <div class="h-12 w-12 btn btn-circle overflow-hidden">
-                <img :src="picture" />
+        <label tabindex="0" class="avatar"
+            :class="(online ? 'online' : 'offline') + (picture == null ? ' placeholder' : '')">
+            <div class="h-12 w-12 btn btn-circle overflow-hidden grid">
+                <img v-if="picture != null && picture != undefined" :src="picture" />
+                <span v-else class="text-xl align-text-top">{{ nickname?.charAt (0) }}</span>
             </div>
         </label>
         <ul tabindex="0" class="menu menu-compact dropdown-content w-40 m-2 shadow rounded bg-base-300">
             <li v-if="user?.id != userId">
                 <a v-if="!isFriend" @click="sendFriendRequest (userId)">Add Friend</a>
                 <a v-else @click="removeFriend (userId)">Remove Friend</a>
+            </li>
+            <li v-if="user?.id != userId">
+                <a>Send Message</a>
             </li>
             <li v-if="user?.id != userId">
                 <a :class="isBlocked ? 'btn-disabled' : ''">Invite To Play</a>

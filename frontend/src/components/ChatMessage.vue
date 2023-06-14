@@ -23,6 +23,7 @@ defineProps ({
             <UserAvatar
                 :userId="userId"
                 :username="username"
+                :nickname="nickname"
                 :picture="picture"
                 :online="online"
                 :isBlocked="isBlocked"
