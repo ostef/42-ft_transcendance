@@ -37,6 +37,9 @@ function sendMessage ()
     if (!chat.selectedChannel)
         return;
 
+    if (messageToSend.value.length == 0)
+        return;
+
     chatSocket.emit ("newMessage", {
         channelId: chat.selectedChannel.id,
         content: messageToSend.value
