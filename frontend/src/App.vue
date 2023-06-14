@@ -24,6 +24,14 @@ onErrorCaptured ((err, vm, info) =>
 
         return false;
     }
+    else if (err instanceof Error)
+    {
+        lastError.value = err.message;
+        clearTimeout (lastErrorTimeout.value);
+        lastErrorTimeout.value = setTimeout (() => lastError.value = "", 5000);
+
+        return false;
+    }
 
     return true;
 });
