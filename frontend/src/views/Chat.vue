@@ -5,6 +5,8 @@ import { storeToRefs } from "pinia";
 
 import ChatMessage from "@/components/ChatMessage.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
+import JoinChannelPopup from "@/components/JoinChannelPopup.vue";
+import CreateChannelPopup from "@/components/CreateChannelPopup.vue";
 
 import { useChatStore, type Message } from "@/stores/chat";
 import { useUserStore } from "@/stores/user";
@@ -78,11 +80,17 @@ function getMessageDateTimeString (msg: Message)
 <template>
     <div class="flex w-full h-3/4">
         <div class="w-1/4 overflow-y-auto mx-2 p-4 rounded-lg bg-base-200">
-            <button class="btn btn-block normal-case">
-                Join or Create Channel
-            </button>
+            <label for="joinChannelModal" class="btn btn-block normal-case my-2">
+                Join Channel
+            </label>
+            <JoinChannelPopup />
 
-            <button class="btn btn-block normal-case"
+            <label for="createChannelModal" class="btn btn-block normal-case my-2">
+                Create Channel
+            </label>
+            <CreateChannelPopup />
+
+            <button class="btn btn-block normal-case my-2"
                 v-for="(chan, index) in chat.channels"
                 :key="index"
                 @click="selectChannel (chan.id)"
