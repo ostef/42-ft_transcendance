@@ -22,7 +22,7 @@ const password = ref ("");
 
 async function submitLogin ()
 {
-    if (username.value == "" || password.value == "")
+    if (username.value.length == 0 || password.value.length == 0)
         return;
 
     await login (username.value, password.value);
