@@ -1,0 +1,48 @@
+version: "3.3"
+
+services:
+  backend:
+    build: ./backend
+    image: backend
+    container_name: backend
+    depends_on:
+      - database
+    env_file:
+      - .env
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    volumes:
+      - ./backend:/usr/src/app
+
+  database:
+    image: postgres
+    build: ./database
+    container_name: database
+    env_file:
+      - .env
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    volumes:
+      - data_database:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+  frontend:
+    build: ./frontend
+    image: frontend
+    container_name: frontend
+    env_file:
+      - .env
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    volumes:
+      - ./frontend:/usr/src/app
+    depends_on:
+      - backend
+volumes:
+  data_database:
