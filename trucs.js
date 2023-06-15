@@ -25,10 +25,8 @@ Faire en sorte de pouvoir rejoibndre une partie deja creer via une requette http
 en rejoignant une room avec l'identifiant ' donne quand j arrive sur la page game avec un url qui correspond a la game
 
 
-Va falloir apprendre a communoiquer en http
-Va falloir creer un controller qui creer une game specifique aux invits
-Va falloir utiliser l url au lancement de la page game
-Va falloir mettre en place des rooms et pouvoir rejoindre une game en joinant la room
+Va falloir utiliser l url au lancement de la page game pour rejoindre la game
+
 
 
 

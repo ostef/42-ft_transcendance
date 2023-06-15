@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete} from '@nestjs/common';
 import { GameService } from './game.service';
 
 
 @Controller('game')
 export class GameController {
 
+    constructor(private gameService : GameService) {
+    }
     /*Tests avec des todos pour apprendre
     @Get(':id')
         findone(@Param('id') id : number) {
@@ -30,7 +32,11 @@ export class GameController {
         return this.gameService.deleteTodo(id);
     }*/
 
-    //Todo Creer la class game controller, qui va creer une game et la faire tourner
-    //et envoyer les infos au front au fur et a mesure de l'avancee de la partie
-    //en utilisant socket.io
+
+    @Post()
+    createInvite(@Body() data : any) : number {
+        return (this.gameService.createInvite(data))
+    }
+        
+
 }

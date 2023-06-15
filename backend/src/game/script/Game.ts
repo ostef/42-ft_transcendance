@@ -26,6 +26,7 @@ export default class gameInstance {
 	gameService : GameService
 	isReady : boolean
 	color : string
+	inviteId : number
 
 
 	constructor(instanceId : number, player1 : Socket, player2 : Socket, canvas : {width : number, height : number}, window : {width : number, height : number}, gameService : GameService)
@@ -43,12 +44,19 @@ export default class gameInstance {
 		this.isReady = false
 		this.timerId
 		this.color = "red"
+		this.inviteId = -1
 	}
 
 	createGame()
 	{
 		console.log("emitting color event")
 		this.player1Socket.emit("chooseColor", this.instanceId)
+	}
+
+	changeInviteId(Id : number)
+	{
+		console.log("Changed the invite Id to " + Id)
+		this.inviteId = Id
 	}
 
 	addColor(color : string)

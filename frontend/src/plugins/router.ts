@@ -34,7 +34,7 @@ const routes: VueRouter.RouteRecordRaw[] = [
 		component: GamePage
 	},
 	{
-		path: '/test',
+		path: '/test/:id',
 		name: 'testpage',
 		component: TestPage
 	}

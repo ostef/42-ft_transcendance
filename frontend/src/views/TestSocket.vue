@@ -51,7 +51,8 @@ export default {
 			isPlaying : false as boolean,
 			intervalId : {} as ReturnType<typeof setInterval>,
 			delta : 15,
-			difficulty : 1 as number
+			difficulty : 1 as number,
+			inviteId : "" as any,
         }
     },
     created () {
@@ -121,15 +122,29 @@ export default {
 			console.log("Lost the game")
 			this.handleLoose()
 		})
+
+		//Event d'invitation
+		this.socket.on("waitinPlayerInvite", data => {
+			console.log("Waiting for the invited player")
+			this.waitPlayer2()
+		}) 
+		this.socket.on("gameNotFound", data => {
+			console.log("GameNotFound")
+			this.gameNotFound()
+		})
+		this.socket.on("joinedGameInvite", data => {
+			console.log("Joined a game in wich i was invited")
+			this.joinedGameInvite(data)
+		})
 		//Todo : Coder la recpetion d'event de deconnexion pour stop la game
     },
 
 	mounted() {
 		console.log("mounted")
+		this.inviteId = this.$route.params.id
 		this.canvas = document.querySelector("canvas")
 		if (this.canvas)
 		{
-			console.log("mounted")
 			this.context = this.canvas.getContext("2d")
 			this.canvas.height = window.innerHeight * this.canvasAbsoluteSize
 			this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
@@ -140,7 +155,16 @@ export default {
 		}
 		this.isPlaying = false
 
-		
+		if (this.inviteId[0] == 'c')
+		{
+			this.inviteId = this.inviteId.slice(1)
+			this.creatorGameInvite(this.inviteId)
+		}
+		else if (this.inviteId[0] == 'j')
+		{
+			this.inviteId = this.inviteId.slice(1)
+			this.joinGameInvite(this.inviteId)
+		}
 
 
 		document.addEventListener("mousemove", e => {
@@ -167,6 +191,8 @@ export default {
 		})
 		/*window.requestAnimationFrame(this.drawNextFrame)*/
 		window.onresize = this.windowresize
+
+
 
 	},
 	methods: {
@@ -323,6 +349,34 @@ export default {
 				this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
 			}
 		},
+
+		//Methode d'invitation
+		creatorGameInvite(gameId : string)
+		{
+			this.socket.emit("startInvite", {instanceId : gameId, canvas : {width : this.canvas?.width, height : this.canvas?.height}, 
+			windonw : {width : window.innerWidth, height : window.innerHeight}})
+		},
+
+		joinGameInvite(gameId : string)
+		{
+			this.socket.emit("joinInvite", gameId)
+		},
+
+		waitPlayer2()
+		{
+			//Todo : coder en front un ecran de waiting
+		},
+
+		gameNotFound()
+		{
+			//Todo : coder un game not found pour un instance id de merde
+		},
+
+		joinedGameInvite(gameId : number)
+		{
+			this.gameId = gameId
+			//Todo : coder la partie front pour annoncer que l'on attend que le createur de partie finisse de configurer
+		}
 	}
 }
 
