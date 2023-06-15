@@ -34,8 +34,8 @@ export class GameController {
 
 
     @Post()
-    createInvite(@Body() data : any) : number {
-        return (this.gameService.createInvite(data))
+    createInvite() : number {
+        return (this.gameService.createInvite())
     }
         
 

@@ -190,14 +190,20 @@ export default class gameInstance {
 	disconnectPlayer1()
 	{
 		console.log("Disconnect from player 1")
-		this.player2Socket.emit("otherPlayerDisconnected")
+		if (this.player2Socket)
+		{
+			this.player2Socket.emit("otherPlayerDisconnected")
+		}
 		this.stopGame()
 	}
 
 	disconnectPlayer2()
 	{
 		console.log("Disconnect from player 2")
-		this.player1Socket.emit("otherPlayerDisconnected")
+		if (this.player1Socket)
+		{
+			this.player1Socket.emit("otherPlayerDisconnected")
+		}
 		this.stopGame()
 	}
 }

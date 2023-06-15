@@ -33,8 +33,6 @@ export class GameService {
 		console.log("Quitting the gamewaiting room for " + socketId)
 		this.gamesWaitingRoom = this.gamesWaitingRoom.filter(game => game.player1Socket.id !== socketId)
 		this.gamesWaitingRoom = this.gamesWaitingRoom.filter(game => game.player2Socket.id !== socketId)
-		this.gamesRoom = this.gamesRoom.filter(game => game.player1Socket.id !== socketId)
-		this.gamesRoom = this.gamesRoom.filter(game => game.player2Socket.id !== socketId)
 	}
 
 	quitGameCreateRoom(socketId : string, gameIndex : number)
@@ -42,8 +40,24 @@ export class GameService {
 		console.log("Quitting the gamecreateroom room for " + socketId)
 		this.gamesCreateRoom = this.gamesCreateRoom.filter(game => game.player1Socket.id !== socketId)
 		this.gamesCreateRoom = this.gamesCreateRoom.filter(game => game.player2Socket.id !== socketId)
-		this.gamesRoom = this.gamesRoom.filter(game => game.player1Socket.id !== socketId)
-		this.gamesRoom = this.gamesRoom.filter(game => game.player2Socket.id !== socketId)
+	}
+
+	quitGameInvite(socketId : string)
+	{
+		console.log("Quitting the Game Invite room room for " + socketId)
+		this.gamesInvite = this.gamesInvite.filter(game => {
+			if (game.player1Socket)
+			{
+				game.player1Socket.id !== socketId
+			}
+		})
+
+		this.gamesInvite = this.gamesInvite.filter(game => {
+			if (game.player2Socket)
+			{
+				game.player2Socket.id !== socketId
+			}
+		})
 	}
 
 	addPlayerToWaitRoom(client : Socket)
@@ -198,7 +212,10 @@ export class GameService {
 		let index = this.gamesRoom.findIndex(game => 
 			game.instanceId == gameId
 		)
-		this.gamesRoom.splice(index, 1)
+		if (index != -1)
+		{
+			this.gamesRoom.splice(index, 1)
+		}
 	}
 
 
@@ -238,12 +255,31 @@ export class GameService {
 			}
 			this.quitGameCreateRoom(socketId, index)
 		}
-		// Todo : Enelever si il y a une game en waitGameroom
+		// On enleve les games en gamewaiting room
 		index = this.isGameWaiting(socketId)
 		if (index != -1)
 		{
 			this.gamesWaitingRoom[index].disconnectPlayer1()
 			this.quitGameWaitingRoom(socketId, index)
+		}
+
+		//Todo : faire le disconect pour les invits
+		index = this.isGameInvite(socketId)
+		if (index != -1)
+		{
+			if (this.gamesInvite[index].player1Socket)
+			{
+				if (this.gamesInvite[index].player1Socket.id == socketId)
+					this.gamesInvite[index].disconnectPlayer1()
+			}
+			else if (this.gamesInvite[index].player2Socket)
+			{
+				if (this.gamesInvite[index].player2Socket.id == socketId)
+				{
+					this.gamesInvite[index].disconnectPlayer2()
+				}
+			}
+			this.quitGameInvite(socketId)
 		}
 	}
 
@@ -287,16 +323,37 @@ export class GameService {
 		return (index)
 	}
 
+	isGameInvite(socketId : string)
+	{
+		let index = this.gamesInvite.findIndex(game => {
+			if (game.player1Socket)
+			{
+				game.player1Socket.id == socketId
+			}})
+		if (index == -1)
+		{
+			index  = this.gamesInvite.findIndex(game => {
+				if (game.player2Socket)
+				{
+					game.player2Socket.id == socketId
+				}
+			})
+		}
+		return (index)
+	}
+
 
 	//Creation d'invitation 
-	createInvite( data : any )
+	createInvite()
 	{
 		let newGame : Game = new Game(this.gamesRoom.length, null, null , null, null, this)
 		this.gamesRoom.push(newGame)
 		newGame.isReady = false
 		newGame.changeInviteId(this.gamesInvite.length)
 		this.gamesInvite.push(newGame)
+		//Todo mettre un timeout si le createur arrive pas sur la page, on detruit la game
 		//Todo : envoyer un message a l'autre mec qui va devoir join via le chat servcie de steff
+		
 		return (newGame.inviteId)
 	}
 
