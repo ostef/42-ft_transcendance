@@ -5,7 +5,7 @@ import LoginView from "@/views/Login.vue";
 import axios from "axios";
 
 import { useUserStore } from "@/stores/user";
-import { updateUserInfo, logout, isAuthenticated } from "@/authentication";
+import { fetchUserInfo, logout, isAuthenticated } from "@/authentication";
 
 const router = createRouter ({
     history: createWebHistory (import.meta.env.BASE_URL),
@@ -43,7 +43,7 @@ router.beforeEach (async (to, from, next) => {
     {
         try
         {
-            await updateUserInfo ();
+            await fetchUserInfo ();
         }
         catch (err)
         {

@@ -9,7 +9,7 @@ export async function login (username: string, password: string)
     localStorage.setItem ("token", token);
     axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 
-    await updateUserInfo ();
+    await fetchUserInfo ();
 }
 
 export function logout ()
@@ -21,7 +21,7 @@ export function logout ()
     userStore.user = null;
 }
 
-export async function updateUserInfo ()
+export async function fetchUserInfo ()
 {
     const userStore = useUserStore ();
     userStore.user = (await axios.get ("user/")).data;
