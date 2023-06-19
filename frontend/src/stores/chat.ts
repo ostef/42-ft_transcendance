@@ -17,6 +17,8 @@ export type Channel =
     isPrivate: boolean;
     isPasswordProtected: boolean;
     ownerId: string;
+    adminIds: string[];
+    mutedUserIds: string[];
 }
 
 export type Message =
