@@ -22,77 +22,6 @@ const props = defineProps ({
     iAmAdmin: Boolean,
 });
 
-async function sendFriendRequest ()
-{
-    if (!props.user)
-        return;
-
-    await axios.post ("user/friends/add/" + props.user.id);
-}
-
-async function removeFriend ()
-{
-    if (!props.user)
-        return;
-
-    await axios.put ("user/", { friendsToRemove: [props.user.id] });
-
-    // @Todo: if we are not in a channel, we don't have a way to update
-    // the user info
-    if (props.channelId)
-        await fetchUsers (props.channelId);
-}
-
-async function acceptFriendRequest ()
-{
-    if (!props.user)
-        return;
-
-    await axios.post ("user/friends/accept/" + props.user.id);
-
-    if (props.channelId)
-    {
-        await fetchUserInfo ();
-        await fetchUsers (props.channelId);
-    }
-}
-
-async function declineFriendRequest ()
-{
-    if (!props.user)
-        return;
-
-    await axios.post ("user/friends/decline/" + props.user.id);
-
-    if (props.channelId)
-    {
-        await fetchUserInfo ();
-        await fetchUsers (props.channelId);
-    }
-}
-
-async function blockUser ()
-{
-    if (!props.user)
-        return;
-
-    await axios.put ("user/", { usersToBlock: [props.user.id] });
-
-    if (props.channelId)
-        await fetchUsers (props.channelId);
-}
-
-async function unblockUser ()
-{
-    if (!props.user)
-        return;
-
-    await axios.put ("user/", { usersToUnblock: [props.user.id] });
-
-    if (props.channelId)
-        await fetchUsers (props.channelId);
-}
-
 async function muteUser ()
 {
     if (!props.channelId || !props.user)
@@ -107,7 +36,16 @@ async function unmuteUser ()
     if (!props.channelId || !props.user)
         return;
 
-    await axios.put ("channels/" + props.channelId, {usersToUnute: [props.user.id] });
+    await axios.put ("channels/" + props.channelId, {usersToUnmute: [props.user.id] });
+    await fetchChannelInfo (props.channelId as string);
+}
+
+async function kickUser ()
+{
+    if (!props.channelId || !props.user)
+        return;
+
+    await axios.put ("channels/" + props.channelId, {usersToKick: [props.user.id] });
     await fetchChannelInfo (props.channelId as string);
 }
 
@@ -158,53 +96,35 @@ async function unadminUser ()
             </div>
         </label>
         <ul tabindex="0" class="menu menu-compact dropdown-content w-40 m-2 shadow rounded bg-base-300">
-            <li v-if="me?.id != user?.id && me?.receivedFriendRequests.findIndex ((val) => val == user?.id) != -1">
-                <a @click="acceptFriendRequest ()">Accept Friend</a>
-                <a @click="declineFriendRequest ()">Decline Friend</a>
-            </li>
-            <li v-else-if="me?.id != user?.id">
-                <a v-if="!user?.isFriend" @click="sendFriendRequest ()">Send Friend Request</a>
-                <a v-else @click="removeFriend ()">Remove Friend</a>
-            </li>
-
-            <li>
-                <label :for="'userModal' + user?.id">
-                    More...
-                </label>
-            </li>
-
             <li v-if="me?.id != user?.id">
                 <a>Send Message</a>
             </li>
 
-            <li v-if="me?.id != user?.id">
-                <a :class="user?.isBlocked ? 'btn-disabled' : ''">Invite To Play</a>
-            </li>
-
-            <li><a>See User Profile</a></li>
-
-            <li v-if="channelId && me?.id != user?.id && iAmAdmin">
-                <a v-if="!isMuted">Mute User</a>
-                <a v-else>Unmute User</a>
-            </li>
-
             <li v-if="channelId && me?.id != user?.id && iAmAdmin && !isAdmin">
-                <a>Make Admin</a>
+                <a @click="adminUser ()">Make Admin</a>
             </li>
 
             <li v-if="channelId && me?.id != user?.id && iAmAdmin">
-                <a>Kick User</a>
+                <a v-if="!isMuted" @click="muteUser ()">Mute User</a>
+                <a v-else @click="unmuteUser ()">Unmute User</a>
             </li>
 
             <li v-if="channelId && me?.id != user?.id && iAmAdmin">
-                <a>Ban User</a>
+                <a @click="kickUser ()">Kick User</a>
             </li>
-            <li v-if="me?.id != user?.id">
-                <a v-if="!user?.isBlocked" class="bg-accent hover:bg-accent-focus" @click="blockUser ()">Block User</a>
-                <a v-else class="bg-accent hover:bg-accent-focus" @click="unblockUser ()">Unblock User</a>
+
+            <li v-if="channelId && me?.id != user?.id && iAmAdmin">
+                <a @click="banUser ()">Ban User</a>
             </li>
+
+            <li v-if="user?.id != me?.id">
+                <label :for="'userModal' + user?.id">
+                    User Profile
+                </label>
+            </li>
+
         </ul>
     </div>
 
-    <UserPopup :user?.id="user?.id" />
+    <UserPopup :user="user" :isOnline="isOnline" />
 </template>
