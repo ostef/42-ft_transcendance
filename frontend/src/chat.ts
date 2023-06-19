@@ -42,6 +42,20 @@ export async function fetchChannels ()
     store.channels = result.data;
 }
 
+export async function fetchChannelInfo (channelId: string)
+{
+    const store = useChatStore ();
+
+    const index = store.channels.findIndex ((val) => val.id == channelId);
+
+    if (index != -1)
+    {
+        const result = await axios.get ("channels/" + channelId);
+
+        store.channels[index] = result.data;
+    }
+}
+
 export async function fetchUsers (channelId: string)
 {
     const store = useChatStore ();
