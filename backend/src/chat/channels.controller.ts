@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 
 import { ChannelsService } from "./channels.service";
-import { CreateChannelDto, LeaveChannelDto, MessageDto } from "./entities/channel.dto";
+import { CreateChannelDto, LeaveChannelDto, MessageDto, UpdateChannelDto } from "./entities/channel.dto";
 import { MessageService } from "./message.service";
 import { JwtAuthGuard } from "src/auth/jwt_auth.guard";
 import { UsersService } from "src/users/users.service";
@@ -76,12 +76,14 @@ export class ChannelsController
         const result = [] as MinimalChannelInfo[];
         for (const chan of channels)
         {
-            let info : MinimalChannelInfo;
-            info.id = chan.id;
-            info.name = chan.name;
-            info.description = chan.description;
-            info.isPasswordProtected = chan.password != null;
-            info.isPrivate = false;
+            const info: MinimalChannelInfo = {
+                id: chan.id,
+                name: chan.name,
+                description: chan.description,
+                isPasswordProtected: chan.password != null,
+                isPrivate: false,
+            };
+
             result.push (info);
         }
 
@@ -182,6 +184,20 @@ export class ChannelsController
         try
         {
             await this.msgService.sendMessageToChannel (req.user.id, id, body);
+        }
+        catch (err)
+        {
+            this.logger.error (err);
+            throw new BadRequestException (err.message);
+        }
+    }
+
+    @Put (":id")
+    async updateChannel (@Request () req, @Param ("id") id: string, @Body () body: UpdateChannelDto)
+    {
+        try
+        {
+            await this.channelService.updateChannel (req.user.id, body);
         }
         catch (err)
         {
