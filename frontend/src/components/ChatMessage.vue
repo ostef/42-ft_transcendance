@@ -18,7 +18,7 @@ const props = defineProps ({
     iAmAdmin: Boolean,
 });
 
-const mine = computed (() => { return props.message?.sender.id == me.value?.id; });
+const mine = computed (() => props.message?.sender.id == me.value?.id);
 
 const messageTimestamp = computed (() =>
 {
