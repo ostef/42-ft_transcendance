@@ -20,6 +20,11 @@ import { CreateUserDto, UpdateUserDto, UserDto } from "./entities/user.dto";
 import { UserEntity } from "./entities/user.entity";
 import { FriendRequestDto } from "./entities/friend_request.dto";
 
+class SensitiveUserInfo extends UserDto
+{
+    receivedFriendRequests: string[];
+}
+
 @Controller ("user")
 export class UsersController
 {
@@ -30,15 +35,20 @@ export class UsersController
     ) {}
 
     @Get ()
-    async findCurrentUser (@Request () req): Promise<UserDto>
+    async findCurrentUser (@Request () req): Promise<SensitiveUserInfo>
     {
         const entity = await this.usersService.findUserEntity ({id: req.user.id});
         if (entity == null)
             throw new NotFoundException ("User with id " + req.user.id + " does not exist");
 
-        const { password, ...result } = entity;
+        const requests = await this.usersService.findMultipleFriendRequests ({toUser: req.user.id});
 
-        return result as unknown as UserDto;
+        const result : SensitiveUserInfo = {
+            ...entity,
+            receivedFriendRequests: requests.map ((val) => val.fromUser.id)
+        };
+
+        return result;
     }
 
     @SetMetadata ("isPublic", true)

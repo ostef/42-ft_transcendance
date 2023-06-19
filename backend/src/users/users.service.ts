@@ -164,10 +164,21 @@ export class UsersService
         await this.usersRepository.save (user);
     }
 
-    // Returns the user entity that satisfies the params, null if it does not exist
+    // Returns the entity that satisfies the params, null if it does not exist
     async findFriendRequest (params: any): Promise<FriendRequestEntity>
     {
         return await this.friendRequestsRepository.findOne ({
+            where: params,
+            relations: {
+                fromUser: {friends: true},
+                toUser:   {friends: true}
+            }
+        });
+    }
+
+    async findMultipleFriendRequests (params: any): Promise<FriendRequestEntity[]>
+    {
+        return await this.friendRequestsRepository.find ({
             where: params,
             relations: {
                 fromUser: {friends: true},
