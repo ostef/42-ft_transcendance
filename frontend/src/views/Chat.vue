@@ -62,19 +62,6 @@ async function selectChannel (channelId: string)
     chat.selectedChannelIndex = chat.channels.findIndex ((val) => val.id == channelId);
 }
 
-function getMessageDateTimeString (msg: Message)
-{
-    const now = new Date ();
-    const date = new Date (msg.date);
-
-    if (date.getDate () != now.getDate ()
-    || date.getMonth () != now.getMonth ()
-    || date.getFullYear () != now.getFullYear ())
-        return date.toLocaleString ();
-
-    return date.toLocaleTimeString ();
-}
-
 </script>
 
 <template>
@@ -108,16 +95,13 @@ function getMessageDateTimeString (msg: Message)
             <div class="overflow-y-auto p-4 h-4/6 flex flex-col-reverse">
                 <div>
                     <ChatMessage v-for="msg of chat.messages"
-                        :userId="msg.sender.id"
-                        :username="msg.sender.username"
-                        :nickname="msg.sender.nickname"
-                        :picture="msg.sender.avatarFile"
+                        :channelId="chat.selectedChannel?.id"
+                        :user="msg.sender"
+                        :message="msg"
                         :online="msg.sender.isOnline"
-                        :isBlocked="msg.sender.isBlocked"
-                        :isFriend="msg.sender.isFriend"
-                        :time="getMessageDateTimeString (msg)"
-                        :content="msg.content"
-                        :mine="msg.sender.id == user?.id"
+                        :isAdmin="chat.selectedChannel?.adminIds.findIndex ((val) => val == msg.sender.id) != -1"
+                        :isMuted="chat.selectedChannel?.mutedUserIds.findIndex ((val) => val == msg.sender.id) != -1"
+                        :iAmAdmin="chat.selectedChannel?.adminIds.findIndex ((val) => val == user?.id) != -1"
                     />
                 </div>
             </div>
@@ -130,16 +114,16 @@ function getMessageDateTimeString (msg: Message)
 
 
         <div class="w-1/4 overflow-y-auto mx-2 p-2 rounded-lg bg-base-200">
-            <div class="flex bg-base-300 rounded-lg m-2" v-for="user of chat.users">
+            <div class="flex bg-base-300 rounded-lg m-2" v-for="u of chat.users">
                 <UserAvatar class="m-2"
-                    :userId="user.id"
-                    :username="user.username"
-                    :nickname="user.nickname"
-                    :picture="user.avatarFile"
-                    :isBlocked="user.isBlocked" :isFriend="user.isFriend" :isOnline="user.isOnline"
+                    :channelId="chat.selectedChannel?.id"
+                    :user="u"
+                    :isAdmin="chat.selectedChannel?.adminIds.findIndex ((val) => val == u.id) != -1"
+                    :isMuted="chat.selectedChannel?.mutedUserIds.findIndex ((val) => val == u.id) != -1"
+                    :iAmAdmin="chat.selectedChannel?.adminIds.findIndex ((val) => val == user?.id) != -1"
                 />
 
-                <div>{{ user.nickname }}</div>
+                <div>{{ u.nickname }}</div>
 
                 <!--
                 <iconify-icon v-if="user.isOwner" icon="tabler:crown" class="m-1 h-5 w-5" />

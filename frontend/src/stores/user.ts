@@ -7,6 +7,7 @@ export type User =
     avatarFile: string;
     username: string;
     nickname: string;
+    receivedFriendRequests: string[];
     isFriend: boolean;
     isBlocked: boolean;
     isOnline: boolean;

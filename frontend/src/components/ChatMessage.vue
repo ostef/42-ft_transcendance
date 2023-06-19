@@ -1,18 +1,39 @@
 <script setup lang="ts">
 
-import UserAvatar from "./UserAvatar.vue";
+import { type PropType, computed } from "vue";
+import { storeToRefs } from "pinia";
 
-defineProps ({
-    userId: String,
-    username: String,
-    picture: String,
+import UserAvatar from "./UserAvatar.vue";
+import { useUserStore, type User } from "@/stores/user";
+import type { Message } from "@/stores/chat";
+
+const { user: me } = storeToRefs (useUserStore ());
+
+const props = defineProps ({
+    channelId: String,
+    message: Object as PropType<Message>,
     online: Boolean,
-    isBlocked: Boolean,
-    isFriend: Boolean,
-    nickname: String,
-    mine: Boolean,
-    content: String,
-    time: String,
+    isAdmin: Boolean,
+    isMuted: Boolean,
+    iAmAdmin: Boolean,
+});
+
+const mine = computed (() => { return props.message?.sender.id == me.value?.id; });
+
+const messageTimestamp = computed (() =>
+{
+    if (!props.message)
+        return "";
+
+    const now = new Date ();
+    const date = new Date (props.message.date);
+
+    if (date.getDate () != now.getDate ()
+    || date.getMonth () != now.getMonth ()
+    || date.getFullYear () != now.getFullYear ())
+        return date.toLocaleString ();
+
+    return date.toLocaleTimeString ();
 });
 
 </script>
@@ -21,27 +42,26 @@ defineProps ({
     <div class="chat m-2" :class="mine ? 'chat-end' : 'chat-start'">
         <div class="chat-image">
             <UserAvatar
-                :userId="userId"
-                :username="username"
-                :nickname="nickname"
-                :picture="picture"
-                :online="online"
-                :isBlocked="isBlocked"
-                :isFriend="isFriend"
+                :user="message?.sender"
+                :channelId="channelId"
+                :isOnline="online"
                 :left="mine"
+                :isAdmin="isAdmin"
+                :isMuted="isMuted"
+                :iAmAdmin="iAmAdmin"
             />
         </div>
 
         <div class="chat-header">
-            {{ nickname }}
+            {{ message?.sender.nickname }}
         </div>
 
         <div class="chat-bubble" :class="mine ? 'chat-bubble-primary' : 'chat-bubble-secondary'">
-            {{ content }}
+            {{ message?.content }}
         </div>
 
         <div class="chat-footer">
-            <time class="text-xs opacity-50">{{ time }}</time>
+            <time class="text-xs opacity-50">{{ messageTimestamp }}</time>
         </div>
     </div>
 </template>
