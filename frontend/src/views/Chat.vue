@@ -22,10 +22,10 @@ const chat = useChatStore ();
 const { user } = storeToRefs (useUserStore ());
 const messageToSend = ref ("");
 
-onMounted (() =>
+onMounted (async () =>
 {
     connectChatSocket ();
-    fetchChannels ();
+    await fetchChannels ();
 });
 
 onBeforeRouteLeave ((to, from, next) =>
