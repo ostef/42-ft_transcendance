@@ -68,8 +68,8 @@ export class UsersService
 
         const user = await this.findUserEntity ({id: id},
             {
-                friends: params.friendsToRemove != undefined,
-                blockedUsers: params.usersToBlock != undefined || params.usersToUnblock != undefined,
+                friends: params.friendsToRemove != undefined || params.usersToBlock != undefined,
+                blockedUsers: params.friendsToRemove != undefined || params.usersToBlock != undefined || params.usersToUnblock != undefined,
             });
 
         if (!user)
@@ -101,26 +101,6 @@ export class UsersService
             user.avatarFile = params.avatarFile;
         }
 
-        if (params.friendsToRemove != undefined)
-        {
-            for (const remId of params.friendsToRemove)
-            {
-                const toRemove = await this.findUserEntity ({id: remId}, {friends: true});
-                if (!toRemove)
-                    throw new Error ("User does not exist");
-
-                const userIdx = user.friends.findIndex ((val: UserEntity) => val.id == toRemove.id);
-                const toRemoveIdx = toRemove.friends.findIndex ((val: UserEntity) => val.id == user.id);
-                if (userIdx == -1 || toRemoveIdx == -1)
-                    throw new Error ("You are not a friends with this user");
-
-                delete user.friends[userIdx];
-                delete toRemove.friends[toRemoveIdx];
-
-                toSave.push (toRemove);
-            }
-        }
-
         if (params.usersToBlock != undefined)
         {
             for (const otherId of params.usersToBlock)
@@ -132,14 +112,20 @@ export class UsersService
                 if (!other)
                     throw new Error ("User does not exist");
 
-                if (user.blockedUsers.findIndex ((val: UserEntity) => val.id == other.id) != -1)
+                if (!user.hasBlocked (otherId))
                     user.blockedUsers.push (other);
+
+                const friendIndex = user.friends.findIndex ((val) => val.id == otherId);
+                if (friendIndex != -1)
+                    delete user.friends[friendIndex];
+
+                toSave.push (other);
             }
         }
 
         if (params.usersToUnblock != undefined)
         {
-            for (const otherId of params.usersToBlock)
+            for (const otherId of params.usersToUnblock)
             {
                 const other = await this.findUserEntity ({id: otherId});
                 if (!other)
@@ -150,6 +136,26 @@ export class UsersService
                     throw new Error ("User is not blocked");
 
                 delete user.blockedUsers[index];
+            }
+        }
+
+        if (params.friendsToRemove != undefined)
+        {
+            for (const remId of params.friendsToRemove)
+            {
+                const toRemove = await this.findUserEntity ({id: remId}, {friends: true});
+                if (!toRemove)
+                    throw new Error ("User does not exist");
+
+                const userIdx = user.friends.findIndex ((val: UserEntity) => val.id == toRemove.id);
+                const toRemoveIdx = toRemove.friends.findIndex ((val: UserEntity) => val.id == user.id);
+                if (userIdx == -1 || toRemoveIdx == -1)
+                    throw new Error ("You are not friends with this user");
+
+                delete user.friends[userIdx];
+                delete toRemove.friends[toRemoveIdx];
+
+                toSave.push (toRemove);
             }
         }
 
@@ -170,8 +176,8 @@ export class UsersService
         return await this.friendRequestsRepository.findOne ({
             where: params,
             relations: {
-                fromUser: {friends: true},
-                toUser:   {friends: true}
+                fromUser: {friends: true, blockedUsers: true},
+                toUser:   {friends: true, blockedUsers: true}
             }
         });
     }
@@ -181,8 +187,8 @@ export class UsersService
         return await this.friendRequestsRepository.find ({
             where: params,
             relations: {
-                fromUser: {friends: true},
-                toUser:   {friends: true}
+                fromUser: {friends: true, blockedUsers: true},
+                toUser:   {friends: true, blockedUsers: true}
             }
         });
     }
@@ -194,19 +200,25 @@ export class UsersService
         if (params.fromUser == params.toUser)
             throw new Error ("Cannot send friend request to self");
 
-        const fromUser = await this.findUserEntity ({id: params.fromUser }, {friends: true});
+        const fromUser = await this.findUserEntity ({id: params.fromUser }, {friends: true, blockedUsers: true});
         if (!fromUser)
             throw new Error ("User does not exist");
 
-        const toUser = await this.findUserEntity ({id: params.toUser }, {friends: true});
+        const toUser = await this.findUserEntity ({id: params.toUser }, {friends: true, blockedUsers: true});
         if (!toUser)
             throw new Error ("User does not exist");
 
-        if (fromUser.friends.findIndex ((val: UserEntity) => val.id == params.toUser) != -1)
+        if (fromUser.isFriendsWith (params.toUser))
             throw new Error ("You are already friends with this user");
 
-        if (toUser.friends.findIndex ((val: UserEntity) => val.id == params.fromUser) != -1)
+        if (toUser.isFriendsWith (params.fromUser))
             throw new Error ("You are already friends with this user");
+
+        if (fromUser.hasBlocked (params.toUser))
+            throw new Error ("You have blocked this user");
+
+        if (toUser.hasBlocked (params.fromUser))
+            throw new Error ("You have been blocked by this user");
 
         const req = this.friendRequestsRepository.create ();
         req.fromUser = fromUser;
@@ -222,6 +234,15 @@ export class UsersService
         const req = await this.findFriendRequest (params);
         if (req == null)
             throw new Error ("Friend request does not exist");
+
+        if (req.fromUser.hasBlocked (req.toUser))
+            throw new Error ("This user has blocked you");
+
+        if (req.fromUser.hasBlocked (req.toUser))
+            throw new Error ("You have been blocked by this user");
+
+        if (req.toUser.hasBlocked (req.fromUser))
+            throw new Error ("You have blocked this user");
 
         req.fromUser.friends.push (req.toUser);
         req.toUser.friends.push (req.fromUser);
