@@ -3,9 +3,13 @@
 import { onErrorCaptured, ref } from "vue";
 
 import { isAxiosError } from "axios";
-import Header from "@/components/Header.vue";
 
 import { RouterView } from "vue-router";
+
+import { logout } from "@/authentication";
+import Header from "@/components/Header.vue";
+
+import router from "@/router";
 
 const lastError = ref ("");
 const lastErrorTimeout = ref (0);
@@ -18,6 +22,12 @@ onErrorCaptured ((err, vm, info) =>
             lastError.value = err.response.data.message;
         else
             lastError.value = err.message;
+
+        if (lastError.value == "Unauthorized" || lastError.value == "Token expired")
+        {
+            logout ();
+            router.replace ("/login");
+        }
 
         clearTimeout (lastErrorTimeout.value);
         lastErrorTimeout.value = setTimeout (() => lastError.value = "", 5000);
