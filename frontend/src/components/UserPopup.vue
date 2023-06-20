@@ -94,44 +94,50 @@ async function unblockUser ()
 <input type="checkbox" :id="'userModal' + user?.id" class="modal-toggle" />
 <div class="modal">
     <div class="modal-box w-xs h-lg grid">
-        <div class="block">
+        <div class="block mb-16">
             <label class="float-right btn" :for="'userModal' + user?.id">
                 <iconify-icon class="w-4 h-4" icon="gg:close" />
             </label>
 
-            <div class="avatar" :class="(isOnline ? 'online' : 'offline') + (!user?.avatarFile ? ' placeholder' : '')">
-                <div class="select-none rounded-full overflow-hidden h-12 w-12 bg-base-300 grid">
-                    <img v-if="user?.avatarFile" :src="user?.avatarFile" />
-                    <span v-else class="text-xl align-text-top">{{ user?.nickname.charAt (0)}}</span>
+            <div class="flex">
+                <div class="avatar" :class="(isOnline ? 'online' : 'offline') + (!user?.avatarFile ? ' placeholder' : '')">
+                    <div class="select-none rounded-full overflow-hidden h-12 w-12 bg-base-300 grid">
+                        <img v-if="user?.avatarFile" :src="user?.avatarFile" />
+                        <span v-else class="text-xl align-text-top">{{ user?.nickname.charAt (0)}}</span>
+                    </div>
+                </div>
+
+                <div class="mx-4 select-none">
+                    {{ user?.nickname }} <br>
+                    {{ user?.username }}
                 </div>
             </div>
         </div>
 
         <div v-if="!user?.isBlocked">
-            <button v-if="user?.isFriend" class="btn bg-primary normal-case" @click="removeFriend ()">
+            <button v-if="user?.isFriend" class="m-2 btn bg-primary normal-case" @click="removeFriend ()">
                 Remove Friend
             </button>
 
-            <button v-else-if="!receivedRequest" class="btn bg-primary normal-case" @click="sendFriendRequest ()">
-                <iconify-icon class="h-4 w-4 mr-4" icon="fluent-mdl2:add-friend" />
+            <button v-else-if="!receivedRequest" class="m-2 btn bg-primary normal-case" @click="sendFriendRequest ()">
                 Send Friend Request
             </button>
 
             <div v-else>
-                <button class="btn bg-primary normal-case" @click="acceptFriendRequest ()">
+                <button class="m-2 btn bg-primary normal-case" @click="acceptFriendRequest ()">
                     Accept Friend Request
                 </button>
 
-                <button class="btn bg-primary normal-case" @click="declineFriendRequest ()">
+                <button class="m-2 btn bg-primary normal-case" @click="declineFriendRequest ()">
                     Decline Friend Request
                 </button>
             </div>
         </div>
 
-        <button v-if="user?.isBlocked" class="btn normal-case" @click="unblockUser ()">
+        <button v-if="user?.isBlocked" class="m-2 btn normal-case" @click="unblockUser ()">
             Unblock
         </button>
-        <button v-else class="btn normal-case" @click="blockUser ()">
+        <button v-else class="m-2 btn normal-case" @click="blockUser ()">
             Block
         </button>
     </div>
