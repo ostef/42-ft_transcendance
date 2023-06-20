@@ -10,8 +10,6 @@ import {
     Post, Put,
     Request,
     SetMetadata,
-
-    Injectable, NestInterceptor, ExecutionContext, CallHandler, UseInterceptors
 } from "@nestjs/common";
 
 import { UsersService } from "./users.service";
@@ -89,7 +87,18 @@ export class UsersController
         if (!user)
             throw new NotFoundException ("User " + req.user.id + " does not exist");
 
-        return user.friends.map ((val: UserEntity) => val.id);
+        const result = [];
+        for (const u of user.friends)
+        {
+            result.push ({
+                id: u.id,
+                username: u.username,
+                nickname: u.nickname,
+                avatarFile: u.avatarFile
+            });
+        }
+
+        return result;
     }
 
     @Post ("friends/add/:id")
