@@ -34,6 +34,9 @@ export const useChatStore = defineStore ("chat", () =>
     const users = ref ([] as User[]);
     const channels = ref ([] as Channel[]);
     const selectedChannelIndex = ref (-1);
+    const selectedUserIndex = ref (-1);
+    const privateConvs = ref ([] as User[]);
+    const channelsSelected = ref (false);
 
     const selectedChannel = computed ((): Channel | null =>
     {
@@ -43,5 +46,13 @@ export const useChatStore = defineStore ("chat", () =>
         return channels.value[selectedChannelIndex.value];
     });
 
-    return { users, messages, channels, selectedChannelIndex, selectedChannel };
+    const selectedUser = computed ((): User | null =>
+    {
+        if (selectedUserIndex.value < 0)
+            return null;
+
+        return privateConvs.value[selectedUserIndex.value];
+    });
+
+    return { users, messages, channels, privateConvs, selectedChannelIndex, selectedChannel, selectedUserIndex, selectedUser, channelsSelected };
 });

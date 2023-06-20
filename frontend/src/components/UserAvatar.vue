@@ -5,12 +5,14 @@ import { storeToRefs } from "pinia";
 import { type PropType } from "vue";
 
 import { useUserStore, type User } from "@/stores/user";
-import { fetchUsers, fetchChannelInfo } from "@/chat";
+import { useChatStore } from "@/stores/chat";
+import { fetchUsers, fetchChannelInfo, fetchPrivateMessages, selectPrivConv } from "@/chat";
 import { fetchUserInfo } from "@/authentication";
 
 import UserPopup from "./UserPopup.vue";
 
 const { user: me } = storeToRefs (useUserStore ());
+const { channelsSelected, privateConvs, selectedUserIndex } = storeToRefs (useChatStore ());
 
 const props = defineProps ({
     channelId: String,
@@ -85,6 +87,24 @@ async function unadminUser ()
     await fetchChannelInfo (props.channelId as string);
 }
 
+async function goToPrivateConv ()
+{
+    if (!props.user)
+        return;
+
+    let index = privateConvs.value.findIndex ((val) => val.id == props.user?.id);
+    if (index == -1)
+    {
+        privateConvs.value.push (props.user);
+        index = privateConvs.value.length - 1;
+    }
+
+    selectedUserIndex.value = index;
+    channelsSelected.value = false;
+
+    await selectPrivConv (props.user.id);
+}
+
 </script>
 
 <template>
@@ -97,7 +117,7 @@ async function unadminUser ()
         </label>
         <ul tabindex="0" class="menu menu-compact dropdown-content w-40 m-2 shadow rounded bg-base-300">
             <li v-if="me?.id != user?.id">
-                <a>Send Message</a>
+                <a @click="goToPrivateConv ()">Send Message</a>
             </li>
 
             <li v-if="channelId && me?.id != user?.id && iAmAdmin && !isAdmin">

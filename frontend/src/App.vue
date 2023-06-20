@@ -31,6 +31,7 @@ onErrorCaptured ((err, vm, info) =>
 
         clearTimeout (lastErrorTimeout.value);
         lastErrorTimeout.value = setTimeout (() => lastError.value = "", 5000);
+        console.error (err);
 
         return false;
     }
@@ -39,6 +40,8 @@ onErrorCaptured ((err, vm, info) =>
         lastError.value = err.message;
         clearTimeout (lastErrorTimeout.value);
         lastErrorTimeout.value = setTimeout (() => lastError.value = "", 5000);
+
+        console.error (err);
 
         return false;
     }
