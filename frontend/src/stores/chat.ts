@@ -37,6 +37,7 @@ export const useChatStore = defineStore ("chat", () =>
     const selectedUserIndex = ref (-1);
     const privateConvs = ref ([] as User[]);
     const channelsSelected = ref (false);
+    const onlineUsers = ref ([] as string[]); // These are all user ids
 
     const selectedChannel = computed ((): Channel | null =>
     {
@@ -54,5 +55,13 @@ export const useChatStore = defineStore ("chat", () =>
         return privateConvs.value[selectedUserIndex.value];
     });
 
-    return { users, messages, channels, privateConvs, selectedChannelIndex, selectedChannel, selectedUserIndex, selectedUser, channelsSelected };
+    function isOnline (userId: string): boolean
+    {
+        return onlineUsers.value.findIndex ((val) => val == userId) != -1;
+    }
+
+    return {
+        users, messages, channels, privateConvs,
+        selectedChannelIndex, selectedChannel, selectedUserIndex, selectedUser,
+        channelsSelected, onlineUsers, isOnline };
 });

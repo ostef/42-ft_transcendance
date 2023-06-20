@@ -31,6 +31,10 @@ export function connectChatSocket ()
         else
             console.error ("Received new message but sender wasn't found:", msg);
     });
+
+    chatSocket.on ("onlineUsers", (onlineUsers) => {
+        store.onlineUsers = onlineUsers
+    });
 }
 
 export function disconnectChatSocket ()

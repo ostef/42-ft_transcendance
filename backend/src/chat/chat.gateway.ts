@@ -7,31 +7,6 @@ import { ChannelsService } from "./channels.service";
 import { UsersService } from "src/users/users.service";
 import { MessageService } from "./message.service";
 
-@Catch (WsException, HttpException)
-export class SocketsExceptionFilter extends BaseWsExceptionFilter
-{
-    private logger: Logger = new Logger ("SocketsExceptionFilter");
-
-    catch (exception: WsException | HttpException, host: ArgumentsHost)
-    {
-        this.logger.error (exception.stack);
-
-        const client = host.switchToWs ().getClient () as WebSocket;
-        const data = host.switchToWs ().getData ();
-        const error = exception instanceof WsException ? exception.getError () : exception.getResponse ();
-        const details = error instanceof Object ? { ...error } : { message : error };
-
-        client.send (JSON.stringify ({
-            event: "error",
-            data: {
-                id: (client as any).id,
-                rid: data.rid,
-                ...details
-            }
-        }));
-    }
-}
-
 class JoinChannelParams
 {
     channelId: string;
@@ -89,15 +64,29 @@ export class ChatGateway
             const user = await this.usersService.findUserEntity ({id: socket.data.userId});
             this.logger.log ("New connection (" + socket.id + "), user " + user.username);
 
+            const onlineUsers = await this.getOnlineUsers ();
+            this.server.emit ("onlineUsers", onlineUsers);
+
             socket.on ("disconnect", async () =>
             {
                 const user = await this.usersService.findUserEntity ({id: socket.data.userId});
                 this.logger.log ("User " + user.username + " has disconnected");
 
-                const rooms = Array.from (socket.rooms.keys ());
-                socket.to (rooms).emit ("userOffline", socket.data.userId);
+                const onlineUsers = await this.getOnlineUsers ();
+                socket.broadcast.emit ("onlineUsers", onlineUsers);
             });
         });
+    }
+
+    async getOnlineUsers (): Promise<string[]>
+    {
+        const socks = await this.server.fetchSockets ();
+        const result = [] as string[];
+
+        for (const client of socks)
+            result.push (client.data.userId);
+
+        return result;
     }
 
     @SubscribeMessage ("newMessage")
