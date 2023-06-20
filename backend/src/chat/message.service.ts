@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { FindOptionsRelations, Repository } from "typeorm";
 
 import { ChannelEntity } from "./entities/channel.entity";
-import { InviteEntity } from "./entities/invite.entity";
+import { ChannelInviteEntity } from "./entities/channel_invite.entity";
 import { CreateChannelDto, UpdateChannelDto } from "./entities/channel.dto";
 import { ChannelsService } from "./channels.service";
 
@@ -49,7 +49,7 @@ export class MessageService
         return await this.privConvRepository.save (conv);
     }
 
-    async sendMessageToUser (senderId: string, userId: string, content: string, invite: InviteEntity = null)
+    async sendMessageToUser (senderId: string, userId: string, content: string, invite: ChannelInviteEntity = null): Promise<MessageEntity>
     {
         const sender = await this.usersService.findUserEntity ({id: senderId}, {blockedUsers: true});
         if (!sender)
@@ -81,7 +81,7 @@ export class MessageService
         await this.privConvRepository.save (conv);
     }
 
-    async sendMessageToChannel (senderId: string, channelId: string, content: string, invite: InviteEntity = null): Promise<MessageEntity>
+    async sendMessageToChannel (senderId: string, channelId: string, content: string, invite: ChannelInviteEntity = null): Promise<MessageEntity>
     {
         const sender = await this.usersService.findUserEntity ({id: senderId});
         if (!sender)

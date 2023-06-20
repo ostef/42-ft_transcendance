@@ -5,7 +5,7 @@ import {
 } from "typeorm";
 import { UserEntity } from "src/users/entities/user.entity";
 import { ChannelEntity } from "./channel.entity";
-import { InviteEntity } from "./invite.entity";
+import { ChannelInviteEntity } from "./channel_invite.entity";
 import { PrivateConversationEntity } from "./private_conversation.entity";
 
 @Entity ()
@@ -26,8 +26,8 @@ export class MessageEntity
     @Column ({type: "text"})
     content: string;
 
-    @OneToOne (() => InviteEntity, (inv) => inv.message, {nullable: true})
-    invite: InviteEntity;
+    @OneToOne (() => ChannelInviteEntity, (inv) => inv.message, {nullable: true})
+    invite: ChannelInviteEntity;
 
     @CreateDateColumn ()
     timestamp: Date;

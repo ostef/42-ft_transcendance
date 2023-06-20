@@ -9,7 +9,7 @@ import { ChannelEntity } from "./channel.entity";
 import { MessageEntity } from "./message.entity";
 
 @Entity ()
-export class InviteEntity
+export class ChannelInviteEntity
 {
     @PrimaryGeneratedColumn ("uuid")
     id: string;

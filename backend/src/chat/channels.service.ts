@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { FindOptionsRelations, Repository } from "typeorm";
 
 import { ChannelEntity } from "./entities/channel.entity";
-import { InviteEntity } from "./entities/invite.entity";
+import { ChannelInviteEntity } from "./entities/channel_invite.entity";
 import { CreateChannelDto, UpdateChannelDto } from "./entities/channel.dto";
 import { UsersService } from "src/users/users.service";
 import { UserEntity } from "src/users/entities/user.entity";
@@ -15,8 +15,8 @@ export class ChannelsService
         @InjectRepository (ChannelEntity)
         private channelRepository: Repository<ChannelEntity>,
 
-        @InjectRepository (InviteEntity)
-        private inviteRepository: Repository<InviteEntity>,
+        @InjectRepository (ChannelInviteEntity)
+        private inviteRepository: Repository<ChannelInviteEntity>,
 
         private usersService: UsersService,
     ) {}
