@@ -18,9 +18,6 @@ export class CreateChannelDto
 export class UpdateChannelDto extends
     PartialType (CreateChannelDto)
 {
-    @IsNotEmpty ()
-    id: string;
-
     usersToAdmin?: string[];
     usersToUnadmin?: string[];
     usersToBan?: string[];

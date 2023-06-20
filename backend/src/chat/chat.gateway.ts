@@ -103,15 +103,39 @@ export class ChatGateway
     @SubscribeMessage ("newMessage")
     async handleMessage (client: Socket, msg: MessageParams)
     {
-        if (msg.channelId != undefined)
+        try
         {
-            const sent = await this.messageService.sendMessageToChannel (client.data.userId, msg.channelId, msg.content);
+            if (msg.channelId != undefined)
+            {
+                const sent = await this.messageService.sendMessageToChannel (client.data.userId, msg.channelId, msg.content);
 
-            this.server.to ("Channel#" + msg.channelId).emit ("newMessage", {
-                sender: client.data.userId,
-                content: msg.content,
-                date: sent.timestamp
-            });
+                this.server.to ("Channel#" + msg.channelId).emit ("newMessage", {
+                    sender: client.data.userId,
+                    toChannel: msg.channelId,
+                    content: msg.content,
+                    date: sent.timestamp
+                });
+            }
+
+            if (msg.userId != undefined)
+            {
+                const sent = await this.messageService.sendMessageToUser (client.data.userId, msg.userId, msg.content);
+
+                const firstKey = client.data.userId.localeCompare (msg.userId) < 0 ? client.data.userId : msg.userId;
+                const secondKey = client.data.userId.localeCompare (msg.userId) < 0 ? msg.userId : client.data.userId;
+
+                this.server.to ("PrivConv#" + firstKey + "&" + secondKey).emit ("newMessage", {
+                    sender: client.data.userId,
+                    toUser: msg.userId,
+                    content: msg.content,
+                    date: sent.timestamp
+                });
+            }
+        }
+        catch (err)
+        {
+            this.logger.error (err.stack);
+            client.emit ("error", err.message);
         }
     }
 
@@ -125,5 +149,24 @@ export class ChatGateway
     unwatchChannel (client: Socket, channelId: string)
     {
         client.leave ("Channel#" + channelId);
+    }
+
+    @SubscribeMessage ("watchPrivConv")
+    watchPrivConv (client: Socket, userId: string)
+    {
+        const firstKey = client.data.userId.localeCompare (userId) < 0 ? client.data.userId : userId;
+        const secondKey = client.data.userId.localeCompare (userId) < 0 ? userId : client.data.userId;
+
+        client.join ("PrivConv#" + firstKey + "&" + secondKey);
+    }
+
+    @SubscribeMessage ("unwatchPrivconv")
+    unwatchPrivConv (client: Socket, userId: string)
+    {
+
+        const firstKey = client.data.userId.localeCompare (userId) < 0 ? client.data.userId : userId;
+        const secondKey = client.data.userId.localeCompare (userId) < 0 ? userId : client.data.userId;
+
+        client.leave ("PrivConv#" + firstKey + "&" + secondKey);
     }
 }

@@ -164,6 +164,80 @@ export class ChannelsController
         return result;
     }
 
+    // @Todo: move this route to its own controller?
+    @Get ("discussions")
+    async getPrivateConversations (@Request () req)
+    {
+        try
+        {
+            const me = await this.userService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
+
+            const convs = await this.msgService.findPrivateConversations (req.user.id);
+
+            const result = [] as UserInfo[];
+            for (const conv of convs)
+            {
+                if (conv.firstUser.id == me.id)
+                    result.push (UserInfo.fromUserEntity (me, conv.secondUser));
+                else
+                    result.push (UserInfo.fromUserEntity (me, conv.firstUser));
+            }
+
+            return result;
+        }
+        catch (err)
+        {
+            this.logger.error (err.stack);
+            throw new BadRequestException (err.message);
+        }
+    }
+
+    @Post ("discussions/:id")
+    async sendPrivateMessage (@Request () req, @Param ("id") otherId: string, message: string)
+    {
+        try
+        {
+            const me = await this.userService.findUserEntity ({id: req.user.id});
+
+            await this.msgService.sendMessageToUser (req.user.id, otherId, message);
+        }
+        catch (err)
+        {
+            this.logger.error (err.stack);
+            throw new BadRequestException (err.message);
+        }
+    }
+
+    @Get ("discussions/:id")
+    async getPrivateMessages (@Request () req, @Param ("id") otherId: string)
+    {
+        try
+        {
+            const me = await this.userService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
+            const conv = await this.msgService.findPrivConversation (req.user.id, otherId, {messages: {fromUser: true}});
+
+            if (!conv)
+                return [];
+
+            const result = [] as MessageInfo[];
+            for (const msg of conv.messages)
+            {
+                result.push ({
+                    sender: UserInfo.fromUserEntity (me, msg.fromUser),
+                    content: msg.content,
+                    date: msg.timestamp,
+                });
+            }
+
+            return result;
+        }
+        catch (err)
+        {
+            this.logger.error (err.stack);
+            throw new BadRequestException (err.message);
+        }
+    }
+
     @Post ()
     async createChannel (@Request () req, @Body () body: CreateChannelDto)
     {
@@ -187,7 +261,7 @@ export class ChannelsController
         }
         catch (err)
         {
-            this.logger.error (err);
+            this.logger.error (err.stack);
             throw new BadRequestException (err.message);
         }
     }
@@ -197,7 +271,7 @@ export class ChannelsController
     {
         try
         {
-            await this.channelService.updateChannel (req.user.id, body);
+            await this.channelService.updateChannel (req.user.id, id, body);
         }
         catch (err)
         {

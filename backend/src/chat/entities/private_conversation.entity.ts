@@ -13,11 +13,15 @@ export class PrivateConversationEntity
     // firstUser and secondUser are sorted by id (firstUser is the
     // user with the id that is less than secondUser's)
 
-    @PrimaryColumn ({type: "uuid", name: "firstUserId"})
+    @PrimaryColumn ({type: "uuid"})
+    firstUserId: string;
+
+    @PrimaryColumn ({type: "uuid"})
+    secondUserId: string;
+
     @ManyToOne (() => UserEntity, (user) => user.id, {eager: true})
     firstUser: UserEntity;
 
-    @PrimaryColumn ({type: "uuid", name: "secondUserId"})
     @ManyToOne (() => UserEntity, (user) => user.id, {eager: true})
     secondUser: UserEntity;
 

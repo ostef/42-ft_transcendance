@@ -85,10 +85,10 @@ export class ChannelsService
         await this.channelRepository.remove (channelAndAdmin.channel);
     }
 
-    async updateChannel (userId: string, params: UpdateChannelDto)
+    async updateChannel (userId: string, channelId: string, params: UpdateChannelDto)
     {
         const channelAndAdmin = await this.findChannelAndAdminUser (
-            params.id, userId,
+            channelId, userId,
             {
                 owner: true,
                 users: true,
