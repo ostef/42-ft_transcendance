@@ -47,6 +47,9 @@ export class UserEntity
 
     isFriendsWith (other: string | UserEntity): boolean
     {
+        if (!this.friends)
+            throw new Error ("friends relation is not loaded");
+
         if (typeof other == "string")
             return this.friends.findIndex ((val: UserEntity) => val.id == other) != -1;
         else
@@ -55,6 +58,9 @@ export class UserEntity
 
     hasBlocked (other: string | UserEntity): boolean
     {
+        if (!this.blockedUsers)
+            throw new Error ("blockedUsers relation is not loaded");
+
         if (typeof other == "string")
             return this.blockedUsers.findIndex ((val: UserEntity) => val.id == other) != -1;
         else
