@@ -83,7 +83,7 @@ function sendMessage ()
                         :message="msg"
                         :online="chat.isOnline (msg.sender.id)"
                         :isAdmin="chat.selectedChannel?.adminIds.findIndex ((val) => val == msg.sender.id) != -1"
-                        :isMuted="chat.selectedChannel?.mutedUserIds.findIndex ((val) => val == msg.sender.id) != -1"
+                        :isMuted="chat.isMuted (msg.sender.id)"
                         :iAmAdmin="chat.selectedChannel?.adminIds.findIndex ((val) => val == me?.id) != -1"
                     />
                 </div>
@@ -115,6 +115,8 @@ function sendMessage ()
 
                 <div>{{ user.nickname }}</div>
 
+                <iconify-icon v-if="chat.isMuted (user.id)" icon="solar:muted-linear" class="m-1 w-5 h-5" />
+                
                 <!--
                 <iconify-icon v-if="user.isOwner" icon="tabler:crown" class="m-1 h-5 w-5" />
                 <iconify-icon v-if="user.isAdmin" icon="eos-icons:admin-outlined" class="m-1 h-5 w-5" />
