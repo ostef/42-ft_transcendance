@@ -90,8 +90,14 @@ function sendMessage ()
             </div>
 
             <div v-if="chat.selectedChannelIndex != -1 || chat.selectedUserIndex != -1" class="p-4 h-1/6 mt-4">
-                <input type="text" placeholder="Write something" class="input input-bordered w-4/6" v-model="messageToSend" @keyup.enter="sendMessage ()" />
-                <button class="btn normal-case mx-4 w-1/6" @click="sendMessage ()">Send</button>
+                <input type="text"
+                    :placeholder="chat.isMuted (me?.id) ? 'You are muted' : 'Write something'"
+                    class="input input-bordered w-4/6"
+                    :disabled="chat.isMuted (me?.id)"
+                    v-model="messageToSend" @keyup.enter="sendMessage ()" />
+                <button
+                    :disabled="chat.isMuted (me?.id)"
+                    class="btn normal-case mx-4 w-1/6" @click="sendMessage ()">Send</button>
             </div>
         </div>
 

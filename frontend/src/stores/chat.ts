@@ -60,8 +60,20 @@ export const useChatStore = defineStore ("chat", () =>
         return onlineUsers.value.findIndex ((val) => val == userId) != -1;
     }
 
+    function isMuted (userId?: string, channel: Channel | null = null): boolean
+    {
+        if (!channel)
+            channel = selectedChannel.value;
+
+        if (!channel || !userId)
+            return false;
+
+        return channel.mutedUserIds.findIndex ((val) => val == userId) != -1;
+    }
+
     return {
         users, messages, channels, privateConvs,
         selectedChannelIndex, selectedChannel, selectedUserIndex, selectedUser,
-        channelsSelected, onlineUsers, isOnline };
+        channelsSelected, onlineUsers,
+        isOnline, isMuted };
 });
