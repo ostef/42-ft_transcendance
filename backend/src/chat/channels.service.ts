@@ -8,6 +8,22 @@ import { CreateChannelDto, UpdateChannelDto } from "./entities/channel.dto";
 import { UsersService } from "src/users/users.service";
 import { UserEntity } from "src/users/entities/user.entity";
 
+export class MinimalChannelInfo
+{
+    id: string;
+    name: string;
+    description: string;
+    isPrivate: boolean;
+    isPasswordProtected: boolean;
+}
+
+export class ChannelInfo extends MinimalChannelInfo
+{
+    ownerId: string;
+    adminIds: string[];
+    mutedUserIds: string[];
+}
+
 @Injectable ()
 export class ChannelsService
 {
@@ -37,6 +53,27 @@ export class ChannelsService
         {
             return null;
         }
+    }
+
+    async getChannelInfo (userId: string, id: string): Promise<ChannelInfo>
+    {
+        const chan = await this.findChannelEntity ({id: id}, {owner: true, users: true, administrators: true, mutedUsers: true});
+        if (!chan)
+            throw new Error ("Channel does not exist");
+
+        if (!chan.hasUser (userId))
+            throw new Error ("User is not in channel");
+
+        return {
+            id: chan.id,
+            name: chan.name,
+            description: chan.description,
+            isPrivate: chan.isPrivate,
+            isPasswordProtected: chan.password != null,
+            ownerId: chan.owner.id,
+            adminIds: chan.administrators.map ((val) => val.id),
+            mutedUserIds: chan.mutedUsers.map ((val) => val.id),
+        };
     }
 
     async createChannel (userId: string, params: CreateChannelDto)

@@ -128,6 +128,22 @@ export class ChatGateway
         }
     }
 
+    @SubscribeMessage ("channelUpdated")
+    async handleChannelChange (client: Socket, channelId: string)
+    {
+        const info = await this.channelsService.getChannelInfo (client.data.userId, channelId);
+
+        this.server.to ("Channel#" + channelId).emit ("channelInfo", info);
+    }
+
+    @SubscribeMessage ("getChannelInfo")
+    async sendChannelInfo (client: Socket, channelId: string)
+    {
+        const info = await this.channelsService.getChannelInfo (client.data.userId, channelId);
+
+        client.emit ("channelInfo", info);
+    }
+
     @SubscribeMessage ("watchChannel")
     watchChannel (client: Socket, channelId: string)
     {

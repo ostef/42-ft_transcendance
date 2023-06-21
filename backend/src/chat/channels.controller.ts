@@ -12,21 +12,7 @@ import { JwtAuthGuard } from "src/auth/jwt_auth.guard";
 import { UsersService } from "src/users/users.service";
 import { UserEntity } from "src/users/entities/user.entity";
 
-class MinimalChannelInfo
-{
-    id: string;
-    name: string;
-    description: string;
-    isPrivate: boolean;
-    isPasswordProtected: boolean;
-}
-
-class ChannelInfo extends MinimalChannelInfo
-{
-    ownerId: string;
-    adminIds: string[];
-    mutedUserIds: string[];
-}
+import { MinimalChannelInfo, ChannelInfo } from "./channels.service";
 
 class UserInfo
 {
@@ -271,23 +257,9 @@ export class ChannelsController
     {
         try
         {
-            const chan = await this.channelService.findChannelEntity ({id: id}, {owner: true, users: true, administrators: true, mutedUsers: true});
-            if (!chan)
-                throw new Error ("Channel does not exist");
+            const info = await this.channelService.getChannelInfo (req.user.id, id);
 
-            if (!chan.hasUser (req.user.id))
-                throw new Error ("User is not in channel");
-
-            return {
-                    id: chan.id,
-                    name: chan.name,
-                    description: chan.description,
-                    isPrivate: chan.isPrivate,
-                    isPasswordProtected: chan.password != null,
-                    ownerId: chan.owner.id,
-                    adminIds: chan.administrators.map ((val) => val.id),
-                    mutedUserIds: chan.mutedUsers.map ((val) => val.id),
-            };
+            return info;
         }
         catch (err)
         {
