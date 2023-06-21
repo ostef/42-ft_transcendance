@@ -11,6 +11,8 @@ import router from "@/router";
 
 import App from "@/App.vue";
 
+import { connectChatSocket } from "./chat";
+
 const app = createApp (App);
 
 app.component ("iconify-icon", Icon)
@@ -18,6 +20,8 @@ app.component ("iconify-icon", Icon)
 app.use (createPinia ());
 app.use (VueAxios, axios);
 app.use (router);
+
+connectChatSocket ();
 
 axios.defaults.baseURL = "http://" + location.hostname + ":3000";
 axios.defaults.headers.common["Authorization"] = "Bearer " + localStorage.getItem ("token");

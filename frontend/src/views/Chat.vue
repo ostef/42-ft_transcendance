@@ -24,15 +24,8 @@ const messageToSend = ref ("");
 
 onMounted (async () =>
 {
-    connectChatSocket ();
     await fetchChannels ();
     await fetchPrivateConversations ();
-});
-
-onBeforeRouteLeave ((to, from, next) =>
-{
-    disconnectChatSocket ();
-    next ();
 });
 
 function sendMessage ()
