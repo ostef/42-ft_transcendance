@@ -6,7 +6,7 @@ import { type PropType } from "vue";
 
 import { useUserStore, type User } from "@/stores/user";
 import { useChatStore } from "@/stores/chat";
-import { fetchUsers, fetchChannelInfo, fetchPrivateMessages, selectPrivConv } from "@/chat";
+import { fetchUsers, fetchChannelInfo, fetchPrivateMessages, selectPrivConv, notifyChannelChange } from "@/chat";
 import { fetchUserInfo } from "@/authentication";
 
 import UserPopup from "./UserPopup.vue";
@@ -30,7 +30,8 @@ async function muteUser ()
         return;
 
     await axios.put ("channels/" + props.channelId, {usersToMute: [props.user.id] });
-    await fetchChannelInfo (props.channelId as string);
+    notifyChannelChange (props.channelId);
+    //await fetchChannelInfo (props.channelId as string);
 }
 
 async function unmuteUser ()
@@ -39,7 +40,9 @@ async function unmuteUser ()
         return;
 
     await axios.put ("channels/" + props.channelId, {usersToUnmute: [props.user.id] });
-    await fetchChannelInfo (props.channelId as string);
+    notifyChannelChange (props.channelId);
+
+    // await fetchChannelInfo (props.channelId as string);
 }
 
 async function kickUser ()
@@ -48,7 +51,8 @@ async function kickUser ()
         return;
 
     await axios.put ("channels/" + props.channelId, {usersToKick: [props.user.id] });
-    await fetchChannelInfo (props.channelId as string);
+    notifyChannelChange (props.channelId);
+    // await fetchChannelInfo (props.channelId as string);
 }
 
 async function banUser ()
@@ -57,7 +61,8 @@ async function banUser ()
         return;
 
     await axios.put ("channels/" + props.channelId, {usersToBan: [props.user.id] });
-    await fetchChannelInfo (props.channelId as string);
+    notifyChannelChange (props.channelId);
+    // await fetchChannelInfo (props.channelId as string);
 }
 
 async function unbanUser ()
@@ -66,7 +71,8 @@ async function unbanUser ()
         return;
 
     await axios.put ("channels/" + props.channelId, {usersToUnban: [props.user.id] });
-    await fetchChannelInfo (props.channelId as string);
+    notifyChannelChange (props.channelId);
+    // await fetchChannelInfo (props.channelId as string);
 }
 
 async function adminUser ()
@@ -75,7 +81,8 @@ async function adminUser ()
         return;
 
     await axios.put ("channels/" + props.channelId, {usersToAdmin: [props.user.id] });
-    await fetchChannelInfo (props.channelId as string);
+    notifyChannelChange (props.channelId);
+    // await fetchChannelInfo (props.channelId as string);
 }
 
 async function unadminUser ()
@@ -84,7 +91,8 @@ async function unadminUser ()
         return;
 
     await axios.put ("channels/" + props.channelId, {usersToUnadmin: [props.user.id] });
-    await fetchChannelInfo (props.channelId as string);
+    notifyChannelChange (props.channelId);
+    // await fetchChannelInfo (props.channelId as string);
 }
 
 async function goToPrivateConv ()

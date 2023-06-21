@@ -35,6 +35,12 @@ export function connectChatSocket ()
     chatSocket.on ("onlineUsers", (onlineUsers) => {
         store.onlineUsers = onlineUsers
     });
+
+    chatSocket.on ("channelInfo", (channel) => {
+        const indexInStore = store.channels.findIndex ((val) => val.id == channel.id);
+        if (indexInStore != -1)
+            store.channels[indexInStore] = channel;
+    });
 }
 
 export function disconnectChatSocket ()
@@ -58,6 +64,11 @@ export async function fetchPrivateConversations ()
     const result = await axios.get ("channels/discussions");
 
     store.privateConvs = result.data;
+}
+
+export function notifyChannelChange (channelId: string)
+{
+    chatSocket.emit ("channelUpdated", channelId);
 }
 
 export async function fetchChannelInfo (channelId: string)
