@@ -266,6 +266,36 @@ export class ChannelsController
         }
     }
 
+    @Get (":id")
+    async getChannelInfo (@Request () req, @Param ("id") id: string, @Body () body: UpdateChannelDto)
+    {
+        try
+        {
+            const chan = await this.channelService.findChannelEntity ({id: id}, {owner: true, users: true, administrators: true, mutedUsers: true});
+            if (!chan)
+                throw new Error ("Channel does not exist");
+
+            if (!chan.hasUser (req.user.id))
+                throw new Error ("User is not in channel");
+
+            return {
+                    id: chan.id,
+                    name: chan.name,
+                    description: chan.description,
+                    isPrivate: chan.isPrivate,
+                    isPasswordProtected: chan.password != null,
+                    ownerId: chan.owner.id,
+                    adminIds: chan.administrators.map ((val) => val.id),
+                    mutedUserIds: chan.mutedUsers.map ((val) => val.id),
+            };
+        }
+        catch (err)
+        {
+            this.logger.error (err);
+            throw new BadRequestException (err.message);
+        }
+    }
+
     @Put (":id")
     async updateChannel (@Request () req, @Param ("id") id: string, @Body () body: UpdateChannelDto)
     {
