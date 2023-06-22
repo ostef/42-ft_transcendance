@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useUserStore } from "@/stores/user";
+import { connectChatSocket, disconnectChatSocket } from "@/chat";
 
 export async function login (username: string, password: string)
 {
@@ -10,6 +11,7 @@ export async function login (username: string, password: string)
     axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 
     await fetchUserInfo ();
+    connectChatSocket ();
 }
 
 export function logout ()
@@ -17,6 +19,7 @@ export function logout ()
     localStorage.removeItem ("token");
     delete axios.defaults.headers.common["Authorization"];
 
+    disconnectChatSocket ();
     const userStore = useUserStore ();
     userStore.user = null;
 }

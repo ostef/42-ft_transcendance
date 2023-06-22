@@ -10,6 +10,9 @@ export function connectChatSocket ()
 {
     const store = useChatStore ();
 
+    if (chatSocket && chatSocket.connected)
+        return;
+
     chatSocket = io (
         "http://localhost:3000/chat",
         {
@@ -45,7 +48,8 @@ export function connectChatSocket ()
 
 export function disconnectChatSocket ()
 {
-    chatSocket.disconnect ();
+    if (chatSocket && chatSocket.connected)
+        chatSocket.disconnect ();
 }
 
 export async function fetchChannels ()
