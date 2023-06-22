@@ -10,6 +10,7 @@ export class UserDto
 
     static validate (value: UserDto)
     {
+        console.log(value.username)
         if (!validateName (value.username))
             throw new Error ("Invalid username");
 

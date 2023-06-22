@@ -6,6 +6,7 @@ import {
 import { ChannelEntity } from "src/chat/entities/channel.entity";
 import { PrivateConversationEntity } from "src/chat/entities/private_conversation.entity";
 import { FriendRequestEntity } from "./friend_request.entity";
+import { gameHistoryEntity } from "src/game/entities/gameHistory.entity";
 
 @Entity ()
 export class UserEntity
@@ -44,6 +45,12 @@ export class UserEntity
     @ManyToMany (() => PrivateConversationEntity)
     @JoinTable ()
     privateConversations: PrivateConversationEntity[];
+
+    @OneToMany(() => gameHistoryEntity, (gameHistoryEntity) => gameHistoryEntity.user1)
+    gameHistory : gameHistoryEntity[]
+
+    @OneToMany(() => gameHistoryEntity, (gameHistoryEntity) => gameHistoryEntity.user2)
+    gameHistory2 : gameHistoryEntity[]
 
     isFriendsWith (other: string | UserEntity): boolean
     {

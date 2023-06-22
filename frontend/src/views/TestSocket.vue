@@ -2,9 +2,9 @@
     <div>
     <div class="leftbar"></div>
     <div class="rightbar"></div>
-    <div class="navbar"></div>
-	<button class="searchGame" @click="searchGame()">Search Game</button>
-	<button class="createGame" @click="createGame()">Create Game</button>
+    <div class="navbar2"></div>
+	<button class="btn normal-case" @click="searchGame()">Search Game</button>
+	<button class="btn normal-case" @click="createGame()">Create Game</button>
     <div class="score">
         <div id="player1-score">0</div>
         <div id="player2-score">0</div>
@@ -22,6 +22,8 @@ import { defineComponent } from "vue";
 import Ball from "../script/game/Ball"
 import Paddle from "../script/game/Paddle"
 import App from "../App.vue";
+import { useUserStore } from "@/stores/user";
+import { storeToRefs } from 'pinia';
 
 //Todo faire des fichiers de types
 type Point = {x: number; y: number}
@@ -53,6 +55,7 @@ export default {
 			delta : 15,
 			difficulty : 1 as number,
 			inviteId : "" as any,
+			userStore : null
         }
     },
     created () {
@@ -78,21 +81,25 @@ export default {
 			{
 				if (this.canvas)
 				{
-					this.paddleLeft = new Paddle("canvas", "white", 5, true, difficulty)
-					this.paddleRight = new Paddle("canvas", "white", this.canvas.width - 5, false, difficulty)
+					this.paddleLeft = new Paddle("canvas", "black", 5, true, difficulty)
+					this.paddleRight = new Paddle("canvas", "black", this.canvas.width - 5, false, difficulty)
 				}
 			}
 			console.log("the color is : " + color)
 			this.joinGame(playerPos, gameId, difficulty, color)
 		})
-		this.socket.on("chooseDifficulty", (gameId) => {
+		this.socket.on("configurateGame", (gameId) => {
+			this.configurateGame(gameId)
+			//Todo Coder le configurate game et le front pour que ca affiche le component configurate
+		})
+		/*this.socket.on("chooseDifficulty", (gameId) => {
 			console.log("choosing a difficulty")
 			this.chooseDifficulty(gameId)
 		})
 		this.socket.on("chooseColor", (gameId) => {
 			console.log("choosing a color")
 			this.chooseColor(gameId)
-		})
+		})*/
 
 
 
@@ -142,6 +149,8 @@ export default {
 	mounted() {
 		console.log("mounted")
 		this.inviteId = this.$route.params.id
+		this.userStore = useUserStore ();
+		console.log(this.userStore.user.id)
 		this.canvas = document.querySelector("canvas")
 		if (this.canvas)
 		{
@@ -149,7 +158,7 @@ export default {
 			this.canvas.height = window.innerHeight * this.canvasAbsoluteSize
 			this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
 
-			this.ball = new Ball("canvas", 100, 100, {x: 10 , y: 10}, "red", 10, this.delta)
+			this.ball = new Ball("canvas", 100, 100, {x: 10 , y: 10}, "red", 0.008 * this.canvas.width, this.delta)
 			this.leftScore = document.getElementById("player1-score")
 			this.rightScore = document.getElementById("player2-score")
 		}
@@ -173,19 +182,18 @@ export default {
 			{
 				if (e.y <= window.innerHeight * this.canvasAbsoluteStart + this.paddleLeft.getHeight() / 2)
 				{
-					mouseHeight = this.paddleLeft.getHeight() / 2
+					mouseHeight = (this.paddleLeft.getHeight() / 2) / this.canvas.height
 					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 					return
 				}
 				else if (e.y >= window.innerHeight - window.innerHeight * this.canvasAbsoluteStart - this.paddleLeft.getHeight() / 2)
 				{
 					if (this.canvas)
-						mouseHeight = this.canvas.height - this.paddleLeft.getHeight() / 2
+						mouseHeight = (this.canvas.height - this.paddleLeft.getHeight() / 2) / this.canvas.height
 					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 					return
 				}
-				mouseHeight = e.y - window.innerHeight * this.canvasAbsoluteStart
-				console.log("mouseheight : ", mouseHeight)
+				mouseHeight = (e.y - window.innerHeight * this.canvasAbsoluteStart) / this.canvas.height
 				this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 			}
 		})
@@ -196,16 +204,25 @@ export default {
 
 	},
 	methods: {
-		windowresize() {
-
-		},
-
+		
 		//Event pour waiting room et game
 		launchWaitRoom() {
 			this.waiting = true
 			//Todo est-ce que c'est toujours utile ?
 			this.intervalId = setInterval(this.waitRoom.bind(this), 1000)
 		},
+		
+		windowresize() {
+			this.canvas.height = window.innerHeight * this.canvasAbsoluteSize
+			this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
+			this.ball.mainCanvas.width = this.canvas.width
+			this.ball.mainCanvas.height = this.canvas.height
+			this.paddleLeft.mainCanvas.width = this.canvas.width
+			this.paddleLeft.mainCanvas.height = this.canvas.height
+			this.paddleRight.mainCanvas.width = this.canvas.width
+			this.paddleRight.mainCanvas.height = this.canvas.height
+		},
+
 
 		waitRoom()
 		{
@@ -213,8 +230,6 @@ export default {
 		},
 
 		searchGame() {
-			console.log("Canvas :", this.canvas?.width, this.canvas?.height)
-			console.log("Window : ", window.innerWidth, window.innerHeight)
 			this.socket.emit("searchGame", {canvas : {width : this.canvas?.width, height : this.canvas?.height}, window  : { width : window.innerWidth, height : window.innerHeight} })
 		},
 
@@ -231,8 +246,8 @@ export default {
 			//et emit au serveur
 			if (this.canvas)
 			{
-				this.paddleLeft = new Paddle("canvas", "white", 5, true, 1)
-				this.paddleRight = new Paddle("canvas", "white", this.canvas.width - 5, false, 1)
+				this.paddleLeft = new Paddle("canvas", "black", 0.01 * this.canvas.width, true, 1)
+				this.paddleRight = new Paddle("canvas", "black", this.canvas.width - 0.01 * this.canvas.width, false, 1)
 			}
 			this.socket.emit("difficultyChoice", {gameId : this.gameId, difficulty : 1})
 		},
@@ -252,14 +267,16 @@ export default {
 			this.isPlaying = true
 			this.difficulty = difficulty
 			this.ball.color = color
+			console.log("useId is : " + this.userStore.user.id)
+			this.socket.emit("userId", {gameId : this.gameId, userId : this.userStore.user.id})
 		},
 
 		//Event pour le déroulement de la partie
 		updateBall( ballCenter : Point ) {
 			if (this.isPlaying)
 			{
-				this.ball.setxpos(ballCenter.x)
-				this.ball.setypos(ballCenter.y)
+				this.ball.setxpos(ballCenter.x * this.canvas.width)
+				this.ball.setypos(ballCenter.y * this.canvas.height)
 			}
 		},
 
@@ -269,13 +286,13 @@ export default {
 			{
 				if (this.ownPaddle === "left")
 				{
-					this.paddleLeft.setXpos(ownPaddle.centerPos.x)
-					this.paddleLeft.setYpos(ownPaddle.centerPos.y)
+					this.paddleLeft.setXpos(ownPaddle.centerPos.x * this.canvas.width)
+					this.paddleLeft.setYpos(ownPaddle.centerPos.y * this.canvas.height)
 				}
 				else if (this.ownPaddle === "right")
 				{
-					this.paddleRight.setXpos(ownPaddle.centerPos.x)
-					this.paddleRight.setYpos(ownPaddle.centerPos.y)
+					this.paddleRight.setXpos(ownPaddle.centerPos.x * this.canvas.width)
+					this.paddleRight.setYpos(ownPaddle.centerPos.y * this.canvas.height)
 				}
 			}	
 		},
@@ -286,13 +303,13 @@ export default {
 			{
 				if (this.ownPaddle === "right")
 				{
-					this.paddleLeft.setXpos(otherPaddle.centerPos.x)
-					this.paddleLeft.setYpos(otherPaddle.centerPos.y)
+					this.paddleLeft.setXpos(otherPaddle.centerPos.x * this.canvas.width)
+					this.paddleLeft.setYpos(otherPaddle.centerPos.y * this.canvas.height)
 				}
 				else if (this.ownPaddle === "left")
 				{
-					this.paddleRight.setXpos(otherPaddle.centerPos.x)
-					this.paddleRight.setYpos(otherPaddle.centerPos.y)
+					this.paddleRight.setXpos(otherPaddle.centerPos.x * this.canvas.width)
+					this.paddleRight.setYpos(otherPaddle.centerPos.y * this.canvas.height)
 				}
 			}
 		},
@@ -310,9 +327,9 @@ export default {
 			{
 				if (this.canvas)
 					this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
-				this.ball.draw()
 				this.paddleRight.draw(0)
 				this.paddleLeft.draw(0)
+				this.ball.draw()
 			}
 		},
 
@@ -382,9 +399,7 @@ export default {
 
 </script>
 
-<style>
-
-
+<style scoped>
 
 *, *::after, *::before {
 box-sizing: border-box;
@@ -424,7 +439,7 @@ right: 0px;
 width: 20%;
 }
 
-.navbar {
+.navbar2 {
 position: absolute;
 top : 0px;
 height: 20%;

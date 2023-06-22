@@ -11,7 +11,7 @@
 		</div>
 </template>
 
-<style>
+<style scoped>
 
 
 
@@ -53,11 +53,11 @@ body {
 	width: 20%;
 }
 
-.navbar {
+/*.navbar {
 	position: absolute;
 	top : 0px;
 	height: 20%;
-}
+}*/
 
 .score {
 	display: flex;

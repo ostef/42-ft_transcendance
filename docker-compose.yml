@@ -21,6 +21,8 @@ services:
     container_name: database
     env_file:
       - .env
+    # networks:
+    #   - transcendance
     restart: unless-stopped
     ports:
       - 5432:5432
@@ -30,6 +32,20 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+  
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    # networks:
+    #   - transcendance
+    ports:
+      - "5050:80"
+    logging:
+      driver: "none"
 
   frontend:
     build: ./frontend
@@ -46,3 +62,9 @@ services:
       - backend
 volumes:
   data_database:
+
+
+# networks:
+#     transcendance:
+#       driver: bridge
+#       name: transcendance

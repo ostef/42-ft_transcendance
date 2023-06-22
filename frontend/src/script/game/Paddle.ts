@@ -28,7 +28,7 @@ export default class Paddle {
 		this.canvasAbsoluteStart = 20 / 100
 		this.mainCanvas = document.querySelector(canvas)
 		this.height = this.setDifficulty(difficulty)
-		this.width = 10
+		this.width = this.mainCanvas.width * 0.01
 		this.context = this.mainCanvas.getContext("2d")
 		this.frontSegment = { A : {x : 0, y : 0}, B : {x : 0, y : 0} }
 		this.paddlePos = { height : this.height, width : this.width, 

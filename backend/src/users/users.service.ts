@@ -36,6 +36,7 @@ export class UsersService
 
     async createUser (params: CreateUserDto): Promise<UserEntity>
     {
+        console.log(params)
         CreateUserDto.validate (params);
 
         if (!await this.isUsernameAvailable (params.username))

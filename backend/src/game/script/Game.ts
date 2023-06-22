@@ -9,18 +9,15 @@ export default class gameInstance {
 	//Player 1 is left bar
 	//Player 2 is right bar
 	player1Socket : Socket
+	player1DataBaseId : string
     player2Socket : Socket
+	player2DataBaseId : string
     paddleLeft : Paddle
     paddleRight : Paddle
     ball : Ball
     score : {p1 : number , p2 : number} = { p1 : 0,  p2 : 0}
 	timerId : ReturnType<typeof setInterval>
-	//canvas dimensions given by the client
-	canvas : {width : number, height : number}
-	//window dimensions given by the client
-	window : {width : number, height : number}
 	//Information sur les dimensions du canvas par rapport à la fenetre
-	canvasStart : number
 	delta : number
 	difficulty : number
 	gameService : GameService
@@ -29,13 +26,12 @@ export default class gameInstance {
 	inviteId : number
 
 
-	constructor(instanceId : number, player1 : Socket, player2 : Socket, canvas : {width : number, height : number}, window : {width : number, height : number}, gameService : GameService)
+
+	constructor(instanceId : number, player1 : Socket, player2 : Socket, gameService : GameService)
 	{
 		this.instanceId = instanceId
 		this.player1Socket = player1
 		this.player2Socket = player2
-		this.window = window
-		this.canvas = canvas
 		this.delta = 15
 		this.score.p1 = 0
 		this.score.p2 = 0
@@ -49,8 +45,8 @@ export default class gameInstance {
 
 	createGame()
 	{
-		console.log("emitting color event")
-		this.player1Socket.emit("chooseColor", this.instanceId)
+		console.log("emitting configurate event")
+		this.player1Socket.emit("configurateGame", this.instanceId)
 	}
 
 	changeInviteId(Id : number)
@@ -64,12 +60,9 @@ export default class gameInstance {
 		console.log("Added color")
 		if (color == "default")
 		{
-			this.player1Socket.emit("chooseDifficulty", this.instanceId)
 			return ;
 		}
 		this.color = color
-		this.player1Socket.emit("chooseDifficulty", this.instanceId)
-
 	}
 
 	addDifficulty(data : number)
@@ -106,17 +99,17 @@ export default class gameInstance {
 
 	isLose() 
 	{
-		if (this.ball.getcenterpos().x + this.ball.radius >= this.canvas.width)
+		if (this.ball.getcenterpos().x + this.ball.radius >= 1)
 			return (1)
 
-		if (this.ball.getcenterpos().x - this.ball.radius <= 1)
+		if (this.ball.getcenterpos().x - this.ball.radius <= 0)
 			return (1)
 		return (0)
 	}
 
 	handleLose() 
 	{
-		if (this.ball.getcenterpos().x + this.ball.radius >= this.canvas.width)
+		if (this.ball.getcenterpos().x + this.ball.radius >= 1)
 		{
 			this.score.p1 += 1
 			this.player2Socket.emit('score', this.score)
@@ -152,9 +145,9 @@ export default class gameInstance {
 	startGame() 
 	{
 		//Lancement de la partie en dehors de la loop
-		this.ball = new Ball(this.canvas, 100, 100, {x: 10 , y: 10}, this.color, 10, this.delta)
-		this.paddleLeft = new Paddle(this.canvas, "white", 5, true, this.difficulty)
-		this.paddleRight = new Paddle(this.canvas, "white", this.canvas.width - 5, false, this.difficulty)
+		this.ball = new Ball(0.5, 0.5, {x: 0.0001 , y: 0.0001}, this.color, 0.008, this.delta)
+		this.paddleLeft = new Paddle("white", 0.01, true, this.difficulty)
+		this.paddleRight = new Paddle("white", 1 - 0.01, false, this.difficulty)
 		this.score.p1 = 0
 		this.score.p2 = 0
 		console.log("starting a game with ")

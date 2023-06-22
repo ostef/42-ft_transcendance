@@ -26,6 +26,7 @@ onMounted (() =>
 {
     connectChatSocket ();
     fetchChannels ();
+    console.log(user.id)
 });
 
 onBeforeRouteLeave ((to, from, next) =>

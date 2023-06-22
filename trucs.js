@@ -29,6 +29,10 @@ Va falloir utiliser l url au lancement de la page game pour rejoindre la game
 
 
 
+Gerer les login :
+
+A voir 
+
 
 Historique de partie 
 

@@ -150,6 +150,17 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     this.gameService.addColor(client, data)
    }
 
+   @SubscribeMessage('userId')
+   onUserId(@ConnectedSocket() client : Socket, @MessageBody() data : any)
+   {
+    if (this.isSocket(client.id) === false)
+    {
+      return ;
+    }
+    console.log("userId is : " + data.userId)
+    this.gameService.addUserIdToGame(client, data.gameId, data.userId)
+   }
+
 
    //Invite Event 
 

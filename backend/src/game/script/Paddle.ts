@@ -13,27 +13,24 @@ export default class Paddle {
 	color : string
 	canvasAbsoluteStart : number // Départ haut du canvas en fonction de la taille décidée 
 	// Ce départ sert à positionner les paddle correctement dans le canvas
-	mainCanvas : {width : number, height : number}
-	context : CanvasRenderingContext2D | null | undefined = null
 	//There is only a getter on this one, do not set it manually, it is set with the other setters 
 	#paddlePos : {height : number, width: number, centerPos : {x : number, y : number}, front : Segment}
 	#frontSegment : Segment
 	player : boolean
 
-	constructor(canvas : {width : number, height : number}, color : string, xpos : number, player : boolean, difficulty : number) {
+	constructor(color : string, xpos : number, player : boolean, difficulty : number) {
 		//True is left, False is right
 		this.player = player
 		this.#xpos = xpos
 		this.color = color
 		this.#ypos = 0
 		this.canvasAbsoluteStart = 20 / 100
-		this.mainCanvas = canvas
-		this.#height = this.setDifficulty(difficulty) // this.mainCanvas.height / 7 
-		this.#width = 10
+		this.#height = this.setDifficulty(difficulty) // 1 / 7 
+		this.#width = 0.01
 		this.#frontSegment = { A : {x : 0, y : 0}, B : {x : 0, y : 0} }
 		this.#paddlePos = { height : this.#height, width : this.#width, 
 			centerPos : {x : this.#xpos, y : this.#ypos}, front : this.#frontSegment}
-		this.setYpos(this.mainCanvas?.height / 2)
+		this.setYpos(1 / 2)
 		if (player)
 		{
 			this.#frontSegment = { A : { x : this.#xpos + this.#width / 2, y : this.#ypos - this.#height / 2}, 
@@ -78,15 +75,15 @@ export default class Paddle {
 	{
 		if (difficulty === 1)
 		{
-			return (this.mainCanvas.height / 7)
+			return (1 / 7)
 		}
 		if (difficulty === 2)
 		{
-			return (this.mainCanvas.height / 9)
+			return (1 / 9)
 		}
 		if (difficulty === 3)
 		{
-			return (this.mainCanvas.height / 11)
+			return (1 / 11)
 		}
 		return (0)
 	}
@@ -149,32 +146,6 @@ export default class Paddle {
 
 	reset() 
 	{
-		if (this.mainCanvas)
-			this.setYpos(this.mainCanvas?.height / 2)
-	}
-
-	updatecomputer(ballHeight : number) 
-	{
-		let under = false
-		if (ballHeight - this.#ypos <= 0)
-		{
-			under = true
-		}
-		this.setYpos(this.getYpos() + SPEED * (ballHeight - this.#ypos))
-		if (under)
-		{
-			if (ballHeight - this.#ypos > 0)
-				this.setYpos(ballHeight)
-		}
-		else
-		{
-			if (ballHeight - this.#ypos < 0)
-				this.setYpos(ballHeight)
-		}
-	}
-
-	updateplayer(mouseHeight : number)
-	{
-		//Todo a coder ?
+		this.setYpos(1 / 2)
 	}
 }

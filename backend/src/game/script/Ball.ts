@@ -1,5 +1,5 @@
-const INITIAL_direction = 0.70
-const direction_INCREASE = 0.0001
+const INITIAL_direction = 0.0005
+const direction_INCREASE = 0.000001
 
 type Point = {x: number; y: number}
 type Segment = { A: Point; B : Point}
@@ -12,7 +12,6 @@ export default class Ball {
 	color: string
 	direction: { x: number; y: number }
 	speed : number
-	mainCanvas : {width : number, height : number}
 	context : any
 	//No setter for centerpos, you should'nt change it manually, getter not mandatory inside class
 	#centerpos : Point
@@ -21,20 +20,19 @@ export default class Ball {
 	delta : number
 
 
-	constructor(maincanvas : {width : number, height : number},  x :  number, y : number , direction : { x :  number; y : number}, color : string, radius : number, delta : number) {
+	constructor(x :  number, y : number , direction : { x :  number; y : number}, color : string, radius : number, delta : number) {
 
 		this.#xpos = x
 		this.#ypos = y
 		this.direction = direction
 		this.color =  color
 		this.radius = radius
-		this.speed = 1
+		this.speed = 0.0005
 		this.delta = delta
 		this.#centerpos = { x : this.#xpos, y : this.#ypos }
 		this.isPlaying = true
 		this.#nextpos = { x : this.#centerpos.x + this.direction.x * (this.speed) * this.delta, 
 			y : this.#centerpos.y + this.direction.x * (this.speed) * this.delta}
-		this.mainCanvas = maincanvas
 		this.reset()
 	}
 
@@ -68,8 +66,8 @@ export default class Ball {
 	}
 
 	reset() {
-		this.setxpos(this.mainCanvas.width / 2)
-		this.setypos(this.mainCanvas.height / 2)
+		this.setxpos(1 / 2)
+		this.setypos(1 / 2)
 		this.direction = {x: 0, y: 0}
 		while (Math.abs(this.direction.x) <= .5 || Math.abs(this.direction.x) >= .9) 
 		{
@@ -84,13 +82,13 @@ export default class Ball {
 		this.setypos(this.#ypos + this.direction.y * this.speed * this.delta)
 		this.speed += direction_INCREASE
 		
-		if (this.#ypos + this.radius > this.mainCanvas.height || this.#ypos - this.radius < 0) {
+		if (this.#ypos + this.radius > 1 || this.#ypos - this.radius < 0) {
 			this.direction.y *= -1
 		}
 		let resultCollision = this.collisionDetection(playerPos, computerPos)
 		if ((resultCollision.x != 0 && resultCollision.y != 0) && this.isPlaying)
 		{
-			if (resultCollision.x <= this.mainCanvas.width / 2)
+			if (resultCollision.x <= 1 / 2)
 			{
 				this.setxpos(resultCollision.x + this.radius)
 				this.setypos(resultCollision.y)

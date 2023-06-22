@@ -1,8 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { Socket } from 'socket.io';
 
 import Game from "./script/Game"
 import { read } from 'fs';
+import { gameHistoryEntity } from './entities/gameHistory.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UsersService } from 'src/users/users.service';
+import cluster from 'cluster';
 
 @Injectable()
 export class GameService {
@@ -20,7 +25,12 @@ export class GameService {
 	gamesCreateRoom : Game[] = []
 	gamesInvite : Game[] = []
 
+	constructor(
+		@InjectRepository (gameHistoryEntity)
+        private gameRepository: Repository<gameHistoryEntity>,
 
+		private usersService: UsersService,
+	) {}
 
 	quitWaitRoom(client : Socket)
 	{
@@ -70,7 +80,7 @@ export class GameService {
 	{
 		if (this.waitRoom.length >= 1)
 		{
-			let newGame : Game = new Game(this.gamesRoom.length, client, this.waitRoom.pop() , data.canvas, data.window, this)
+			let newGame : Game = new Game(this.gamesRoom.length, client, this.waitRoom.pop(), this)
 			this.gamesRoom.push(newGame)
 			console.log("new game id : ", newGame.instanceId)
 			newGame.createGame()
@@ -81,7 +91,7 @@ export class GameService {
 		else
 		{
 			console.log("empty newgame")
-			let newGame : Game = new Game(this.gamesRoom.length, client, client , data.canvas, data.window, this)
+			let newGame : Game = new Game(this.gamesRoom.length, client, client, this)
 			this.gamesRoom.push(newGame)
 			console.log("new game id : ", newGame.instanceId)
 			newGame.createGame()
@@ -124,7 +134,7 @@ export class GameService {
 
 	addWaitingGame(client : Socket, client2 : Socket, data : any, ready : boolean)
 	{
-		let newGame : Game = new Game(this.gamesRoom.length, client, client2 , data.canvas, data.window, this)
+		let newGame : Game = new Game(this.gamesRoom.length, client, client2 , this)
 		this.gamesRoom.push(newGame)
 		console.log("new game id : ", newGame.instanceId)
 		if (ready === true)
@@ -192,6 +202,28 @@ export class GameService {
 		}
 	}
 
+	addUserIdToGame(client : Socket, gameId : number, userId : string)
+	{
+		console.log("Added userId to the game " + userId)	
+		let currentInstance = null
+		for (let game of this.gamesRoom)
+		{
+			if (game.instanceId == gameId)
+			{
+				currentInstance = game
+				break
+			}
+		}
+		if (currentInstance.player1Socket.id == client.id)
+		{
+			currentInstance.player1DataBaseId = userId
+		}
+		if (currentInstance.player2Socket.id == client.id)
+		{
+			currentInstance.player2DataBaseId = userId
+		}
+	}
+
 	updatePaddlePos(client : Socket, gameId : number, paddlePos : number)
 	{
 		let currentInstance = null
@@ -201,7 +233,6 @@ export class GameService {
 			{
 				currentInstance = game
 				break
-
 			}
 		}
 		currentInstance.updatePaddlePos(client, paddlePos)
@@ -214,6 +245,9 @@ export class GameService {
 		)
 		if (index != -1)
 		{
+			this.createGameHistory(this.gamesRoom[index].player1DataBaseId, 
+				this.gamesRoom[index].player2DataBaseId, 
+				this.gamesRoom[index].score.p1, this.gamesRoom[index].score.p2)
 			this.gamesRoom.splice(index, 1)
 		}
 	}
@@ -243,8 +277,6 @@ export class GameService {
 		index = this.isGameCreating(socketId)
 		if (index != -1)
 		{
-			console.log(index)
-			console.log(this.gamesCreateRoom[index])
 			if (this.gamesCreateRoom[index].player1Socket.id == socketId)
 			{
 				this.gamesCreateRoom[index].disconnectPlayer1()
@@ -346,7 +378,7 @@ export class GameService {
 	//Creation d'invitation 
 	createInvite()
 	{
-		let newGame : Game = new Game(this.gamesRoom.length, null, null , null, null, this)
+		let newGame : Game = new Game(this.gamesRoom.length, null, null , this)
 		this.gamesRoom.push(newGame)
 		newGame.isReady = false
 		newGame.changeInviteId(this.gamesInvite.length)
@@ -363,8 +395,6 @@ export class GameService {
 		if (index != -1)
 		{
 			this.gamesInvite[index].player1Socket = client
-			this.gamesInvite[index].canvas = data.canvas
-			this.gamesInvite[index].window = data.window
 			client.emit("waitingPlayerInvite")
 		}
 		else
@@ -390,5 +420,36 @@ export class GameService {
 		{
 			client.emit("gameNotFound")
 		}
+	}
+
+	//Create History 
+
+	async createGameHistory(player1Id : string, player2Id : string, scoreP1 : number, scoreP2 : number)
+	{
+		let gameHistory = this.gameRepository.create()
+		let user1 = await this.usersService.findUserEntity({id : player1Id})
+		if (user1 == null)
+		{
+			console.log("Can't find user1 for gameHistory")
+			// throw new HttpException("can't find user", HttpStatus.BAD_REQUEST);
+			return null
+		}
+		console.log(user1.id)
+		let user2 = await this.usersService.findUserEntity({id : player2Id})
+		if (user2 == null)
+		{
+			console.log("Can't find user2 for gameHistory")
+			return null
+		}
+		gameHistory.user1 = user1
+		gameHistory.user2 = user2
+		gameHistory.scoreP1 = scoreP1
+		gameHistory.scoreP2 = scoreP2
+		this.gameRepository.save(gameHistory).then(() => {
+			console.log("Added a game history for " + player1Id + "and " + player2Id)
+		}).catch(() => {
+			console.log("Failed to add the game to the history")
+		})
+
 	}
 }
