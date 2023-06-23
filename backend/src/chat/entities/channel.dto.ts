@@ -1,5 +1,5 @@
 import { PartialType, OmitType } from "@nestjs/mapped-types";
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty, IsOptional } from "class-validator";
 
 export class CreateChannelDto
 {
@@ -29,6 +29,7 @@ export class UpdateChannelDto extends
 
 export class LeaveChannelDto
 {
+    @IsOptional ()
     @IsNotEmpty ()
     newOwnerId?: string;
 }
