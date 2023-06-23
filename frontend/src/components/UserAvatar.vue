@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import { storeToRefs } from "pinia";
-import { type PropType } from "vue";
+import { computed, type PropType } from "vue";
 
 import { useUserStore, type User } from "@/stores/user";
 import { useChatStore } from "@/stores/chat";
@@ -10,17 +10,57 @@ import { selectPrivConv, notifyChannelChange, notifyUserKickOrBan } from "@/chat
 
 import UserPopup from "./UserPopup.vue";
 
+const chatStore = useChatStore ();
 const { user: me } = storeToRefs (useUserStore ());
 const { channelsSelected, privateConvs, selectedUserIndex } = storeToRefs (useChatStore ());
 
 const props = defineProps ({
     channelId: String,
     user: Object as PropType<User>,
-    isOnline: Boolean,
     left: Boolean,
-    isMuted: Boolean,
-    isAdmin: Boolean,
-    iAmAdmin: Boolean,
+});
+
+const clientIsAdmin = computed (() => {
+    if (!props.channelId)
+        return false;
+
+    const channel = chatStore.channels.find ((val) => val.id == props.channelId);
+
+    return chatStore.isAdmin (me.value?.id, channel);
+});
+
+const clientIsOwner = computed (() => {
+    if (!props.channelId)
+        return false;
+
+    const channel = chatStore.channels.find ((val) => val.id == props.channelId);
+
+    return chatStore.isOwner (me.value?.id, channel);
+});
+
+const isMuted = computed (() => {
+    if (!props.channelId)
+        return false;
+
+    const channel = chatStore.channels.find ((val) => val.id == props.channelId);
+
+    return chatStore.isMuted (props.user?.id, channel);
+});
+
+const isAdmin = computed (() => {
+    if (!props.channelId)
+        return false;
+
+    const channel = chatStore.channels.find ((val) => val.id == props.channelId);
+
+    return chatStore.isAdmin (props.user?.id, channel);
+});
+
+const isOnline = computed (() => {
+    if (!props.user)
+        return false;
+
+    return chatStore.isOnline (props.user?.id);
 });
 
 async function muteUser ()
@@ -57,6 +97,7 @@ async function banUser ()
         return;
 
     await axios.put ("channels/" + props.channelId, {usersToBan: [props.user.id] });
+    notifyUserKickOrBan (props.channelId, props.user.id, false, "");
     notifyChannelChange (props.channelId);
 }
 
@@ -111,20 +152,24 @@ async function goToPrivateConv ()
                 <a @click="goToPrivateConv ()">Send Message</a>
             </li>
 
-            <li v-if="channelId && me?.id != user?.id && iAmAdmin && !isAdmin">
+            <li v-if="channelId && me?.id != user?.id && clientIsOwner && !isAdmin">
                 <a @click="adminUser ()">Make Admin</a>
             </li>
 
-            <li v-if="channelId && me?.id != user?.id && iAmAdmin">
+            <li v-if="channelId && me?.id != user?.id && clientIsOwner && isAdmin">
+                <a @click="unadminUser ()">Unadmin</a>
+            </li>
+
+            <li v-if="channelId && me?.id != user?.id && clientIsAdmin">
                 <a v-if="!isMuted" @click="muteUser ()">Mute User</a>
                 <a v-else @click="unmuteUser ()">Unmute User</a>
             </li>
 
-            <li v-if="channelId && me?.id != user?.id && iAmAdmin">
+            <li v-if="channelId && me?.id != user?.id && clientIsAdmin">
                 <a @click="kickUser ()">Kick User</a>
             </li>
 
-            <li v-if="channelId && me?.id != user?.id && iAmAdmin">
+            <li v-if="channelId && me?.id != user?.id && clientIsAdmin">
                 <a @click="banUser ()">Ban User</a>
             </li>
 

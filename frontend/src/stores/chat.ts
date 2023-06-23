@@ -36,7 +36,7 @@ export const useChatStore = defineStore ("chat", () =>
     const selectedChannelIndex = ref (-1);
     const selectedUserIndex = ref (-1);
     const privateConvs = ref ([] as User[]);
-    const channelsSelected = ref (false);
+    const channelsSelected = ref (true);
     const onlineUsers = ref ([] as string[]); // These are all user ids
 
     const selectedChannel = computed ((): Channel | null =>
@@ -55,8 +55,11 @@ export const useChatStore = defineStore ("chat", () =>
         return privateConvs.value[selectedUserIndex.value];
     });
 
-    function isOnline (userId: string): boolean
+    function isOnline (userId?: string): boolean
     {
+        if (!userId)
+            return false;
+
         return onlineUsers.value.findIndex ((val) => val == userId) != -1;
     }
 
@@ -71,9 +74,31 @@ export const useChatStore = defineStore ("chat", () =>
         return channel.mutedUserIds.findIndex ((val) => val == userId) != -1;
     }
 
+    function isAdmin (userId?: string, channel: Channel | null = null): boolean
+    {
+        if (!channel)
+            channel = selectedChannel.value;
+
+        if (!channel || !userId)
+            return false;
+
+        return channel.adminIds.findIndex ((val) => val == userId) != -1;
+    }
+
+    function isOwner (userId?: string, channel: Channel | null = null): boolean
+    {
+        if (!channel)
+            channel = selectedChannel.value;
+
+        if (!channel || !userId)
+            return false;
+
+        return channel.ownerId == userId;
+    }
+
     return {
         users, messages, channels, privateConvs,
         selectedChannelIndex, selectedChannel, selectedUserIndex, selectedUser,
         channelsSelected, onlineUsers,
-        isOnline, isMuted };
+        isOnline, isMuted, isAdmin, isOwner };
 });

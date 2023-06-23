@@ -81,10 +81,6 @@ function sendMessage ()
                     <ChatMessage v-for="msg of chat.messages"
                         :channelId="chat.selectedChannel?.id"
                         :message="msg"
-                        :online="chat.isOnline (msg.sender.id)"
-                        :isAdmin="chat.selectedChannel?.adminIds.findIndex ((val) => val == msg.sender.id) != -1"
-                        :isMuted="chat.isMuted (msg.sender.id)"
-                        :iAmAdmin="chat.selectedChannel?.adminIds.findIndex ((val) => val == me?.id) != -1"
                     />
                 </div>
             </div>
@@ -107,10 +103,6 @@ function sendMessage ()
                 <UserAvatar class="m-2"
                     :channelId="chat.selectedChannel?.id"
                     :user="user"
-                    :isOnline="chat.isOnline (user.id)"
-                    :isAdmin="chat.selectedChannel?.adminIds.findIndex ((val) => val == user.id) != -1"
-                    :isMuted="chat.selectedChannel?.mutedUserIds.findIndex ((val) => val == user.id) != -1"
-                    :iAmAdmin="chat.selectedChannel?.adminIds.findIndex ((val) => val == me?.id) != -1"
                 />
 
                 <div>{{ user.nickname }}</div>
