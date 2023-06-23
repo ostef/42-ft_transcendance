@@ -72,6 +72,7 @@ function sendMessage ()
                     {{ chat.selectedChannel?.description }}
                 </div>
                 <div v-else-if="chat.selectedUser">
+                    <UserAvatar :user="chat.selectedUser" />
                     {{ chat.selectedUser?.nickname }} ({{ chat.selectedUser?.username }})
                 </div>
             </div>
@@ -107,13 +108,9 @@ function sendMessage ()
 
                 <div>{{ user.nickname }}</div>
 
+                <iconify-icon v-if="chat.isOwner (user.id)" icon="tabler:crown" class="m-1 w-5 h-5" />
+                <iconify-icon v-else-if="chat.isAdmin (user.id)" icon="eos-icons:admin-outlined" class="m-1 w-5 h-5" />
                 <iconify-icon v-if="chat.isMuted (user.id)" icon="solar:muted-linear" class="m-1 w-5 h-5" />
-                
-                <!--
-                <iconify-icon v-if="user.isOwner" icon="tabler:crown" class="m-1 h-5 w-5" />
-                <iconify-icon v-if="user.isAdmin" icon="eos-icons:admin-outlined" class="m-1 h-5 w-5" />
-                <iconify-icon v-if="user.isMuted" icon="bx:volume-mute" class="m-1 h-4 w-5" />
-                -->
             </div>
         </div>
     </div>
