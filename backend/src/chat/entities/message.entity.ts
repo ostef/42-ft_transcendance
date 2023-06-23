@@ -17,10 +17,10 @@ export class MessageEntity
     @ManyToOne (() => UserEntity)
     fromUser: UserEntity;
 
-    @ManyToOne (() => ChannelEntity, (chan) => chan.messages, {nullable: true})
+    @ManyToOne (() => ChannelEntity, (chan) => chan.messages, {nullable: true, onDelete: "CASCADE"})
     toChannel: ChannelEntity;
 
-    @ManyToOne (() => PrivateConversationEntity, (conv) => conv.messages, {nullable: true})
+    @ManyToOne (() => PrivateConversationEntity, (conv) => conv.messages, {nullable: true, onDelete: "CASCADE"})
     toPrivateConversation: PrivateConversationEntity;
 
     @Column ({type: "text"})
