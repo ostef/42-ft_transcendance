@@ -7,16 +7,23 @@ import ChatMessage from "@/components/ChatMessage.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
 import JoinedChannelsList from "@/components/JoinedChannelsList.vue";
 import PrivateConversationsList from "@/components/PrivateConversationsList.vue";
+import InviteToChannelPopup from "@/components/InviteToChannelPopup.vue";
+import ConfirmPopup from "@/components/ConfirmPopup.vue";
+import LeaveChannelOwnerPopup from "@/components/LeaveChannelOwnerPopup.vue";
+import ChannelMenu from "@/components/ChannelMenu.vue";
+import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
 
 import { useChatStore, type Message } from "@/stores/chat";
 import { useUserStore } from "@/stores/user";
 
 import {
     chatSocket, connectChatSocket, disconnectChatSocket,
-    fetchChannels, fetchUsers, watchChannel, unwatchChannel, fetchMessages, fetchPrivateConversations
+    fetchChannels, fetchUsers, watchChannel, unwatchChannel, fetchMessages, fetchPrivateConversations, notifyChannelChange,
+    leaveChannel
 } from "@/chat";
 
 import { onBeforeRouteLeave } from "vue-router";
+import axios from "axios";
 
 const chat = useChatStore ();
 const { user: me } = storeToRefs (useUserStore ());
@@ -68,6 +75,31 @@ function sendMessage ()
         <div class="w-3/4 mx-2 overflow-hidden rounded-lg bg-base-200">
             <div class="h-1/6 flex-col">
                 <div v-if="chat.selectedChannel">
+                    <label v-if="chat.selectedChannel?.isPrivate" class="btn normal-case float-right m-4" for="inviteToChannelModal">
+                        Invite To Channel
+                    </label>
+                    <InviteToChannelPopup />
+
+                    <label v-if="chat.selectedChannel && !chat.isOwner (me?.id)" class="btn normal-case float-right m-4" for="confirmLeaveChannelModal">
+                        Leave Channel
+                    </label>
+                    <ConfirmPopup id="confirmLeaveChannelModal" title="Leave Channel?" noText="No" yesText="Yes" @on-yes="leaveChannel ()" />
+
+                    <label v-if="chat.selectedChannel && chat.isOwner (me?.id)" class="btn normal-case float-right m-4" for="leaveChannelOwnerModal">
+                        Leave Channel
+                    </label>
+                    <LeaveChannelOwnerPopup />
+
+                    <input type="checkbox" id="leaveChannelOwnerModal" class="modal-toggle" />
+                    <div class="modal">
+                        <div class="modal-box w-xs h-lg grid">
+                            <h3 class="text-lg font-bold">Select New Channel Owner</h3>
+
+
+                            <label class="my-2 btn normal-case" for="leaveChannelOwnerModal">Close</label>
+                        </div>
+                    </div>
+
                     {{ chat.selectedChannel?.name }} <br>
                     {{ chat.selectedChannel?.description }}
                 </div>
