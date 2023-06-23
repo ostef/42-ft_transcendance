@@ -10,7 +10,6 @@ async function fetchPublicChannels ()
 {
     const result = await axios.get ("channels/public");
     publicChannels.value = result.data;
-    console.log ("Fetched");
 }
 
 async function joinChannel (channelId: string)
