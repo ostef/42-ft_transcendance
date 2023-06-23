@@ -9,7 +9,6 @@ import { logout } from "@/authentication";
 const userStore = useUserStore ();
 const { user } = storeToRefs (userStore);
 
-
 </script>
 
 <template>

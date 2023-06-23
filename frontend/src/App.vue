@@ -1,15 +1,13 @@
 <script setup lang="ts">
 
 import { onErrorCaptured, ref } from "vue";
-
 import { isAxiosError } from "axios";
-
 import { RouterView } from "vue-router";
 
-import { logout } from "@/authentication";
-import Header from "@/components/Header.vue";
-
 import router from "@/router";
+import { logout } from "@/authentication";
+
+import Header from "@/components/Header.vue";
 
 const lastError = ref ("");
 const lastErrorTimeout = ref (0);
