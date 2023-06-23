@@ -188,7 +188,7 @@ export class ChannelsService
                 if (index == -1)
                     throw new Error ("User " + otherId + " is not an admin of channel " + channel.id);
 
-                delete channel.administrators[index];
+                channel.administrators.splice (index, 1);
             }
         }
 
@@ -226,7 +226,7 @@ export class ChannelsService
                 if (index == -1)
                     throw new Error ("User " + otherId + " is not banned");
 
-                delete channel.bannedUsers[index];
+                channel.bannedUsers.splice (index, 1);
             }
         }
 
@@ -262,7 +262,7 @@ export class ChannelsService
                 if (index == -1)
                     throw new Error ("User " + otherId + " is not muted");
 
-                delete channel.mutedUsers[index];
+                channel.mutedUsers.splice (index, 1);
             }
         }
 
@@ -286,7 +286,7 @@ export class ChannelsService
 
                 // @Todo (stefan): update user's joinedChannels array
                 // Or does it update automatically ?
-                delete channel.users[indexInJoinedUsers];
+                channel.removeUser (otherId);
             }
         }
 

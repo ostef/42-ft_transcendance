@@ -47,7 +47,7 @@ async function acceptFriendRequest ()
     {
         const index = me.value.receivedFriendRequests.findIndex ((val) => val == props.user?.id);
         if (index != -1)
-            delete me.value.receivedFriendRequests[index];
+            me.value.receivedFriendRequests.splice (index, 1);
     }
 }
 
@@ -62,7 +62,7 @@ async function declineFriendRequest ()
     {
         const index = me.value.receivedFriendRequests.findIndex ((val) => val == props.user?.id);
         if (index != -1)
-            delete me.value.receivedFriendRequests[index];
+            me.value.receivedFriendRequests.splice (index, 1);
     }
 }
 

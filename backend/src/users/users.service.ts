@@ -117,7 +117,7 @@ export class UsersService
 
                 const friendIndex = user.friends.findIndex ((val) => val.id == otherId);
                 if (friendIndex != -1)
-                    delete user.friends[friendIndex];
+                    user.friends.splice (friendIndex, 1);
 
                 toSave.push (other);
             }
@@ -135,7 +135,7 @@ export class UsersService
                 if (index == -1)
                     throw new Error ("User is not blocked");
 
-                delete user.blockedUsers[index];
+                user.blockedUsers.splice (index, 1);
             }
         }
 
@@ -152,8 +152,8 @@ export class UsersService
                 if (userIdx == -1 || toRemoveIdx == -1)
                     throw new Error ("You are not friends with this user");
 
-                delete user.friends[userIdx];
-                delete toRemove.friends[toRemoveIdx];
+                user.friends.splice (userIdx, 1);
+                toRemove.friends.splice (toRemoveIdx, 1);
 
                 toSave.push (toRemove);
             }
