@@ -10,12 +10,8 @@ async function fetchPublicChannels ()
 {
     const result = await axios.get ("channels/public");
     publicChannels.value = result.data;
-    console.log (publicChannels.value);
+    console.log ("Fetched");
 }
-
-onMounted (async () => {
-    await fetchPublicChannels ();
-});
 
 async function joinChannel (channelId: string)
 {
@@ -27,7 +23,7 @@ async function joinChannel (channelId: string)
 </script>
 
 <template>
-    <input type="checkbox" id="joinChannelModal" class="modal-toggle" />
+    <input type="checkbox" id="joinChannelModal" class="modal-toggle" @change="fetchPublicChannels ()" />
     <div class="modal">
         <div class="modal-box w-xs h-lg">
             <div class="overflow-auto grid">
