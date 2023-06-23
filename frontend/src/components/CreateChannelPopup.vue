@@ -35,6 +35,13 @@ async function createChannel ()
         password: hasPassword.value ? password.value : undefined
     });
 
+    name.value = "";
+    description.value = "";
+    password.value = "";
+    confirmPassword.value = "";
+    hasPassword.value = false;
+    isPrivate.value = false;
+
     await fetchChannels ();
 }
 
@@ -74,7 +81,7 @@ async function createChannel ()
                 placeholder="Description" v-model="description" />
 
             <button class="my-2 btn normal-case" @click="createChannel ()">Create</button>
-            <label class="my-2 btn normal-case" for="createChannelModal">Cancel</label>
+            <label class="my-2 btn normal-case" for="createChannelModal">Close</label>
         </div>
     </div>
 </template>
