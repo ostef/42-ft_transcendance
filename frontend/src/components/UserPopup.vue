@@ -8,8 +8,9 @@ import { type User, useUserStore } from "@/stores/user";
 import { fetchUserInfo } from "@/authentication";
 import { fetchUsers } from "@/chat";
 
-const { user: me } = storeToRefs (useUserStore ());
+import NonInteractiveAvatar from "./NonInteractiveAvatar.vue";
 
+const { user: me } = storeToRefs (useUserStore ());
 
 const props = defineProps ({
     user: Object as PropType<User>,
