@@ -5,6 +5,7 @@ import LoginView from "@/views/Login.vue";
 import axios from "axios";
 
 import { useUserStore } from "@/stores/user";
+import { chatSocket, connectChatSocket } from "@/chat";
 import { fetchUserInfo, logout, isAuthenticated } from "@/authentication";
 
 const router = createRouter ({
@@ -44,6 +45,7 @@ router.beforeEach (async (to, from, next) => {
         try
         {
             await fetchUserInfo ();
+            connectChatSocket ();
         }
         catch (err)
         {
