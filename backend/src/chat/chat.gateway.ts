@@ -1,6 +1,6 @@
 import { ArgumentsHost, Catch, HttpException, Logger, OnModuleInit, UseFilters } from "@nestjs/common";
 import { BaseWsExceptionFilter, ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
-import { Server, Socket } from "socket.io";
+import { RemoteSocket, Server, Socket } from "socket.io";
 
 import { AuthService } from "src/auth/auth.service";
 import { ChannelsService } from "./channels.service";
@@ -18,6 +18,14 @@ class MessageParams
     channelId?: string;
     userId?: string;
     content: string;
+}
+
+class UserKickedOrBanned
+{
+    channelId: string;
+    userId: string;
+    message: string;
+    kicked: boolean;
 }
 
 @WebSocketGateway ({
@@ -129,12 +137,28 @@ export class ChatGateway
     }
 
     @SubscribeMessage ("channelUpdated")
-    async handleChannelChange (client: Socket, channelId: string)
+    notifyChannelChange (client: Socket, channelId: string)
     {
-        const info = await this.channelsService.getChannelInfo (client.data.userId, channelId);
-
-        this.server.to ("Channel#" + channelId).emit ("channelInfo", info);
+        // We don't send the channel info, just the id of the channel, because
+        // we don't want to select to who we need to send this message.
+        this.server.emit ("channelUpdated", channelId);
     }
+
+    @SubscribeMessage ("userKickedOrBanned")
+    async notifyChannelUserChange (client: Socket, params: UserKickedOrBanned)
+    {
+        const socks = await this.server.fetchSockets ();
+
+        for (const client of socks)
+        {
+            if (client.data.userId == params.userId)
+            {
+                client.emit ("kickedOrBanned", params);
+
+                return;
+            }
+        }
+   }
 
     @SubscribeMessage ("getChannelInfo")
     async sendChannelInfo (client: Socket, channelId: string)

@@ -9,6 +9,7 @@ export let chatSocket: Socket;
 export function connectChatSocket ()
 {
     const store = useChatStore ();
+    const { user: me } = useUserStore ();
 
     if (chatSocket && chatSocket.connected)
         return;
@@ -27,6 +28,12 @@ export function connectChatSocket ()
 
     chatSocket.on ("newMessage", (msg) => {
 
+        if (msg.channelId === store.selectedChannel?.id)
+            return;
+
+        if (msg.toUser === store.selectedUser?.id)
+            return;
+
         let user = store.users.find ((val) => val.id == msg.sender);
 
         if (user)
@@ -39,10 +46,38 @@ export function connectChatSocket ()
         store.onlineUsers = onlineUsers
     });
 
-    chatSocket.on ("channelInfo", (channel) => {
-        const indexInStore = store.channels.findIndex ((val) => val.id == channel.id);
-        if (indexInStore != -1)
-            store.channels[indexInStore] = channel;
+    chatSocket.on ("channelUpdated", async (channelId) => {
+        await fetchChannelInfo (channelId);
+
+        if (channelId == store.selectedChannel?.id)
+        {
+            await fetchUsers (channelId);
+        }
+    });
+
+    type UserKickedOrBanned = {
+        channelId: string,
+        userId: string,
+        kicked: boolean,
+        message: string,
+    };
+
+    chatSocket.on ("kickedOrBanned", async (params: UserKickedOrBanned) => {
+        if (params.userId != me?.id)
+            return;
+
+        const channelIndex = store.channels.findIndex ((val) => val.id == params.channelId);
+        if (channelIndex == -1)
+            return;
+
+        store.channels.splice (channelIndex, 1);
+
+        if (channelIndex == store.selectedChannelIndex)
+        {
+            store.selectedChannelIndex = -1;
+            store.users.length = 0;
+            store.messages.length = 0;
+        }
     });
 }
 
@@ -73,6 +108,11 @@ export async function fetchPrivateConversations ()
 export function notifyChannelChange (channelId: string)
 {
     chatSocket.emit ("channelUpdated", channelId);
+}
+
+export function notifyUserKickOrBan (channelId: string, userId: string, kicked: boolean, message: string)
+{
+    chatSocket.emit ("userKickedOrBanned", {channelId: channelId, userId: userId, kicked: kicked, message: message});
 }
 
 export async function fetchChannelInfo (channelId: string)
@@ -179,4 +219,22 @@ export async function selectPrivConv (userId: string)
         chat.users.push (chat.selectedUser);
 
     chat.users.sort ((a, b) => a.nickname.localeCompare (b.nickname));
+}
+
+export async function leaveChannel (newOwnerId?: string)
+{
+    const chatStore = useChatStore ();
+    const {user: me} = storeToRefs (useUserStore ());
+
+    if (!chatStore.selectedChannel || !me.value)
+        return;
+
+    await axios.post ("channels/" + chatStore.selectedChannel.id + "/leave", {newOwnerId: newOwnerId});
+    notifyChannelChange (chatStore.selectedChannel.id);
+    notifyChannelUserChange (chatStore.selectedChannel.id, me.value.id, "Left");
+    await fetchChannels ();
+
+    chatStore.selectedChannelIndex = -1;
+    chatStore.users.length = 0;
+    chatStore.messages.length = 0;
 }
