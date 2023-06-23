@@ -3,8 +3,8 @@
 const props = defineProps ({
     id: String,
     title: String,
-    noText: String,
-    yesText: String,
+    noText: {type: String, default: "No"},
+    yesText:  {type: String, default: "Yes"},
 });
 
 </script>
