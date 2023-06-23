@@ -211,6 +211,8 @@ export class ChannelsService
                     throw new Error ("User " + otherId + " is already banned");
 
                 channel.bannedUsers.push (user);
+
+                channel.removeUser (otherId);
             }
         }
 
@@ -325,9 +327,6 @@ export class ChannelsService
 
         channel.users.push (user);
         this.saveChannel (channel);
-
-        user.joinedChannels.push (channel);
-        this.usersService.saveUser (user);
     }
 
     async leaveChannel (channelId: string, userId: string, newOwnerId?: string)
@@ -361,14 +360,8 @@ export class ChannelsService
         if (!channel.hasUser (userId))
             throw new Error ("User is not in channel");
 
-        const userIndex = channel.users.findIndex ((val) => val.id == userId);
-        delete channel.users[userIndex];
-
-        const channelIndex = user.joinedChannels.findIndex ((val) => val.id == channelId);
-        delete user.joinedChannels[channelIndex];
-
+        channel.removeUser (userId);
         this.saveChannel (channel);
-        this.usersService.saveUser (user);
     }
 
     /*

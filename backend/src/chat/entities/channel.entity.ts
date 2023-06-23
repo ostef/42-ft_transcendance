@@ -35,6 +35,7 @@ export class ChannelEntity
     owner: UserEntity;
 
     @ManyToMany (() => UserEntity, (u) => u.joinedChannels)
+    @JoinTable ()
     users: UserEntity[];
 
     @ManyToMany (() => UserEntity)
@@ -94,5 +95,22 @@ export class ChannelEntity
             return this.bannedUsers.findIndex ((val: UserEntity) => val.id == user) != -1;
         else
             return this.bannedUsers.findIndex ((val: UserEntity) => val.id == user.id) != -1;
+    }
+
+    removeUser (userId: string)
+    {
+        if (this.users == undefined)
+            throw new Error ("Channel entity's users relation is not loaded");
+
+        if (this.administrators == undefined)
+            throw new Error ("Channel entity's administrators relation is not loaded");
+
+        const indexInUsers = this.users.findIndex (val => val.id == userId);
+        if (indexInUsers != -1)
+            this.users.splice (indexInUsers, 1);
+
+        const indexInAdmins = this.administrators.findIndex (val => val.id == userId);
+        if (indexInAdmins != -1)
+            this.administrators.splice (indexInAdmins, 1);
     }
 }

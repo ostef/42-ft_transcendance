@@ -38,7 +38,6 @@ export class UserEntity
     blockedUsers: UserEntity[];
 
     @ManyToMany (() => ChannelEntity, (chan) => chan.users)
-    @JoinTable ()
     joinedChannels: ChannelEntity[];
 
     @ManyToMany (() => PrivateConversationEntity)
