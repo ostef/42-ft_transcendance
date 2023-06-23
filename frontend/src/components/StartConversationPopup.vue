@@ -7,6 +7,8 @@ import { type User } from '@/stores/user';
 import { useChatStore } from '@/stores/chat';
 import { selectPrivConv } from '@/chat';
 
+import NonInteractiveAvatar from "./NonInteractiveAvatar.vue";
+
 const friends = ref ([] as User[]);
 
 onMounted (async () => {
@@ -34,7 +36,7 @@ async function startConversation (user: User)
             <h3 class="text-lg font-bold">Start Conversation</h3>
 
             <button class="btn normal-case m-2" v-for="friend of friends" @click="startConversation (friend)">
-                {{ friend.nickname }} ({{ friend.username }})
+                <NonInteractiveAvatar :user="friend" /> {{ friend.nickname }} ({{ friend.username }})
             </button>
 
             <label class="btn normal-case m-2" for="startConversationModal">Close</label>

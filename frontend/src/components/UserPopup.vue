@@ -100,12 +100,7 @@ async function unblockUser ()
             </label>
 
             <div class="flex">
-                <div class="avatar" :class="(isOnline ? 'online' : 'offline') + (!user?.avatarFile ? ' placeholder' : '')">
-                    <div class="select-none rounded-full overflow-hidden h-12 w-12 bg-base-300 grid">
-                        <img v-if="user?.avatarFile" :src="user?.avatarFile" />
-                        <span v-else class="text-xl align-text-top">{{ user?.nickname.charAt (0)}}</span>
-                    </div>
-                </div>
+                <NonInteractiveAvatar :user="user" />
 
                 <div class="mx-4 select-none">
                     {{ user?.nickname }} <br>
