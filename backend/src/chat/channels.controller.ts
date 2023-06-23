@@ -6,15 +6,17 @@ import {
 } from "@nestjs/common";
 
 import { ChannelsService } from "./channels.service";
-import { CreateChannelDto, LeaveChannelDto, MessageDto, UpdateChannelDto } from "./entities/channel.dto";
+import { CreateChannelDto, InviteToChannelDto, LeaveChannelDto, MessageDto, UpdateChannelDto } from "./entities/channel.dto";
 import { MessageService } from "./message.service";
 import { JwtAuthGuard } from "src/auth/jwt_auth.guard";
 import { UsersService } from "src/users/users.service";
 import { UserEntity } from "src/users/entities/user.entity";
 
 import { MinimalChannelInfo, ChannelInfo } from "./channels.service";
+import { ChannelInviteEntity } from "./entities/channel_invite.entity";
+import { MessageEntity } from "./entities/message.entity";
 
-class UserInfo
+export class UserInfo
 {
     id: string;
     username: string;
@@ -36,11 +38,40 @@ class UserInfo
     }
 }
 
-class MessageInfo
+export class ChannelInviteInfo
+{
+    id: string;
+    channel: MinimalChannelInfo;
+    accepted: boolean;
+    expirationDate: Date;
+
+    static fromChannelInviteEntity (invite: ChannelInviteEntity): ChannelInviteInfo
+    {
+        return {
+            id: invite.id,
+            channel: MinimalChannelInfo.fromChannelEntity (invite.channel),
+            accepted: invite.accepted,
+            expirationDate: invite.expirationDate,
+        };
+    }
+}
+
+export class MessageInfo
 {
     sender: UserInfo;
     content: string;
     date: Date;
+    channelInvite?: ChannelInviteInfo;
+
+    static fromMessageEntity (me: UserEntity, msg: MessageEntity): MessageInfo
+    {
+        return {
+            sender: UserInfo.fromUserEntity (me, msg.fromUser),
+            content: msg.content,
+            date: msg.timestamp,
+            channelInvite: msg.invite ? ChannelInviteInfo.fromChannelInviteEntity (msg.invite) : undefined,
+        };
+    }
 }
 
 @Controller ("channels")
@@ -139,13 +170,7 @@ export class ChannelsController
 
         const result = [] as MessageInfo[];
         for (const msg of channel.messages)
-        {
-            result.push ({
-                sender: UserInfo.fromUserEntity (me, msg.fromUser),
-                content: msg.content,
-                date: msg.timestamp,
-            });
-        }
+            result.push (MessageInfo.fromMessageEntity (me, msg));
 
         return result;
     }
@@ -183,8 +208,6 @@ export class ChannelsController
     {
         try
         {
-            const me = await this.userService.findUserEntity ({id: req.user.id});
-
             await this.msgService.sendMessageToUser (req.user.id, otherId, message);
         }
         catch (err)
@@ -200,7 +223,7 @@ export class ChannelsController
         try
         {
             const me = await this.userService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
-            const conv = await this.msgService.findPrivConversation (req.user.id, otherId, {messages: {fromUser: true}});
+            const conv = await this.msgService.findPrivConversation (req.user.id, otherId, {messages: {fromUser: true, invite: true}});
 
             if (!conv)
                 return [];
@@ -208,11 +231,9 @@ export class ChannelsController
             const result = [] as MessageInfo[];
             for (const msg of conv.messages)
             {
-                result.push ({
-                    sender: UserInfo.fromUserEntity (me, msg.fromUser),
-                    content: msg.content,
-                    date: msg.timestamp,
-                });
+                const a = MessageInfo.fromMessageEntity (me, msg);
+                console.log (a);
+                result.push (a);
             }
 
             return result;
@@ -316,6 +337,35 @@ export class ChannelsController
         try
         {
             await this.channelService.leaveChannel (id, req.user.id, body.newOwnerId);
+        }
+        catch (err)
+        {
+            this.logger.error (err);
+            throw new BadRequestException (err.message);
+        }
+    }
+
+    @Post (":id/invite")
+    async inviteToChannel (@Request () req, @Param ("id") id: string, @Body () body: InviteToChannelDto)
+    {
+        try
+        {
+            const invite = await this.channelService.inviteToChannel (req.user.id, body.userId, id);
+            await this.msgService.sendMessageToUser (req.user.id, body.userId, body.message, invite);
+        }
+        catch (err)
+        {
+            this.logger.error (err);
+            throw new BadRequestException (err.message);
+        }
+    }
+
+    @Post ("invite/:id/accept")
+    async acceptChannelInvite (@Request () req, @Param ("id") id: string)
+    {
+        try
+        {
+            await this.channelService.acceptInvite (req.user.id, id);
         }
         catch (err)
         {

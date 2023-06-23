@@ -6,6 +6,7 @@ import { AuthService } from "src/auth/auth.service";
 import { ChannelsService } from "./channels.service";
 import { UsersService } from "src/users/users.service";
 import { MessageService } from "./message.service";
+import { ChannelInviteInfo } from "./channels.controller";
 
 class JoinChannelParams
 {
@@ -18,6 +19,13 @@ class MessageParams
     channelId?: string;
     userId?: string;
     content: string;
+}
+
+class ChannelInviteParams
+{
+    userId: string;
+    channelId: string;
+    message: string;
 }
 
 class UserKickedOrBanned
@@ -102,36 +110,65 @@ export class ChatGateway
     {
         try
         {
+            let sent = null;
+            let room = "";
+
             if (msg.channelId != undefined)
             {
-                const sent = await this.messageService.sendMessageToChannel (client.data.userId, msg.channelId, msg.content);
-
-                this.server.to ("Channel#" + msg.channelId).emit ("newMessage", {
-                    sender: client.data.userId,
-                    toChannel: msg.channelId,
-                    content: msg.content,
-                    date: sent.timestamp
-                });
+                sent = await this.messageService.sendMessageToChannel (client.data.userId, msg.channelId, msg.content);
+                room = "Channel#" + msg.channelId;
             }
 
             if (msg.userId != undefined)
             {
-                const sent = await this.messageService.sendMessageToUser (client.data.userId, msg.userId, msg.content);
+                sent = await this.messageService.sendMessageToUser (client.data.userId, msg.userId, msg.content);
 
                 const firstKey = client.data.userId.localeCompare (msg.userId) < 0 ? client.data.userId : msg.userId;
                 const secondKey = client.data.userId.localeCompare (msg.userId) < 0 ? msg.userId : client.data.userId;
 
-                this.server.to ("PrivConv#" + firstKey + "&" + secondKey).emit ("newMessage", {
+                room = "PrivConv#" + firstKey + "&" + secondKey;
+            }
+
+            if (sent)
+            {
+                this.server.to (room).emit ("newMessage", {
                     sender: client.data.userId,
-                    toUser: msg.userId,
                     content: msg.content,
-                    date: sent.timestamp
+                    date: sent.timestamp,
+                    toChannel: msg.channelId,
+                    toUser: msg.userId,
                 });
             }
         }
         catch (err)
         {
             this.logger.error (err.stack);
+            client.emit ("error", err.message);
+        }
+    }
+
+    @SubscribeMessage ("channelInvite")
+    async handleChannelInvite (client: Socket, params: ChannelInviteParams)
+    {
+        try
+        {
+            const invite = await this.channelsService.inviteToChannel (client.data.userId, params.userId, params.channelId);
+            const msg = await this.messageService.sendMessageToUser (client.data.userId, params.userId, params.message, invite);
+
+            const firstKey = client.data.userId.localeCompare (params.userId) < 0 ? client.data.userId : params.userId;
+            const secondKey = client.data.userId.localeCompare (params.userId) < 0 ? params.userId : client.data.userId;
+
+            this.server.to ("PrivConv#" + firstKey + "&" + secondKey).emit ("newMessage", {
+                sender: client.data.userId,
+                content: params.message,
+                date: msg.timestamp,
+                toUser: params.userId,
+                channelInvite: ChannelInviteInfo.fromChannelInviteEntity (invite)
+            });
+        }
+        catch (err)
+        {
+            this.logger.error (err);
             client.emit ("error", err.message);
         }
     }

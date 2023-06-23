@@ -6,7 +6,8 @@ import { onMounted, ref } from "vue";
 import type { User } from "@/stores/user";
 import { useChatStore } from "@/stores/chat";
 
-import NonInteractiveAvatar from "./NonInteractiveAvatar.vue";
+import UserSelectionList from "./UserSelectionList.vue";
+import { chatSocket } from "@/chat";
 
 const name = ref ("");
 const friends = ref ([] as User[]);
@@ -21,7 +22,14 @@ onMounted (async () => {
 
 function inviteToChannel (userId: string)
 {
+    if (!chatStore.selectedChannel)
+        return;
 
+    chatSocket.emit ("channelInvite", {
+        channelId: chatStore.selectedChannel.id,
+        userId: userId,
+        message: "Hey, check out this cool channel!"
+    });
 }
 
 </script>
@@ -30,11 +38,11 @@ function inviteToChannel (userId: string)
 <input type="checkbox" id="inviteToChannelModal" class="modal-toggle" />
 <div class="modal">
     <div class="modal-box w-xs h-lg grid">
-        <button v-for="friend of friends" class="btn normal-case">
-            <NonInteractiveAvatar class="mx-4" :user="friend" />
+        <h3 class="text-lg font-bold">Invite To Channel</h3>
 
-            {{ friend.nickname }} ({{ friend.username }})
-        </button>
+        <div class="h-lg">
+            <UserSelectionList :users="friends" @on-select="(u) => inviteToChannel (u.id)" />
+        </div>
 
         <label class="my-2 btn normal-case" for="inviteToChannelModal">Close</label>
     </div>

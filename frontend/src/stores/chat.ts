@@ -21,11 +21,20 @@ export type Channel =
     mutedUserIds: string[];
 }
 
+export type ChannelInvite =
+{
+    id: string;
+    channel: Channel;
+    accepted: boolean;
+    expirationDate: Date;
+}
+
 export type Message =
 {
     sender: User;
     content: string;
     date: Date;
+    channelInvite?: ChannelInvite;
 }
 
 export const useChatStore = defineStore ("chat", () =>
@@ -100,5 +109,6 @@ export const useChatStore = defineStore ("chat", () =>
         users, messages, channels, privateConvs,
         selectedChannelIndex, selectedChannel, selectedUserIndex, selectedUser,
         channelsSelected, onlineUsers,
-        isOnline, isMuted, isAdmin, isOwner };
+        isOnline, isMuted, isAdmin, isOwner
+    };
 });

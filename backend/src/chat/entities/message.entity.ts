@@ -18,16 +18,17 @@ export class MessageEntity
     fromUser: UserEntity;
 
     @ManyToOne (() => ChannelEntity, (chan) => chan.messages, {nullable: true, onDelete: "CASCADE"})
-    toChannel: ChannelEntity;
+    toChannel?: ChannelEntity;
 
     @ManyToOne (() => PrivateConversationEntity, (conv) => conv.messages, {nullable: true, onDelete: "CASCADE"})
-    toPrivateConversation: PrivateConversationEntity;
+    toPrivateConversation?: PrivateConversationEntity;
 
     @Column ({type: "text"})
     content: string;
 
-    @OneToOne (() => ChannelInviteEntity, (inv) => inv.message, {nullable: true})
-    invite: ChannelInviteEntity;
+    @OneToOne (() => ChannelInviteEntity, {eager: true, nullable: true})
+    @JoinColumn ()
+    invite?: ChannelInviteEntity;
 
     @CreateDateColumn ()
     timestamp: Date;

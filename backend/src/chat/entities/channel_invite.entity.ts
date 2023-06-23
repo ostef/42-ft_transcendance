@@ -31,7 +31,4 @@ export class ChannelInviteEntity
 
     @Column ()
     accepted: boolean;
-
-    @OneToOne (() => MessageEntity, (msg) => msg.invite)
-    message: MessageEntity;
 }

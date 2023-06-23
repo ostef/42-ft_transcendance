@@ -45,3 +45,9 @@ export class MessageDto
     @IsNotEmpty ()
     content: string;
 }
+
+export class InviteToChannelDto
+{
+    userId: string;
+    message: string;
+}

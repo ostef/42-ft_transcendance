@@ -15,6 +15,14 @@ export class MinimalChannelInfo
     description: string;
     isPrivate: boolean;
     isPasswordProtected: boolean;
+
+    static fromChannelEntity (channel: ChannelEntity): MinimalChannelInfo
+    {
+        return {
+            ...channel,
+            isPasswordProtected: channel.password != null
+        };
+    }
 }
 
 export class ChannelInfo extends MinimalChannelInfo
@@ -370,43 +378,47 @@ export class ChannelsService
         this.saveChannel (channel);
     }
 
-    /*
-    async findInviteEntity (params: any, relations: FindOptionsRelations<InviteEntity> = {}): Promise<InviteEntity>
+    async findInviteEntity (params: any, relations: FindOptionsRelations<ChannelInviteEntity> = {}): Promise<ChannelInviteEntity>
     {
         return await this.inviteRepository.findOne ({where: params, relations: relations});
     }
 
-    async inviteToChannel (fromUserId: string, toUserId: string, channelId: string)
+    async inviteToChannel (fromUserId: string, toUserId: string, channelId: string): Promise<ChannelInviteEntity>
     {
         const channel = await this.findChannelEntity ({id: channelId});
         if (!channel)
-            throw new Error ("Channel " + channelId + " does not exist");
+            throw new Error ("Channel does not exist");
 
         const fromUser = await this.usersService.findUserEntity ({id: fromUserId});
         if (!fromUser)
-            throw new Error ("User " + fromUserId + " does not exist");
+            throw new Error ("User does not exist");
 
         const toUser = await this.usersService.findUserEntity ({id: toUserId});
         if (!toUser)
-            throw new Error ("User " + toUserId + " does not exist");
+            throw new Error ("User does not exist");
 
-        let invite = await this.findInviteEntity ({fromUser: fromUser, toUser: toUser, channel: channel});
-        if (invite)
-        {
-            invite.accepted = false;
-            invite.expirationDate = new Date (Date.now () + 48 * 60 * 60 * 1000);   // Expiration date is 48h from now
-        }
+        const invite = this.inviteRepository.create ();
+        invite.fromUser = fromUser;
+        invite.toUser = toUser;
+        invite.channel = channel;
+        invite.accepted = false;
+        invite.expirationDate = new Date (Date.now () + 48 * 60 * 60 * 1000);   // Expiration date is 48h from now
+
+        return await this.inviteRepository.save (invite);
     }
 
-    async acceptInvite (inviteId: string, userId: string)
+    async acceptInvite (fromUserId: string, inviteId: string)
     {
         const invite = await this.findInviteEntity (
-            {fromUser: fromUserId, toUser: toUserId, channel: channelId},
-            {toUser: {joinedChannels: true}, channel: {users: true}}
+            {id: inviteId},
+            {toUser: {joinedChannels: true}, channel: {users: true, bannedUsers: true}}
         );
 
         if (!invite)
             throw new Error ("Invite does not exist");
+
+        if (invite.toUser.id != fromUserId)
+            throw new Error ("User is not you");
 
         if (invite.accepted)
             throw new Error ("Invite has already been accepted");
@@ -414,12 +426,16 @@ export class ChannelsService
         if (new Date () > invite.expirationDate)
             throw new Error ("Invite has expired");
 
+        if (invite.channel.hasUser (invite.toUser))
+            throw new Error ("User is already in channel");
+
+        if (invite.channel.isBanned (invite.toUser))
+            throw new Error ("User is banned");
+
         invite.accepted = true;
+        await this.inviteRepository.save (invite);
+
         invite.channel.users.push (invite.toUser);
         await this.saveChannel (invite.channel);
-
-        invite.toUser.joinedChannels.push (invite.channel);
-        await this.usersService.saveUser (invite.toUser);
     }
-    */
 }
