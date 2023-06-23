@@ -55,6 +55,21 @@ export function connectChatSocket ()
         }
     });
 
+    chatSocket.on ("channelDeleted", async (channelId: string) => {
+        const channelIndex = store.channels.findIndex ((val) => val.id == channelId);
+        if (channelIndex == -1)
+            return;
+
+        store.channels.splice (channelIndex, 1);
+
+        if (channelIndex == store.selectedChannelIndex)
+        {
+            store.selectedChannelIndex = -1;
+            store.users.length = 0;
+            store.messages.length = 0;
+        }
+    });
+
     type UserKickedOrBanned = {
         channelId: string,
         userId: string,
@@ -231,7 +246,22 @@ export async function leaveChannel (newOwnerId?: string)
 
     await axios.post ("channels/" + chatStore.selectedChannel.id + "/leave", {newOwnerId: newOwnerId});
     notifyChannelChange (chatStore.selectedChannel.id);
-    notifyChannelUserChange (chatStore.selectedChannel.id, me.value.id, "Left");
+    await fetchChannels ();
+
+    chatStore.selectedChannelIndex = -1;
+    chatStore.users.length = 0;
+    chatStore.messages.length = 0;
+}
+
+export async function deleteChannel ()
+{
+    const chatStore = useChatStore ();
+
+    if (!chatStore.selectedChannel)
+        return;
+
+    await axios.delete ("channels/" + chatStore.selectedChannel.id);
+    chatSocket.emit ("channelDeleted", chatStore.selectedChannel.id);
     await fetchChannels ();
 
     chatStore.selectedChannelIndex = -1;

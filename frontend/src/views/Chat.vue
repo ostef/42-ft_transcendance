@@ -17,9 +17,9 @@ import { useChatStore, type Message } from "@/stores/chat";
 import { useUserStore } from "@/stores/user";
 
 import {
-    chatSocket, connectChatSocket, disconnectChatSocket,
-    fetchChannels, fetchUsers, watchChannel, unwatchChannel, fetchMessages, fetchPrivateConversations, notifyChannelChange,
-    leaveChannel
+    chatSocket,
+    fetchChannels, fetchPrivateConversations,
+    leaveChannel, deleteChannel
 } from "@/chat";
 
 import { onBeforeRouteLeave } from "vue-router";
@@ -75,20 +75,25 @@ function sendMessage ()
         <div class="w-3/4 mx-2 overflow-hidden rounded-lg bg-base-200">
             <div class="h-1/6 flex-col">
                 <div v-if="chat.selectedChannel">
-                    <label v-if="chat.selectedChannel?.isPrivate" class="btn normal-case float-right m-4" for="inviteToChannelModal">
+                    <label v-if="chat.selectedChannel?.isPrivate" class="btn normal-case float-right m-2" for="inviteToChannelModal">
                         Invite To Channel
                     </label>
                     <InviteToChannelPopup />
 
-                    <label v-if="chat.selectedChannel && !chat.isOwner (me?.id)" class="btn normal-case float-right m-4" for="confirmLeaveChannelModal">
+                    <label v-if="chat.selectedChannel && !chat.isOwner (me?.id)" class="btn normal-case float-right m-2" for="confirmLeaveChannelModal">
                         Leave Channel
                     </label>
-                    <ConfirmPopup id="confirmLeaveChannelModal" title="Leave Channel?" noText="No" yesText="Yes" @on-yes="leaveChannel ()" />
+                    <ConfirmPopup id="confirmLeaveChannelModal" title="Leave Channel?" @on-yes="leaveChannel ()" />
 
-                    <label v-if="chat.selectedChannel && chat.isOwner (me?.id)" class="btn normal-case float-right m-4" for="leaveChannelOwnerModal">
+                    <label v-if="chat.selectedChannel && chat.isOwner (me?.id)" class="btn normal-case float-right m-2" for="leaveChannelOwnerModal">
                         Leave Channel
                     </label>
                     <LeaveChannelOwnerPopup />
+
+                    <label v-if="chat.selectedChannel && chat.isOwner (me?.id)" class="btn normal-case float-right m-2" for="confirmDeleteChannelModal">
+                        Delete Channel
+                    </label>
+                    <ConfirmPopup id="confirmDeleteChannelModal" title="Delete Channel?" @on-yes="deleteChannel ()" />
 
                     <input type="checkbox" id="leaveChannelOwnerModal" class="modal-toggle" />
                     <div class="modal">

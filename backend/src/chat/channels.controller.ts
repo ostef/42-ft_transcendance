@@ -238,6 +238,20 @@ export class ChannelsController
         }
     }
 
+    @Delete (":id")
+    async deleteChannel (@Request () req, @Param ("id") id: string)
+    {
+        try
+        {
+            await this.channelService.deleteChannel (req.user.id, id);
+        }
+        catch (err)
+        {
+            this.logger.error (err);
+            throw new BadRequestException (err.message);
+        }
+    }
+
     @Post (":id")
     async sendMessageToChannel (@Request () req, @Param ("id") id: string, @Body () body: string)
     {

@@ -106,20 +106,26 @@ export class ChannelsService
 
         const channel = await this.findChannelEntity ({id: channelId}, relations);
         if (!channel)
-            throw new Error ("Channel " + channelId + " does not exist");
+            throw new Error ("Channel does not exist");
 
         const adminIdx = channel.administrators.findIndex ((val) => val.id == userId);
         if (adminIdx == -1)
-            throw new Error ("User " + userId + " is not an administrator");
+            throw new Error ("User is not an administrator");
 
         return { channel: channel, user: channel.administrators[adminIdx] };
     }
 
-    async deleteChannel (fromUser: string, id: string)
+    async deleteChannel (fromUser: string, channelId: string)
     {
-        const channelAndAdmin = await this.findChannelAndAdminUser (id, fromUser);
+        const channel = await this.findChannelEntity ({id: channelId}, {owner: true});
+        if (!channel)
+            throw new Error ("Channel does not exist");
 
-        await this.channelRepository.remove (channelAndAdmin.channel);
+        if (channel.owner.id != fromUser)
+            throw new Error ("You are not the channel owner");
+
+        // @Note: should we delete the messages associated with this channel too?
+        await this.channelRepository.remove (channel);
     }
 
     async updateChannel (userId: string, channelId: string, params: UpdateChannelDto)

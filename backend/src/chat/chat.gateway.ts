@@ -144,6 +144,12 @@ export class ChatGateway
         this.server.emit ("channelUpdated", channelId);
     }
 
+    @SubscribeMessage ("channelDeleted")
+    async notifyChannelDeleted (client: Socket, channelId: string)
+    {
+        this.server.emit ("channelDeleted", channelId);
+    }
+
     @SubscribeMessage ("userKickedOrBanned")
     async notifyChannelUserChange (client: Socket, params: UserKickedOrBanned)
     {
