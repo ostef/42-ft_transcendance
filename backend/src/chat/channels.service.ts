@@ -129,8 +129,9 @@ export class ChannelsService
             {
                 owner: true,
                 users: true,
-                bannedUsers: params.usersToBan != undefined || params.usersToUnban != undefined,
-                mutedUsers: params.usersToMute != undefined || params.usersToUnmute != undefined,
+                bannedUsers: true,
+                administrators: true,
+                mutedUsers: true,
             }
         );
         const channel = channelAndAdmin.channel;
@@ -153,19 +154,20 @@ export class ChannelsService
         {
             for (const otherId of params.usersToAdmin)
             {
-                const indexInJoinedUsers = channel.users.findIndex ((val) => val.id == otherId);
-                if (indexInJoinedUsers != -1)
-                    throw new Error ("User " + otherId + " is not a member of channel " + channel.id);
+                if (!channel.hasUser (otherId))
+                    throw new Error ("User is not in channel");
 
-                const index = channel.administrators.findIndex ((val) => val.id == otherId);
-                if (index != -1)
-                    throw new Error ("User " + otherId + " is already an admin of channel " + channel.id);
+                if (channel.isAdmin (otherId))
+                    throw new Error ("User is already admin");
 
                 const other = await this.usersService.findUserEntity ({id: otherId});
                 if (!other)
-                    throw new Error ("User " + otherId + " does not exist");
+                    throw new Error ("User does not exist");
 
                 channel.administrators.push (other);
+
+                if (channel.isMuted (other.id))
+                    channel.mutedUsers.splice (channel.mutedUsers.findIndex ((val) => val.id == other.id), 1);
             }
         }
 
@@ -173,9 +175,8 @@ export class ChannelsService
         {
             for (const otherId of params.usersToUnadmin)
             {
-                const indexInJoinedUsers = channel.users.findIndex ((val: UserEntity) => val.id == otherId);
-                if (indexInJoinedUsers != -1)
-                    throw new Error ("User " + otherId + " is not a member of channel " + channel.id);
+                if (!channel.hasUser (otherId))
+                    throw new Error ("User is not in channel");
 
                 // @Note (stefan): should we allow unadmin self ?
                 if (otherId == userId)
@@ -186,7 +187,7 @@ export class ChannelsService
 
                 const index = channel.administrators.findIndex ((val) => val.id == otherId);
                 if (index == -1)
-                    throw new Error ("User " + otherId + " is not an admin of channel " + channel.id);
+                    throw new Error ("User is not an admin");
 
                 channel.administrators.splice (index, 1);
             }
@@ -204,11 +205,11 @@ export class ChannelsService
 
                 const user = await this.usersService.findUserEntity ({id: otherId});
                 if (!user)
-                    throw new Error ("User " + otherId + " does not exist");
+                    throw new Error ("User does not exist");
 
                 const indexInBanned = channel.bannedUsers.findIndex ((val) => val.id == otherId);
                 if (indexInBanned != -1)
-                    throw new Error ("User " + otherId + " is already banned");
+                    throw new Error ("User is already banned");
 
                 channel.bannedUsers.push (user);
 
@@ -222,11 +223,11 @@ export class ChannelsService
             {
                 const user = await this.usersService.findUserEntity ({id: otherId});
                 if (!user)
-                    throw new Error ("User " + otherId + " does not exist");
+                    throw new Error ("User does not exist");
 
                 const index = channel.bannedUsers.findIndex ((val) => val.id == otherId);
                 if (index == -1)
-                    throw new Error ("User " + otherId + " is not banned");
+                    throw new Error ("User is not banned");
 
                 channel.bannedUsers.splice (index, 1);
             }
@@ -237,14 +238,14 @@ export class ChannelsService
             for (const otherId of params.usersToMute)
             {
                 if (!channel.hasUser (otherId))
-                    throw new Error ("User " + otherId + " is not a member of channel " + channel.id);
+                    throw new Error ("User is not in channel");
 
                 const user = await this.usersService.findUserEntity ({id: otherId});
                 if (!user)
-                    throw new Error ("User " + otherId + " does not exist");
+                    throw new Error ("User does not exist");
 
                 if (channel.isMuted (otherId))
-                    throw new Error ("User " + otherId + " is already muted");
+                    throw new Error ("User is already muted");
 
                 if (channel.isAdmin (otherId))
                     throw new Error ("Cannot mute admin");
@@ -258,11 +259,11 @@ export class ChannelsService
             for (const otherId of params.usersToUnmute)
             {
                 if (!channel.hasUser (otherId))
-                    throw new Error ("User " + otherId + " is not a member of channel " + channel.id);
+                    throw new Error ("User is not in channel");
 
                 const index = channel.mutedUsers.findIndex ((val) => val.id == otherId);
                 if (index == -1)
-                    throw new Error ("User " + otherId + " is not muted");
+                    throw new Error ("User is not muted");
 
                 channel.mutedUsers.splice (index, 1);
             }
@@ -272,9 +273,8 @@ export class ChannelsService
         {
             for (const otherId of params.usersToKick)
             {
-                const indexInJoinedUsers = channel.users.findIndex ((val: UserEntity) => val.id == otherId);
-                if (indexInJoinedUsers != -1)
-                    throw new Error ("User " + otherId + " is not a member of channel " + channel.id);
+                if (!channel.hasUser (otherId))
+                    throw new Error ("User is not in channel");
 
                 if (otherId == userId)
                     throw new Error ("Cannot kick self");
@@ -307,14 +307,14 @@ export class ChannelsService
     {
         const channel = await this.findChannelEntity ({id: channelId}, {users: true});
         if (!channel)
-            throw new Error ("Channel " + channelId + " does not exist");
+            throw new Error ("Channel does not exist");
 
         const user = await this.usersService.findUserEntity ({id: userId}, {joinedChannels: true});
         if (!user)
-            throw new Error ("User " + userId + " does not exist");
+            throw new Error ("User does not exist");
 
         if (channel.hasUser (user))
-            throw new Error ("User " + userId + " is already in channel " + channelId);
+            throw new Error ("User is already in channel");
 
         if (channel.isPrivate)
             throw new Error ("Channel is private, you need to be invited");
@@ -341,7 +341,7 @@ export class ChannelsService
 
         if (channel.owner.id == user.id)
         {
-            if (newOwnerId == undefined)
+            if (newOwnerId == undefined || newOwnerId == channel.owner.id)
                 throw new Error ("Leaving channel as owner without specifying new owner");
 
             if (!channel.hasUser (newOwnerId))
@@ -349,7 +349,7 @@ export class ChannelsService
 
             const newOwner = await this.usersService.findUserEntity ({id: newOwnerId});
             if (!newOwner)
-                throw new Error ("User " + newOwnerId + " does not exist");
+                throw new Error ("User does not exist");
 
             if (!channel.isAdmin (newOwnerId))
                 channel.administrators.push (newOwner);
