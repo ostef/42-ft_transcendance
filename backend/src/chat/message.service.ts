@@ -44,7 +44,7 @@ export class MessageService
         return conv;
     }
 
-    async findOrCreatePrivConversation (first: UserEntity, second: UserEntity, relations: FindOptionsRelations<PrivateConversationEntity> = {}): Promise<PrivateConversationEntity>
+    async findOrCreatePrivConversation (first: UserEntity, second: UserEntity, relations: FindOptionsRelations<PrivateConversationEntity> = {}): Promise<{conv: PrivateConversationEntity, newConv: boolean}>
     {
         if (relations.firstUser == undefined)
             relations.firstUser = true;
@@ -60,11 +60,18 @@ export class MessageService
         });
 
         if (conv)
-            return conv;
+            return {conv: conv, newConv: false};
 
         conv = this.privConvRepository.create ({firstUser: firstKey, secondUser: secondKey});
+        conv.firstUserId = firstKey.id;
+        conv.secondUserId = secondKey.id;
+        conv.firstUser = firstKey;
+        conv.secondUser = secondKey;
+        conv.messages = [];
 
-        return await this.privConvRepository.save (conv);
+        conv = await this.privConvRepository.save (conv);
+
+        return {conv: conv, newConv: true};
     }
 
     async findPrivateConversations (userId: string, relations: FindOptionsRelations<PrivateConversationEntity> = {}): Promise<PrivateConversationEntity[]>
@@ -75,7 +82,7 @@ export class MessageService
         return conv1.concat (conv2);
     }
 
-    async sendMessageToUser (senderId: string, userId: string, content: string, invite: ChannelInviteEntity = null): Promise<MessageEntity>
+    async sendMessageToUser (senderId: string, userId: string, content: string, invite: ChannelInviteEntity = null): Promise<{msg: MessageEntity, conv: PrivateConversationEntity, newConv: boolean}>
     {
         const sender = await this.usersService.findUserEntity ({id: senderId}, {blockedUsers: true});
         if (!sender)
@@ -91,7 +98,7 @@ export class MessageService
         if (sender.hasBlocked (userId))
             throw new Error ("User " + userId + " is blocked");
 
-        const conv = await this.findOrCreatePrivConversation (sender, receiver, {messages: true});
+        const {conv, newConv} = await this.findOrCreatePrivConversation (sender, receiver, {messages: true});
 
         let msg = this.messageRepository.create ();
         msg.fromUser = sender;
@@ -106,7 +113,7 @@ export class MessageService
 
         await this.privConvRepository.save (conv);
 
-        return msg;
+        return {msg: msg, conv: conv, newConv: newConv};
     }
 
     async sendMessageToChannel (senderId: string, channelId: string, content: string, invite: ChannelInviteEntity = null): Promise<MessageEntity>

@@ -26,15 +26,27 @@ export function connectChatSocket ()
     chatSocket.on ("exception", (err) => { console.error (err); });
     chatSocket.on ("error", (err) => { console.error (err); });
 
-    chatSocket.on ("newMessage", (msg) => {
+    chatSocket.on ("newMessage", async (msg) => {
+        console.log ("New message", msg);
 
-        if (msg.channelId === store.selectedChannel?.id)
+        if (msg.toUser && !store.hasPrivConv (msg.sender) && !store.hasPrivConv (msg.toUser))
+        {
+            await fetchPrivateConversations ();
+            clearDiscussions ();
+        }
+
+        if (!store.selectedChannel && !store.selectedUser)
             return;
 
-        if (msg.toUser === store.selectedUser?.id)
+        if (store.selectedChannel && msg.toChannel != store.selectedChannel.id)
             return;
 
-        let user = store.users.find ((val) => val.id == msg.sender);
+        if (store.selectedUser
+            && msg.sender != me?.id && msg.toUser != me?.id
+            && msg.sender != store.selectedUser.id && msg.toUser != store.selectedUser.id)
+            return;
+
+        const user = store.users.find ((val) => val.id == msg.sender);
 
         if (user)
             store.messages.push ({sender: user, content: msg.content, date: new Date (msg.date)});
@@ -68,6 +80,8 @@ export function connectChatSocket ()
             store.users.length = 0;
             store.messages.length = 0;
         }
+
+        unwatchChannel (channelId);
     });
 
     type UserKickedOrBanned = {
@@ -93,6 +107,8 @@ export function connectChatSocket ()
             store.users.length = 0;
             store.messages.length = 0;
         }
+
+        unwatchChannel (params.channelId);
     });
 }
 
@@ -109,6 +125,10 @@ export async function fetchChannels ()
     const result = await axios.get ("channels/joined");
 
     store.channels = result.data;
+
+    unwatchAllChannels ();
+    for (const chan of store.channels)
+        watchChannel (chan.id);
 }
 
 export async function fetchPrivateConversations ()
@@ -118,6 +138,10 @@ export async function fetchPrivateConversations ()
     const result = await axios.get ("channels/discussions");
 
     store.privateConvs = result.data;
+
+    unwatchAllConvs ();
+    for (const other of store.privateConvs)
+        watchPrivConv (other.id);
 }
 
 export function notifyChannelChange (channelId: string)
@@ -181,6 +205,11 @@ export function unwatchChannel (channelId: string)
     chatSocket.emit ("unwatchChannel", channelId);
 }
 
+export function unwatchAllChannels ()
+{
+    chatSocket.emit ("unwatchAllChannels");
+}
+
 export async function selectChannel (channelId: string)
 {
     const store = useChatStore ();
@@ -207,6 +236,11 @@ export function watchPrivConv (userId: string)
 export function unwatchPrivConv (userId: string)
 {
     chatSocket.emit ("unwatchPrivConv", userId);
+}
+
+export function unwatchAllConvs ()
+{
+    chatSocket.emit ("unwatchAllConvs");
 }
 
 export async function selectPrivConv (userId: string)
@@ -248,9 +282,7 @@ export async function leaveChannel (newOwnerId?: string)
     notifyChannelChange (chatStore.selectedChannel.id);
     await fetchChannels ();
 
-    chatStore.selectedChannelIndex = -1;
-    chatStore.users.length = 0;
-    chatStore.messages.length = 0;
+    clearDiscussions ();
 }
 
 export async function deleteChannel ()
@@ -264,7 +296,15 @@ export async function deleteChannel ()
     chatSocket.emit ("channelDeleted", chatStore.selectedChannel.id);
     await fetchChannels ();
 
+    clearDiscussions ();
+}
+
+export function clearDiscussions ()
+{
+    const chatStore = useChatStore ();
+
     chatStore.selectedChannelIndex = -1;
+    chatStore.selectedUserIndex = -1;
     chatStore.users.length = 0;
     chatStore.messages.length = 0;
 }

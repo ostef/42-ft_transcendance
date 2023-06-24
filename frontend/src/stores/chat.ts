@@ -105,10 +105,15 @@ export const useChatStore = defineStore ("chat", () =>
         return channel.ownerId == userId;
     }
 
+    function hasPrivConv (userId: string)
+    {
+        return privateConvs.value.findIndex (val => val.id == userId) != -1;
+    }
+
     return {
         users, messages, channels, privateConvs,
         selectedChannelIndex, selectedChannel, selectedUserIndex, selectedUser,
         channelsSelected, onlineUsers,
-        isOnline, isMuted, isAdmin, isOwner
+        isOnline, isMuted, isAdmin, isOwner, hasPrivConv
     };
 });

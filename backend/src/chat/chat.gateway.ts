@@ -105,6 +105,16 @@ export class ChatGateway
         return result;
     }
 
+    async addUsersToPrivConvRoom (firstUser: string, secondUser: string)
+    {
+        const socks = await this.server.fetchSockets ();
+        for (const sock of socks)
+        {
+            if (sock.data.userId == firstUser || sock.data.userId == secondUser)
+                sock.join ("PrivConv#" + firstUser + "&" + secondUser);
+        }
+    }
+
     @SubscribeMessage ("newMessage")
     async handleMessage (client: Socket, msg: MessageParams)
     {
@@ -121,12 +131,18 @@ export class ChatGateway
 
             if (msg.userId != undefined)
             {
-                sent = await this.messageService.sendMessageToUser (client.data.userId, msg.userId, msg.content);
+                const {msg: newMsg, newConv} = await this.messageService.sendMessageToUser (client.data.userId, msg.userId, msg.content);
+                sent = newMsg;
 
                 const firstKey = client.data.userId.localeCompare (msg.userId) < 0 ? client.data.userId : msg.userId;
                 const secondKey = client.data.userId.localeCompare (msg.userId) < 0 ? msg.userId : client.data.userId;
 
                 room = "PrivConv#" + firstKey + "&" + secondKey;
+
+                if (newConv)
+                {
+                    await this.addUsersToPrivConvRoom (firstKey, secondKey);
+                }
             }
 
             if (sent)
@@ -153,10 +169,15 @@ export class ChatGateway
         try
         {
             const invite = await this.channelsService.inviteToChannel (client.data.userId, params.userId, params.channelId);
-            const msg = await this.messageService.sendMessageToUser (client.data.userId, params.userId, params.message, invite);
+            const {msg, newConv} = await this.messageService.sendMessageToUser (client.data.userId, params.userId, params.message, invite);
 
             const firstKey = client.data.userId.localeCompare (params.userId) < 0 ? client.data.userId : params.userId;
             const secondKey = client.data.userId.localeCompare (params.userId) < 0 ? params.userId : client.data.userId;
+
+            if (newConv)
+            {
+                await this.addUsersToPrivConvRoom (firstKey, secondKey);
+            }
 
             this.server.to ("PrivConv#" + firstKey + "&" + secondKey).emit ("newMessage", {
                 sender: client.data.userId,
@@ -168,7 +189,7 @@ export class ChatGateway
         }
         catch (err)
         {
-            this.logger.error (err);
+            this.logger.error (err.stack);
             client.emit ("error", err.message);
         }
     }
@@ -223,6 +244,16 @@ export class ChatGateway
         client.leave ("Channel#" + channelId);
     }
 
+    @SubscribeMessage ("unwatchAllChannels")
+    unwatchAllChannels (client: Socket)
+    {
+        for (const room of client.rooms)
+        {
+            if (room.startsWith ("Channel#"))
+                client.leave (room);
+        }
+    }
+
     @SubscribeMessage ("watchPrivConv")
     watchPrivConv (client: Socket, userId: string)
     {
@@ -232,7 +263,7 @@ export class ChatGateway
         client.join ("PrivConv#" + firstKey + "&" + secondKey);
     }
 
-    @SubscribeMessage ("unwatchPrivconv")
+    @SubscribeMessage ("unwatchPrivConv")
     unwatchPrivConv (client: Socket, userId: string)
     {
 
@@ -240,5 +271,15 @@ export class ChatGateway
         const secondKey = client.data.userId.localeCompare (userId) < 0 ? userId : client.data.userId;
 
         client.leave ("PrivConv#" + firstKey + "&" + secondKey);
+    }
+
+    @SubscribeMessage ("unwatchAllConvs")
+    unwatchAllConvs (client: Socket)
+    {
+        for (const room of client.rooms)
+        {
+            if (room.startsWith ("PrivConv#"))
+                client.leave (room);
+        }
     }
 }
