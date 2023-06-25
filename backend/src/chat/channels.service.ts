@@ -334,10 +334,10 @@ export class ChannelsService
             throw new Error ("Channel is private, you need to be invited");
 
         if (!channel.password && password != undefined)
-            throw new Error ("Channel password invalid");
+            throw new Error ("Channel is not password protected");
 
         if (channel.password && channel.password != password)
-            throw new Error ("Channel password invalid");
+            throw new Error ("Channel password invalid (given '" + password + "', expected '" + channel.password + "'");
 
         channel.users.push (user);
         this.saveChannel (channel);
