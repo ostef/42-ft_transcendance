@@ -22,8 +22,9 @@ export class UserInfo
     username: string;
     nickname: string;
     avatarFile: string;
-    isBlocked: boolean;
     isFriend: boolean;
+    isBlocked: boolean;
+    hasBlockedYou: boolean;
 
     static fromUserEntity (me: UserEntity, entity: UserEntity): UserInfo
     {
@@ -34,6 +35,7 @@ export class UserInfo
             nickname: entity.nickname,
             isFriend: me.isFriendsWith (entity),
             isBlocked: me.hasBlocked (entity),
+            hasBlockedYou: entity.hasBlocked (me)
         };
     }
 }
@@ -67,7 +69,7 @@ export class MessageInfo
     {
         return {
             sender: UserInfo.fromUserEntity (me, msg.fromUser),
-            content: msg.content,
+            content: msg.fromUser.hasBlocked (me) ? '' : msg.content,
             date: msg.timestamp,
             channelInvite: msg.invite ? ChannelInviteInfo.fromChannelInviteEntity (msg.invite) : undefined,
         };
@@ -138,7 +140,7 @@ export class ChannelsController
     {
         const me = await this.userService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
 
-        const channel = await this.channelService.findChannelEntity ({id: id}, {users: true});
+        const channel = await this.channelService.findChannelEntity ({id: id}, {users: {blockedUsers: true}});
         if (!channel)
             throw new BadRequestException ("Channel does not exist");
 
@@ -161,7 +163,7 @@ export class ChannelsController
     {
         const me = await this.userService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
 
-        const channel = await this.channelService.findChannelEntity ({id: id}, {users: true, messages: {fromUser: true}});
+        const channel = await this.channelService.findChannelEntity ({id: id}, {users: true, messages: {fromUser: {blockedUsers: true}}});
         if (!channel)
             throw new BadRequestException ("Channel does not exist");
 
@@ -183,7 +185,8 @@ export class ChannelsController
         {
             const me = await this.userService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
 
-            const convs = await this.msgService.findPrivateConversations (req.user.id);
+            const convs = await this.msgService.findPrivateConversations (req.user.id,
+                {firstUser: {blockedUsers: true}, secondUser: {blockedUsers: true}});
 
             const result = [] as UserInfo[];
             for (const conv of convs)
@@ -223,7 +226,7 @@ export class ChannelsController
         try
         {
             const me = await this.userService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
-            const conv = await this.msgService.findPrivConversation (req.user.id, otherId, {messages: {fromUser: true, invite: true}});
+            const conv = await this.msgService.findPrivConversation (req.user.id, otherId, {messages: {fromUser: {blockedUsers: true}, invite: true}});
 
             if (!conv)
                 return [];
