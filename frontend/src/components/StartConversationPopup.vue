@@ -11,11 +11,12 @@ import NonInteractiveAvatar from "./NonInteractiveAvatar.vue";
 
 const friends = ref ([] as User[]);
 
-onMounted (async () => {
+async function fetchFriends ()
+{
     const result = await axios.get ("user/friends");
 
     friends.value = result.data;
-});
+}
 
 async function startConversation (user: User)
 {
@@ -30,7 +31,7 @@ async function startConversation (user: User)
 </script>
 
 <template>
-    <input type="checkbox" id="startConversationModal" class="modal-toggle" />
+    <input type="checkbox" id="startConversationModal" class="modal-toggle" @change="fetchFriends ()" />
     <div class="modal">
         <div class="modal-box w-xs h-lg grid">
             <h3 class="text-lg font-bold">Start Conversation</h3>
