@@ -12,8 +12,29 @@ export async function login (username: string, password: string)
     await updateUserInfo ();
 }
 
+export async function login42 () {
+    const loginpopup = window.open(
+        "http://localhost:3000/auth/42",
+        "Login",
+        "width=600,height=600"
+    );
+    while (loginpopup && !loginpopup.closed) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    const token = document.cookie.split("=")[1];
+    if (token) {
+        localStorage.setItem("token", token);
+        axios.defaults.headers.common["Authorization"] = "Bearer " + token;
+        await updateUserInfo();
+    }
+    throw new Error("Login with 42 failed");
+}
+
+
+
 export function logout ()
 {
+    document.cookie = "";
     localStorage.removeItem ("token");
     delete axios.defaults.headers.common["Authorization"];
 

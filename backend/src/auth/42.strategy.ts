@@ -4,7 +4,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Injectable()
-export class FortyTwoStrategy extends PassportStrategy(Strategy) {
+export class FortyTwoStrategy extends PassportStrategy(Strategy, "42") {
   constructor(private readonly authService: AuthService) {
     super({
       clientID: process.env.FORTYTWO_CLIENT_ID,
@@ -21,14 +21,8 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy) {
     profile: any,
     done: any,
   ) {
-    // const user = await this.authService.validateUser(profile);
-    // if (!user) {
-    //   throw new UnauthorizedException();
-    // }
     const user = {
       username: profile.username,
-      nickname: profile.username,
-      email: profile.email,
     };
     done(null, user);
   }

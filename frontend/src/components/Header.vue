@@ -1,14 +1,23 @@
 <script setup lang="ts">
 
+
 import { storeToRefs } from "pinia";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
 
 import { logout } from "@/authentication";
+import SettingsModal from "@/components/SettingsModal.vue";
+import { ref } from "vue";
 
 const userStore = useUserStore ();
 const { user } = storeToRefs (userStore);
 
+const showSettingsModal = ref (false);
+
+function toggleSettingsModal ()
+{
+    showSettingsModal.value = !showSettingsModal.value;
+}
 
 </script>
 
@@ -63,6 +72,8 @@ const { user } = storeToRefs (userStore);
                         <span class="indicator-item badge badge-sm badge-primary"></span>
                         <li><router-link to="/profile/friends">Friends</router-link></li>
                     </div>
+                    <label class="btn btn-ghost" for="my_modal_7">Settings</label>
+
                     <li><router-link to="/login" @click="logout ()">Logout</router-link></li>
                 </ul>
             </div>
@@ -70,5 +81,15 @@ const { user } = storeToRefs (userStore);
                 <iconify-icon icon="ri:account-circle-line" class="h-[60px] w-12" />
             </div>
         </div>
+    </div>
+    <input type="checkbox" id="my_modal_7" class="modal-toggle" />
+    <div  class="modal">
+
+        <div class="modal-box">
+            <label for="my_modal_7" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</label>
+            <h1>Settings</h1>
+                <SettingsModal />
+        </div>
+<!--        <label class="modal-backdrop" for="my_modal_7" >Close</label>-->
     </div>
 </template>

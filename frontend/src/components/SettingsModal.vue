@@ -27,26 +27,6 @@ const nickNameNew = ref("");
 const pictureNew = ref<File | null>(null);
 async function changePicture()
 {
-    // const file = (document.getElementById ("picture") as HTMLInputElement).files?.[0];
-    //
-    // if (!file)
-    //     return;
-    //
-    // const formData = new FormData ();
-    // formData.append ("picture", file);
-    //
-    // const response = await fetch ("/api/user/picture", {
-    //     method: "POST",
-    //     body: formData
-    // });
-    //
-    // if (response.status != 200)
-    //     return;
-    //
-    // const json = await response.json ();
-    //
-    // user.picture = json.picture;
-    console.log("changePicture");
     const fd = new FormData();
     fd.append("avatar", pictureNew.value);
     const res = await axios.post("/user/avatar", fd);
@@ -55,7 +35,6 @@ async function changePicture()
 }
 
 async function changeNickname() {
-    console.log("changeUsername");
     await axios.post("/user/nickname", { value: nickNameNew.value });
     userStore.user.nickname = nickNameNew.value;
     toggleChangeNickname();
@@ -91,7 +70,6 @@ function onPictureSelectionChanged($event: Event) {
 
 <template>
     <div class="flex flex-col space-y-10 justify-center items-center" id="container">
-        <h1 class="text-4xl">Settings</h1>
         <div id="information" class="flex flex-row space-x-8  items-center">
             <div class="h-24 w-24 btn  btn-circle overflow-hidden grid">
                 <img v-if="userStore.user.avatarFile!= undefined" :src="userStore.user.avatarFile" />

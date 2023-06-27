@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from "vue-router"
 import HomeView from "@/views/Home.vue";
 import ChatView from "@/views/Chat.vue";
 import LoginView from "@/views/Login.vue";
+import ProfileView from "@/views/Profile.vue";
+import SettingsView from "@/components/SettingsModal.vue";
 import GamePage from '../views/GamePage.vue';
 import TestPage from '../views/TestSocket.vue';
 import axios from "axios";
@@ -36,6 +38,16 @@ const router = createRouter ({
             path: '/test/:id',
             name: 'testpage',
             component: TestPage
+        }
+        {
+            path: "/settings",
+            name: "Settings",
+            component: SettingsView
+        },
+        {
+            path: "/profile",
+            name: "Profile",
+            component: ProfileView
         }
     ]
 });

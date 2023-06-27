@@ -6,7 +6,22 @@
             </div>
             <h2 class="text-3xl">  {{ userStore.user.nickname }}</h2>
         </div>
+        <div id="matchHistory" class="flex flex-col space-y-4">
+            <h2 class="text-2xl">Match History</h2>
+            <table class="table">
+                <thread>
+                    <tr>
+                        <th>Joueur 1</th>
+                        <th>Joueur 2</th>
+                        <th>Resultat</th>
+                        <th>Score Joueur 1</th>
+                        <th>Score Joueur 2</th>
+                    </tr>
+                </thread>
+            </table>
+        </div>
     </div>
+
 </template>
 
 <script setup lang="ts">

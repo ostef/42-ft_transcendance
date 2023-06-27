@@ -10,6 +10,7 @@ export type User =
     isFriend: boolean;
     isBlocked: boolean;
     isOnline: boolean;
+    has2FA: boolean;
 }
 
 export const useUserStore = defineStore ("user", () =>

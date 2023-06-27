@@ -5,6 +5,8 @@
         <input class="input input-bordered w-full max-w-xs m-2"
             type="password" placeholder="Password" v-model="password" />
         <button class="btn normal-case m-2 max-w-xs" @click="submitLogin ()">Login</button>
+<!--        login using oauth-->
+        <button class="btn btn-primary normal-case m-2 max-w-xs" @click="loginWith42">Login with 42</button>
     </div>
 </template>
 
@@ -15,11 +17,16 @@ import axios from "axios";
 import router from "@/router";
 
 import { useUserStore } from "@/stores/user";
-import { login } from "@/authentication";
+import { login, login42 } from "@/authentication";
 
 const username = ref ("");
 const password = ref ("");
 
+async function loginWith42 ()
+{
+    await login42();
+    await router.replace ("/");
+}
 async function submitLogin ()
 {
     if (username.value.length == 0 || password.value.length == 0)
@@ -27,7 +34,7 @@ async function submitLogin ()
 
     await login (username.value, password.value);
 
-    router.replace ("/");
+    await router.replace ("/");
 }
 
 </script>

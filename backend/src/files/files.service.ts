@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, StreamableFile } from "@nestjs/common";
 
 import * as fs from 'fs';
 
@@ -19,15 +19,17 @@ export class FilesService {
     if (!fs.existsSync(path)) {
       return null;
     }
-    return fs.readFileSync(path, { encoding: 'base64' });
+    const buf = Buffer.from(fs.readFileSync(path, { encoding: 'base64' }), 'base64');
+    return new StreamableFile(buf)
+
   }
 
-  changeAvatar(filename: string, file: any): void {
+  changeFile(filename: string, file: any): void {
     try {
       const path = `${baseDir}/${filename}`;
-      console.log('DEBUG: path', path);
       if (fs.existsSync(path)) fs.unlinkSync(path);
-      fs.mkdirSync(baseDir);
+      //TODO: check if folder exist when start server
+      // fs.mkdirSync(baseDir);
       fs.writeFileSync(path, file, { encoding: 'base64' });
     } catch (err) {
       throw new Error(err);

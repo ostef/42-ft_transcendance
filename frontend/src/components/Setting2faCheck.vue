@@ -2,10 +2,8 @@
 
 </template>
 
-<script>
-export default {
-    name: "Setting2faCheck",
-};
+<script setup lang="ts">
+
 </script>
 
 <style scoped>
