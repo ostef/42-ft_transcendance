@@ -174,6 +174,8 @@ export class ChannelsController
         for (const msg of channel.messages)
             result.push (MessageInfo.fromMessageEntity (me, msg));
 
+        result.sort ((a, b) => a.date.getTime () - b.date.getTime ());
+
         return result;
     }
 
@@ -233,11 +235,9 @@ export class ChannelsController
 
             const result = [] as MessageInfo[];
             for (const msg of conv.messages)
-            {
-                const a = MessageInfo.fromMessageEntity (me, msg);
-                console.log (a);
-                result.push (a);
-            }
+                result.push (MessageInfo.fromMessageEntity (me, msg));
+
+            result.sort ((a, b) => a.date.getTime () - b.date.getTime ());
 
             return result;
         }
