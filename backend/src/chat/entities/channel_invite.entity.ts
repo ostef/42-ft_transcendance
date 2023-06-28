@@ -20,7 +20,7 @@ export class ChannelInviteEntity
     @ManyToOne (() => UserEntity, {eager: true})
     toUser: UserEntity;
 
-    @ManyToOne (() => ChannelEntity, {eager: true})
+    @ManyToOne (() => ChannelEntity, {nullable: true, eager: true})
     channel: ChannelEntity;
 
     @CreateDateColumn ()

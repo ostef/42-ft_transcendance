@@ -132,7 +132,13 @@ export class ChannelsService
         if (channel.owner.id != fromUser)
             throw new Error ("You are not the channel owner");
 
-        // @Note: should we delete the messages associated with this channel too?
+        const invites = await this.inviteRepository.find ({where: {channel: {id: channelId}}, relations: {channel: true}});
+        for (const inv of invites)
+        {
+            inv.channel = null;
+            await this.inviteRepository.save (inv);
+        }
+
         await this.channelRepository.remove (channel);
     }
 
