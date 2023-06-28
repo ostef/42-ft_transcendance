@@ -8,6 +8,8 @@ import { UsersService } from "src/users/users.service";
 import { MessageService } from "./message.service";
 import { ChannelInviteInfo } from "./channels.controller";
 
+// @Todo: update friend status, blocked status, and user info in real-time
+
 class JoinChannelParams
 {
     channelId: string;
@@ -40,10 +42,7 @@ class UserKickedOrBanned
     namespace: "chat",
     cors: {
         origin: "http://localhost:8080",
-        methods: ["GET","POST"],
-        credentials: true,
     },
-    transports: ["websocket", "polling"],
 })
 export class ChatGateway
     implements OnModuleInit
