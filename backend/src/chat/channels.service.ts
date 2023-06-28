@@ -355,7 +355,7 @@ export class ChannelsService
         if (!channel)
             throw new Error ("Channel " + channelId + " does not exist");
 
-        const user = await this.usersService.findUserEntity ({id: userId}, {joinedChannels: true});
+        const user = await this.usersService.findUserEntity ({id: userId}, {blockedUsers: true, joinedChannels: true});
         if (!user)
             throw new Error ("User " + userId + " does not exist");
 
@@ -373,6 +373,9 @@ export class ChannelsService
 
             if (!channel.isAdmin (newOwnerId))
                 channel.administrators.push (newOwner);
+
+            if (user.hasBlocked (newOwner))
+                throw new Error ("You have blocked this user");
 
             channel.owner = newOwner;
         }
