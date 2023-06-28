@@ -96,16 +96,16 @@ async function unblockUser ()
 <div class="modal">
     <div class="modal-box w-xs h-lg grid">
         <div class="block mb-16">
-            <label class="float-right btn" :for="'userModal' + user?.id">
+            <label class="float-right btn rounded-full" :for="'userModal' + user?.id">
                 <iconify-icon class="w-4 h-4" icon="gg:close" />
             </label>
 
             <div class="flex">
                 <NonInteractiveAvatar :user="user" />
 
-                <div class="mx-4 select-none">
-                    {{ user?.nickname }} <br>
-                    {{ user?.username }}
+                <div class="flex flex-col mx-4 select-none">
+                    <h3 class="text-lg">{{ user?.nickname }}</h3>
+                    <h3 class="text-sm">{{ user?.username }}</h3>
                 </div>
             </div>
         </div>

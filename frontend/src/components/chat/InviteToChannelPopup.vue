@@ -38,13 +38,17 @@ function inviteToChannel (userId: string)
 <input type="checkbox" id="inviteToChannelModal" class="modal-toggle" />
 <div class="modal">
     <div class="modal-box w-xs h-lg grid">
-        <h3 class="text-lg font-bold">Invite To Channel</h3>
+        <div class="block">
+            <label class="float-right btn rounded-full" for="inviteToChannelModal">
+                <iconify-icon class="w-4 h-4" icon="gg:close" />
+            </label>
+
+            <h3 class="text-lg font-bold select-none">Invite To Channel</h3>
+        </div>
 
         <div class="h-lg">
             <UserSelectionList :users="friends" @on-select="(u) => inviteToChannel (u.id)" />
         </div>
-
-        <label class="my-2 btn normal-case" for="inviteToChannelModal">Close</label>
     </div>
 </div>
 </template>

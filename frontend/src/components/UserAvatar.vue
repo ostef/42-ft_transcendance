@@ -147,7 +147,7 @@ async function goToPrivateConv ()
                 <span v-else class="text-xl align-text-top">{{ user?.nickname.charAt (0) }}</span>
             </div>
         </label>
-        <ul tabindex="0" class="menu menu-compact dropdown-content w-40 m-2 shadow rounded bg-base-300">
+        <ul tabindex="0" class="menu menu-compact dropdown-content w-40 m-2 shadow rounded-md bg-base-300">
             <li v-if="me?.id != user?.id">
                 <a @click="goToPrivateConv ()">Send Message</a>
             </li>

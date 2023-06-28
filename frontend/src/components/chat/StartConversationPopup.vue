@@ -7,15 +7,21 @@ import { type User } from '@/stores/user';
 import { useChatStore } from '@/stores/chat';
 import { selectPrivConv } from '@/chat';
 
-import NonInteractiveAvatar from "./NonInteractiveAvatar.vue";
+import UserSelectionList from "./UserSelectionList.vue";
 
 const friends = ref ([] as User[]);
 
 async function fetchFriends ()
 {
+    const chatStore = useChatStore ();
     const result = await axios.get ("user/friends");
 
-    friends.value = result.data;
+    friends.value.length = 0;
+    for (const friend of result.data)
+    {
+        if (!chatStore.hasPrivConv (friend.id))
+            friends.value.push (friend);
+    }
 }
 
 async function startConversation (user: User)
@@ -34,13 +40,15 @@ async function startConversation (user: User)
     <input type="checkbox" id="startConversationModal" class="modal-toggle" @change="fetchFriends ()" />
     <div class="modal">
         <div class="modal-box w-xs h-lg grid">
-            <h3 class="text-lg font-bold">Start Conversation</h3>
+            <div class="block">
+                <label class="float-right btn rounded-full" for="startConversationModal">
+                    <iconify-icon class="w-4 h-4" icon="gg:close" />
+                </label>
 
-            <button class="btn normal-case m-2" v-for="friend of friends" @click="startConversation (friend)">
-                <NonInteractiveAvatar :user="friend" /> {{ friend.nickname }} ({{ friend.username }})
-            </button>
+                <h3 class="text-lg font-bold select-none">Start Conversation</h3>
+            </div>
 
-            <label class="btn normal-case m-2" for="startConversationModal">Close</label>
+            <UserSelectionList :users="friends" @on-select="startConversation"/>
         </div>
     </div>
 </template>

@@ -51,23 +51,29 @@ async function createChannel ()
     <input type="checkbox" id="createChannelModal" class="modal-toggle" />
     <div class="modal">
         <div class="modal-box w-xs h-lg grid">
-            <h3 class="text-lg font-bold m-4 mb-6">Create Channel</h3>
+            <div class="block">
+                <label class="float-right btn rounded-full" for="createChannelModal">
+                    <iconify-icon class="w-4 h-4" icon="gg:close" />
+                </label>
+
+                <h3 class="text-lg font-bold select-none">Create Channel</h3>
+            </div>
 
             <div class="flex">
-                <span class="label-text w-full max-w-xs my-2 mr-2">Private Channel</span>
+                <span class="label-text w-full max-w-xs my-2 mr-2 select-none">Private Channel</span>
                 <input type="checkbox" class="toggle float-right my-2" v-model="isPrivate" />
             </div>
 
             <div class="flex">
-                <span class="label-text w-full max-w-xs my-2 mr-2">Password Protected</span>
+                <span class="label-text w-full max-w-xs my-2 mr-2 select-none">Password Protected</span>
                 <input type="checkbox" class="toggle float-right my-2" v-model="hasPassword" />
             </div>
 
-            <span class="label-text my-2 mr-2 mt-6">Name</span>
+            <span class="label-text my-2 mr-2 mt-6 select-none">Name</span>
             <input class="input input-bordered my-2 w-full max-w-xs"
                 type="text" placeholder="Name" v-model="name" />
 
-            <span v-if="hasPassword" class="label-text my-2 mr-2">Password</span>
+            <span v-if="hasPassword" class="label-text my-2 mr-2 select-none">Password</span>
             <div v-if="hasPassword" class="flex">
                 <input class="input input-bordered my-2 mr-2 w-full max-w-xs"
                     type="password" placeholder="Password" v-model="password" />
@@ -76,12 +82,11 @@ async function createChannel ()
                     type="password" placeholder="Confirm Password" v-model="confirmPassword" />
             </div>
 
-            <span class="label-text my-2 mr-2">Description</span>
+            <span class="label-text my-2 mr-2 select-none">Description</span>
             <textarea class="textarea textarea-bordered my-2 w-full max-w-xs "
                 placeholder="Description" v-model="description" />
 
             <button class="my-2 btn normal-case" @click="createChannel ()">Create</button>
-            <label class="my-2 btn normal-case" for="createChannelModal">Close</label>
         </div>
     </div>
 </template>

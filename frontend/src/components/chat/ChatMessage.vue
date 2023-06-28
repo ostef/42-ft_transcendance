@@ -2,12 +2,13 @@
 
 import { type PropType, computed } from "vue";
 import { storeToRefs } from "pinia";
+import axios from "axios";
 
-import UserAvatar from "./UserAvatar.vue";
 import { useUserStore, type User } from "@/stores/user";
 import type { Message } from "@/stores/chat";
-import axios from "axios";
 import { fetchChannels, notifyChannelChange, selectChannel } from "@/chat";
+
+import UserAvatar from "@/components/UserAvatar.vue";
 
 const { user: me } = storeToRefs (useUserStore ());
 
@@ -69,7 +70,7 @@ async function acceptInvite ()
             />
         </div>
 
-        <div class="chat-header">
+        <div class="chat-header select-none">
             {{ message?.sender.nickname }}
         </div>
 
@@ -77,20 +78,37 @@ async function acceptInvite ()
             {{ message?.content }}
 
             <div v-if="message?.channelInvite">
-                <div v-if="!mine" class="select-none">
-                    {{ message?.channelInvite.channel.name }}: {{ message?.sender.username }} has invited you to this channel <br>
+                <div v-if="!mine" class="select-none text-sm italic">
+                    {{ message?.channelInvite.channel?.name ?? "deleted channel" }}: {{ message?.sender.username }} has invited you to this channel <br>
                 </div>
-                <div v-else class="select-none">
-                    {{ message?.channelInvite.channel.name }}: you have invited this person to this channel <br>
+                <div v-else class="select-none text-sm italic">
+                    {{ message?.channelInvite.channel?.name ?? "deleted channel" }}: you have invited this person to this channel <br>
                 </div>
 
-                <button v-if="!mine && !message?.channelInvite.accepted" class="btn normal-case" @click="acceptInvite ()">Accept</button>
-                <button v-if="!mine && !message?.channelInvite.accepted && inviteHasExpired" class="btn normal-case" disabled>Expired</button>
-                <button v-if="!mine && message?.channelInvite.accepted" class="btn normal-case" disabled>Accepted</button>
+                <button v-if="!mine && !message?.channelInvite.channel"
+                    class="btn btn-disabled normal-case m-4"
+                >
+                    Deleted Channel
+                </button>
+                <button v-else-if="!mine && !message?.channelInvite.accepted && inviteHasExpired"
+                    class="btn btn-disabled normal-case m-4"
+                >
+                    Expired
+                </button>
+                <button v-else-if="!mine && !message?.channelInvite.accepted"
+                    class="btn normal-case m-4" @click="acceptInvite ()"
+                >
+                    Accept
+                </button>
+                <button v-else-if="!mine && message?.channelInvite.accepted"
+                    class="btn btn-disabled normal-case m-4"
+                >
+                    Accepted
+                </button>
             </div>
         </div>
 
-        <div class="chat-footer">
+        <div class="chat-footer select-none">
             <time class="text-xs opacity-50">{{ messageTimestamp }}</time>
         </div>
     </div>
