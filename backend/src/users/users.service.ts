@@ -62,16 +62,7 @@ export class UsersService
     {
         UpdateUserDto.validate (params);
 
-        // All fields of params must have been validated so we don't
-        // check them here. This is kind of the way things are supposed
-        // to be done even though I don't really like it...
-
-        const user = await this.findUserEntity ({id: id},
-            {
-                friends: params.friendsToRemove != undefined || params.usersToBlock != undefined,
-                blockedUsers: params.friendsToRemove != undefined || params.usersToBlock != undefined || params.usersToUnblock != undefined,
-            });
-
+        const user = await this.findUserEntity ({id: id}, {friends: true, blockedUsers: true});
         if (!user)
             throw new Error ("Invalid user id " + id);
 
@@ -108,7 +99,7 @@ export class UsersService
                 if (otherId == user.id)
                     throw new Error ("Cannot block self");
 
-                const other = await this.findUserEntity ({id: otherId});
+                const other = await this.findUserEntity ({id: otherId}, {friends: true});
                 if (!other)
                     throw new Error ("User does not exist");
 
@@ -118,6 +109,10 @@ export class UsersService
                 const friendIndex = user.friends.findIndex ((val) => val.id == otherId);
                 if (friendIndex != -1)
                     user.friends.splice (friendIndex, 1);
+
+                const otherFriendIndex = other.friends.findIndex (val => val.id == user.id);
+                if (otherFriendIndex != -1)
+                    other.friends.splice (otherFriendIndex, 1);
 
                 toSave.push (other);
             }
