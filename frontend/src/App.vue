@@ -50,7 +50,7 @@ onErrorCaptured ((err, vm, info) =>
 </script>
 
 <template>
-    <div class="h-screen">
+    <div class="w-screen h-screen">
         <Header />
 
         <RouterView />
