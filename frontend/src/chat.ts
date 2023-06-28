@@ -4,6 +4,8 @@ import { useChatStore } from "@/stores/chat";
 import { useUserStore, type User } from "@/stores/user";
 import { storeToRefs } from "pinia";
 
+// @Todo: update friend status, blocked status, and user info in real-time
+
 export let chatSocket: Socket;
 
 export function connectChatSocket ()
@@ -27,8 +29,6 @@ export function connectChatSocket ()
     chatSocket.on ("error", (err) => { console.error (err); });
 
     chatSocket.on ("newMessage", async (msg) => {
-        console.log ("New message", msg);
-
         if (msg.toUser && !store.hasPrivConv (msg.sender) && !store.hasPrivConv (msg.toUser))
         {
             await fetchPrivateConversations ();
@@ -49,7 +49,7 @@ export function connectChatSocket ()
         const user = store.users.find ((val) => val.id == msg.sender);
 
         if (user)
-            store.messages.push ({sender: user, content: msg.content, date: new Date (msg.date)});
+            store.messages.push ({sender: user, content: msg.content, date: new Date (msg.date), channelInvite: msg.channelInvite});
         else
             console.error ("Received new message but sender wasn't found:", msg);
     });
@@ -226,6 +226,7 @@ export async function selectChannel (channelId: string)
     watchChannel (channelId);
     store.selectedChannelIndex = store.channels.findIndex ((val) => val.id == channelId);
     store.selectedUserIndex = -1;
+    store.channelsSelected = true;
 }
 
 export function watchPrivConv (userId: string)
