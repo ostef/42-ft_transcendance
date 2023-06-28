@@ -43,7 +43,7 @@ export class UserInfo
 export class ChannelInviteInfo
 {
     id: string;
-    channel: MinimalChannelInfo;
+    channel?: MinimalChannelInfo;
     accepted: boolean;
     expirationDate: Date;
 
@@ -51,7 +51,7 @@ export class ChannelInviteInfo
     {
         return {
             id: invite.id,
-            channel: MinimalChannelInfo.fromChannelEntity (invite.channel),
+            channel: invite.channel ? MinimalChannelInfo.fromChannelEntity (invite.channel) : undefined,
             accepted: invite.accepted,
             expirationDate: invite.expirationDate,
         };
