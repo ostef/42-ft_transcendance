@@ -66,7 +66,7 @@ async function acceptInvite ()
             <UserAvatar
                 :user="message?.sender"
                 :channelId="channelId"
-                :left="mine"
+                :dropdownClass="mine ? 'dropdown-left' : 'dropdown-right'"
             />
         </div>
 

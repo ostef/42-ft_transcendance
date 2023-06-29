@@ -13,7 +13,7 @@ const chat = useChatStore ();
 <template>
     <div class="flex flex-col-reverse h-full">
         <div class="overflow-y-auto h-full">
-            <button class="btn btn-block normal-case my-2 p-4 h-fit"
+            <button class="btn btn-block normal-case my-1 p-4 h-fit max-h-20 overflow-clip"
                 v-for="(chan, index) in chat.channels"
                 :key="index"
                 @click="selectChannel (chan.id)"

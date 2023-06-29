@@ -108,9 +108,13 @@ async function unblockUser ()
                     <h3 class="text-sm">{{ user?.username }}</h3>
                 </div>
             </div>
+
+            <h3 v-if="user?.hasBlockedYou" class="text-sm italic select-none m-4">
+                This user has blocked you
+            </h3>
         </div>
 
-        <div v-if="!user?.isBlocked">
+        <div v-if="!user?.isBlocked && !user?.hasBlockedYou">
             <button v-if="user?.isFriend" class="m-2 btn bg-primary normal-case" @click="removeFriend ()">
                 Remove Friend
             </button>

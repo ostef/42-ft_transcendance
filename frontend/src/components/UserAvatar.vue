@@ -17,7 +17,7 @@ const { channelsSelected, privateConvs, selectedUserIndex } = storeToRefs (useCh
 const props = defineProps ({
     channelId: String,
     user: Object as PropType<User>,
-    left: Boolean,
+    dropdownClass: String,
 });
 
 const clientIsAdmin = computed (() => {
@@ -140,7 +140,7 @@ async function goToPrivateConv ()
 </script>
 
 <template>
-    <div class="tooltip dropdown flex" :class="left ? 'dropdown-left' : 'dropdown-right'" :data-tip="user?.username" >
+    <div class="tooltip dropdown flex" :class="dropdownClass ?? ''" :data-tip="user?.username" >
         <label tabindex="0" class="avatar" :class="(isOnline ? 'online' : 'offline') + (!user?.avatarFile ? ' placeholder' : '')">
             <div class="h-12 w-12 btn btn-circle overflow-hidden grid">
                 <img v-if="user?.avatarFile" :src="user?.avatarFile" />
