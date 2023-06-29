@@ -85,7 +85,7 @@ export class UsersController
     {
         const user = await this.usersService.findUserEntity ({id: req.user.id}, {friends: true});
         if (!user)
-            throw new NotFoundException ("User " + req.user.id + " does not exist");
+            throw new NotFoundException ("User does not exist");
 
         const result = [];
         for (const u of user.friends)
@@ -148,7 +148,7 @@ export class UsersController
     {
         const entity = await this.usersService.findUserEntity ({id: id});
         if (entity == null)
-            throw new NotFoundException ("User with id " + id + " does not exist");
+            throw new NotFoundException ("User does not exist");
 
         const { password, ...result } = entity;
 
