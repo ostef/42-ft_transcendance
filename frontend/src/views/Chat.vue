@@ -124,7 +124,7 @@ function sendMessage ()
 
         <!-- Users -->
         <div class="w-1/4 min-h-0 overflow-x-hidden overflow-y-auto mx-1 p-2 rounded-lg bg-base-200">
-            <div class="flex m-2 justify-center lg:justify-start" v-for="user of chat.users">
+            <div class="flex m-2 justify-center lg:justify-start" v-for="user of chat.users" :key="user.id">
                 <div class="my-2 mx-4">
                     <UserAvatar :channelId="chat.selectedChannel?.id" :user="user" dropdownClass="dropdown-bottom" />
                 </div>
