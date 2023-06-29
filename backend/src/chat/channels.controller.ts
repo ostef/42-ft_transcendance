@@ -67,12 +67,23 @@ export class MessageInfo
 
     static fromMessageEntity (me: UserEntity, msg: MessageEntity): MessageInfo
     {
-        return {
-            sender: UserInfo.fromUserEntity (me, msg.fromUser),
-            content: msg.fromUser.hasBlocked (me) ? '' : msg.content,
-            date: msg.timestamp,
-            channelInvite: msg.invite ? ChannelInviteInfo.fromChannelInviteEntity (msg.invite) : undefined,
-        };
+        if (msg.fromUser.hasBlocked (me))
+        {
+            return {
+                sender: UserInfo.fromUserEntity (me, msg.fromUser),
+                content: "You cannot see this message because this user has blocked you",
+                date: msg.timestamp,
+            };
+        }
+        else
+        {
+            return {
+                sender: UserInfo.fromUserEntity (me, msg.fromUser),
+                content: msg.fromUser.hasBlocked (me) ? '' : msg.content,
+                date: msg.timestamp,
+                channelInvite: msg.invite ? ChannelInviteInfo.fromChannelInviteEntity (msg.invite) : undefined,
+            };
+        }
     }
 }
 
@@ -172,7 +183,10 @@ export class ChannelsController
 
         const result = [] as MessageInfo[];
         for (const msg of channel.messages)
-            result.push (MessageInfo.fromMessageEntity (me, msg));
+        {
+            if (!msg.fromUser.hasBlocked (me))
+                result.push (MessageInfo.fromMessageEntity (me, msg));
+        }
 
         result.sort ((a, b) => a.date.getTime () - b.date.getTime ());
 
@@ -228,6 +242,11 @@ export class ChannelsController
         try
         {
             const me = await this.userService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
+            const other = await this.userService.findUserEntity ({id: otherId}, {blockedUsers: true});
+
+            if (other.hasBlocked (me))
+                return [];
+
             const conv = await this.msgService.findPrivConversation (req.user.id, otherId, {messages: {fromUser: {blockedUsers: true}, invite: true}});
 
             if (!conv)
