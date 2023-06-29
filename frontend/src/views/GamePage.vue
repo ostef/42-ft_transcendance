@@ -15,7 +15,7 @@
 
 
 
-*, *::after, *::before {
+/**, *::after, *::before {
 	box-sizing: border-box;
 }
 
@@ -57,7 +57,7 @@ body {
 	position: absolute;
 	top : 0px;
 	height: 20%;
-}*/
+}
 
 .score {
 	display: flex;
@@ -78,7 +78,7 @@ body {
 .score > :first-child {
 	text-align: right;
 	border-right: .5vh solid var(--foreground-color);
-}
+}*/
 
 </style>
 

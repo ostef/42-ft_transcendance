@@ -18,7 +18,7 @@ export default class Paddle {
 	#frontSegment : Segment
 	player : boolean
 
-	constructor(color : string, xpos : number, player : boolean, difficulty : number) {
+	constructor(color : string, xpos : number, player : boolean, difficulty : string) {
 		//True is left, False is right
 		this.player = player
 		this.#xpos = xpos
@@ -71,17 +71,21 @@ export default class Paddle {
 		return(this.#width)
 	}
 	
-	setDifficulty(difficulty : number) : number
+	setDifficulty(difficulty : string) : number
 	{
-		if (difficulty === 1)
+		if (difficulty == "default" )
 		{
 			return (1 / 7)
 		}
-		if (difficulty === 2)
+		if (difficulty == "easy" )
+		{
+			return (1 / 7)
+		}
+		if (difficulty == "medium")
 		{
 			return (1 / 9)
 		}
-		if (difficulty === 3)
+		if (difficulty == "hard")
 		{
 			return (1 / 11)
 		}

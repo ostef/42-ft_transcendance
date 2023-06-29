@@ -26,14 +26,12 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
   }
   
   onModuleInit() {
-    
   }
   
   onApplicationBootstrap() {
     this.server.on('connection', (socket) => {
-      console.log(socket.id);
-      this.sockets.push(socket.id);
-      console.log(this.sockets)
+      console.log("A socket is connecting : " + socket.id);      this.sockets.push(socket.id);
+      console.log("The sockets are " + this.sockets)
       this.server.emit ("onConnection", {
         id: socket.id,
 			});
@@ -43,7 +41,7 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
         this.sockets.splice(this.sockets.findIndex(id =>
           id == socket.id
         ), 1)
-        console.log(this.sockets)
+        console.log("The sockets are " + this.sockets)
         this.gameService.disconnectPlayer(socket.id)
       })
     })
@@ -130,24 +128,15 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 	    this.gameService.updatePaddlePos(client, data.gameId, data.paddlePos)
    }
 
-   @SubscribeMessage('difficultyChoice')
-   onDifficulty(@ConnectedSocket() client : Socket, @MessageBody() data : any)
+  //Todo : DTO 
+   @SubscribeMessage('configurate')
+   onConfig(@ConnectedSocket() client : Socket, @MessageBody() data : any)
    {
     if (this.isSocket(client.id) === false)
     {
       return ;
     }
-		this.gameService.addDifficulty(client, data)
-   }
-   
-   @SubscribeMessage('addColor')
-   onColorChoice(@ConnectedSocket() client : Socket, @MessageBody() data : any)
-   {
-    if (this.isSocket(client.id) === false)
-    {
-      return ;
-    }
-    this.gameService.addColor(client, data)
+    this.gameService.configurateGame(client, data)
    }
 
    @SubscribeMessage('userId')
@@ -159,6 +148,16 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     }
     console.log("userId is : " + data.userId)
     this.gameService.addUserIdToGame(client, data.gameId, data.userId)
+   }
+
+   @SubscribeMessage('disconnectWaiting')
+   onDisconnectWaiting(@ConnectedSocket() client : Socket)
+   {
+    if (this.isSocket(client.id) === false)
+    {
+      return ;
+    }
+    this.gameService.disconnectPlayer(client.id)
    }
 
 

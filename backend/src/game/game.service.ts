@@ -97,10 +97,11 @@ export class GameService {
 			newGame.createGame()
 			newGame.isReady = false
 			this.gamesCreateRoom.push(newGame)
+			this.gamesWaitingRoom.push(newGame)
 		}
 	}
 
-	findGame(client : Socket, data : any) : {player1 : Socket | null, instanceId : number, difficulty : number, color : string}
+	findGame(client : Socket, data : any) : {player1 : Socket | null, instanceId : number, difficulty : string, color : string}
 	{
 		console.log("trying to find a game for ", client.id)
 		if (this.gamesWaitingRoom.length >= 1)
@@ -109,10 +110,19 @@ export class GameService {
 			//Player 2 is right bar
 			let newGame = this.gamesWaitingRoom.shift()
 			newGame.player2Socket = client
-			newGame.startGame()
+			if (newGame.isConfig == false)
+			{
+				newGame.isReady = true
+				return ({player1 : null, instanceId : -2, difficulty : "default", color : ""})
+			}
+			else
+			{
+				newGame.startGame()
+				return ({player1 : newGame.player1Socket, instanceId : newGame.instanceId, difficulty : newGame.difficulty, color : newGame.color})
+			}
 			//Return le deuxième joueur au gateway pour pouvoir le prévenir
-			return ({player1 : newGame.player1Socket, instanceId : newGame.instanceId, difficulty : newGame.difficulty, color : newGame.color})
 		}
+
 		else if (this.waitRoom.length >= 1)
 		{
 			//Si il y a un autre joueur en attente on créé une game par défault
@@ -120,14 +130,14 @@ export class GameService {
 
 			this.addWaitingGame(client, client2, data, true)
 			console.log("Created a game with a difficulty")
-			return ({player1 : null, instanceId : -2, difficulty : 0, color : ""})
+			return ({player1 : null, instanceId : -2, difficulty : "default", color : ""})
 		}
 		else
 		{
 			//Sinon on l'ajoute à la waitroom
 			this.waitRoom.push(client)
 			console.log("adding player to waitroom")
-			return ({player1 : null, instanceId : -1, difficulty : 0, color : ""})
+			return ({player1 : null, instanceId : -1, difficulty : "default", color : ""})
 
 		}
 	}
@@ -145,9 +155,8 @@ export class GameService {
 		this.gamesCreateRoom.push(newGame)
 	}
 
-	addDifficulty(client : Socket, data : any)
+	configurateGame(client : Socket, data : any)
 	{
-		console.log("adding diffuclty")
 		let currentInstance = null
 		for (let game of this.gamesCreateRoom)
 		{
@@ -158,32 +167,17 @@ export class GameService {
 			}
 		}
 		currentInstance.addDifficulty(data.difficulty)
+		console.log("The color is : " + data.color)
+		currentInstance.addColor(data.color)
+		currentInstance.isConfig = true
 		this.redirectGame(currentInstance)
 		//this.gamesWaitingRoom.push(currentInstance)
-	}
-
-	addColor(client : Socket, data : any)
-	{
-		console.log("adding color")
-		let currentInstance = null
-		for (let game of this.gamesCreateRoom)
-		{
-			if (game.instanceId == data.gameId)
-			{
-				currentInstance = game
-				break
-			}
-		}
-		console.log(data.color)
-		currentInstance.addColor(data.color)
-		console.log(currentInstance.color)
 	}
 
 	redirectGame(currentGame : Game)
 	{
 		if (currentGame.isReady === false)
 		{
-			this.gamesWaitingRoom.push(currentGame)
 			let index = this.gamesCreateRoom.findIndex(game => 
 				game.instanceId == currentGame.instanceId
 			)
@@ -247,7 +241,18 @@ export class GameService {
 		{
 			this.createGameHistory(this.gamesRoom[index].player1DataBaseId, 
 				this.gamesRoom[index].player2DataBaseId, 
-				this.gamesRoom[index].score.p1, this.gamesRoom[index].score.p2)
+				this.gamesRoom[index].score.p1, this.gamesRoom[index].score.p2, this.gamesRoom[index].isWinner)
+			this.gamesRoom.splice(index, 1)
+		}
+	}
+
+	stopGameBeforeStart(gameId : number)
+	{
+		let index = this.gamesRoom.findIndex(game => 
+			game.instanceId == gameId
+		)
+		if (index != -1)
+		{
 			this.gamesRoom.splice(index, 1)
 		}
 	}
@@ -259,17 +264,21 @@ export class GameService {
 		let index = this.isGaming(socketId)
 		if (index != -1)
 		{
-			if (this.gamesRoom[index].player1Socket.id == socketId)
-				this.gamesRoom[index].disconnectPlayer1();
-			else if (this.gamesRoom[index].player2Socket.id == socketId)
+			if (this.gamesRoom[index].isPlaying == true)
 			{
-				this.gamesRoom[index].disconnectPlayer2();
+				if (this.gamesRoom[index].player1Socket.id == socketId)
+					this.gamesRoom[index].disconnectPlayer1()
+				else if (this.gamesRoom[index].player2Socket.id == socketId)
+				{
+					this.gamesRoom[index].disconnectPlayer2()
+				}
 			}
 		}
 		//Ensuite on check si il etait en waitroom et on l'enleve
 		index = this.isWaiting(socketId)
 		if (index != -1)
 		{
+			console.log("Disconnecting a waiting player")
 			this.quitWaitRoom(this.waitRoom[index])
 		}
 		
@@ -277,13 +286,14 @@ export class GameService {
 		index = this.isGameCreating(socketId)
 		if (index != -1)
 		{
-			if (this.gamesCreateRoom[index].player1Socket.id == socketId)
+			console.log("Disconnecting a game getting created")
+			if (this.gamesCreateRoom[index].isReady == false)
 			{
-				this.gamesCreateRoom[index].disconnectPlayer1()
+				this.gamesCreateRoom[index].stopGameBeforeStart()
 			}
-			else if (this.gamesCreateRoom[index].player2Socket.id == socketId)
+			else
 			{
-				this.gamesCreateRoom[index].disconnectPlayer2()
+				this.gamesCreateRoom[index].disconnectPlayerBeforeStart(socketId)
 			}
 			this.quitGameCreateRoom(socketId, index)
 		}
@@ -291,39 +301,37 @@ export class GameService {
 		index = this.isGameWaiting(socketId)
 		if (index != -1)
 		{
-			this.gamesWaitingRoom[index].disconnectPlayer1()
+			console.log("Disconnecting a waiting game")
+			this.gamesWaitingRoom[index].stopGameBeforeStart()
 			this.quitGameWaitingRoom(socketId, index)
 		}
-
 		//Todo : faire le disconect pour les invits
 		index = this.isGameInvite(socketId)
 		if (index != -1)
 		{
-			if (this.gamesInvite[index].player1Socket)
-			{
-				if (this.gamesInvite[index].player1Socket.id == socketId)
-					this.gamesInvite[index].disconnectPlayer1()
-			}
-			else if (this.gamesInvite[index].player2Socket)
-			{
-				if (this.gamesInvite[index].player2Socket.id == socketId)
-				{
-					this.gamesInvite[index].disconnectPlayer2()
-				}
-			}
+			console.log("Disconnecting an Invite game")
+			this.gamesInvite[index].disconnectPlayerBeforeStart(socketId)
 			this.quitGameInvite(socketId)
 		}
+		console.log("The game roome : " + this.gamesRoom)
+		console.log("The Game waiting room : " + this.gamesWaitingRoom)
+		console.log("The game Create room : " + this.gamesCreateRoom)
 	}
 
 	isGaming(socketId : string)
 	{
-		let index = this.gamesRoom.findIndex(game => 
-			game.player1Socket.id == socketId 
+		let index = this.gamesRoom.findIndex(game => {
+			if (game.player1Socket)
+			{
+				return (game.player1Socket.id == socketId)
+			}
+			return (false)
+		}
 		)
 		if (index == -1)
 		{
 			index = this.gamesRoom.findIndex(game => 
-				game.player2Socket.id == socketId 
+				game.player2Socket?.id === socketId 
 			)
 		}
 		return (index)
@@ -360,14 +368,16 @@ export class GameService {
 		let index = this.gamesInvite.findIndex(game => {
 			if (game.player1Socket)
 			{
-				game.player1Socket.id == socketId
-			}})
+				return (game.player1Socket.id == socketId)
+			}
+			return (false)
+		})
 		if (index == -1)
 		{
 			index  = this.gamesInvite.findIndex(game => {
 				if (game.player2Socket)
 				{
-					game.player2Socket.id == socketId
+					game.player2Socket?.id == socketId
 				}
 			})
 		}
@@ -424,7 +434,7 @@ export class GameService {
 
 	//Create History 
 
-	async createGameHistory(player1Id : string, player2Id : string, scoreP1 : number, scoreP2 : number)
+	async createGameHistory(player1Id : string, player2Id : string, scoreP1 : number, scoreP2 : number, winnerId : number)
 	{
 		let gameHistory = this.gameRepository.create()
 		let user1 = await this.usersService.findUserEntity({id : player1Id})
@@ -445,6 +455,14 @@ export class GameService {
 		gameHistory.user2 = user2
 		gameHistory.scoreP1 = scoreP1
 		gameHistory.scoreP2 = scoreP2
+		if (winnerId == 1)
+		{
+			gameHistory.winner = user1
+		}
+		else
+		{
+			gameHistory.winner = user2
+		}
 		this.gameRepository.save(gameHistory).then(() => {
 			console.log("Added a game history for " + player1Id + "and " + player2Id)
 		}).catch(() => {
