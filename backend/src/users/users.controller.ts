@@ -17,6 +17,7 @@ import { UsersService } from "./users.service";
 import { CreateUserDto, UpdateUserDto, UserDto } from "./entities/user.dto";
 import { UserEntity } from "./entities/user.entity";
 import { FriendRequestDto } from "./entities/friend_request.dto";
+import { UserInfo } from "src/chat/channels.controller";
 
 class SensitiveUserInfo extends UserDto
 {
@@ -143,15 +144,26 @@ export class UsersController
         }
     }
 
+    // @Get ("profile/:id")
+    // async findUser (@Param ("id") id: string): Promise<UserDto>
+    // {
+    //     const entity = await this.usersService.findUserEntity ({id: id});
+    //     if (entity == null)
+    //         throw new NotFoundException ("User does not exist");
+
+    //     const { password, ...result } = entity;
+
+    //     return result as unknown as UserDto;
+    // }
+
     @Get ("profile/:id")
-    async findUser (@Param ("id") id: string): Promise<UserDto>
+    async getUserInfo (@Request () req, @Param ("id") id: string): Promise<UserInfo>
     {
-        const entity = await this.usersService.findUserEntity ({id: id});
-        if (entity == null)
-            throw new NotFoundException ("User does not exist");
+        const me = await this.usersService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
+        const user = await this.usersService.findUserEntity ({id: id}, {friends: true, blockedUsers: true});
+        if (!user)
+            throw new BadRequestException ("User does not exist");
 
-        const { password, ...result } = entity;
-
-        return result as unknown as UserDto;
+        return UserInfo.fromUserEntity (me, user)
     }
 }

@@ -306,8 +306,6 @@ export class ChannelsService
                 if (adminIndex != -1)
                     throw new Error ("Cannot kick admin");
 
-                // @Todo (stefan): update user's joinedChannels array
-                // Or does it update automatically ?
                 channel.removeUser (otherId);
             }
         }

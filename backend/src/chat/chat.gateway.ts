@@ -193,6 +193,39 @@ export class ChatGateway
         }
     }
 
+/*
+    @SubscribeMessage ("gameInvite")
+    async handleGameInvite (client: Socket, params: GameInviteParams)
+    {
+        try
+        {
+            const invite = this.gameService.createInvite (client.data.userId, params.userId);
+            const {msg, newConv} = await this.messageService.sendMessageToUser (client.data.userId, params.userId, params.message, invite);
+
+            const firstKey = client.data.userId.localeCompare (params.userId) < 0 ? client.data.userId : params.userId;
+            const secondKey = client.data.userId.localeCompare (params.userId) < 0 ? params.userId : client.data.userId;
+
+            if (newConv)
+            {
+                await this.addUsersToPrivConvRoom (firstKey, secondKey);
+            }
+
+            this.server.to ("PrivConv#" + firstKey + "&" + secondKey).emit ("newMessage", {
+                sender: client.data.userId,
+                content: params.message,
+                date: msg.timestamp,
+                toUser: params.userId,
+                channelInvite: ChannelInviteInfo.fromChannelInviteEntity (invite)
+            });
+        }
+        catch (err)
+        {
+            this.logger.error (err.stack);
+            client.emit ("error", err.message);
+        }
+    }
+*/
+
     @SubscribeMessage ("channelUpdated")
     notifyChannelChange (client: Socket, channelId: string)
     {
@@ -215,13 +248,21 @@ export class ChatGateway
         for (const client of socks)
         {
             if (client.data.userId == params.userId)
-            {
                 client.emit ("kickedOrBanned", params);
-
-                return;
-            }
         }
    }
+
+    @SubscribeMessage ("userFriendshipChanged")
+    async notifyUserFriendshipChange (client: Socket, userId: string)
+    {
+        const sockets = await this.server.fetchSockets ();
+
+        for (const other of sockets)
+        {
+            if (other.data.userId == userId)
+                other.emit ("friendshipChanged", client.data.userId);
+        }
+    }
 
     @SubscribeMessage ("getChannelInfo")
     async sendChannelInfo (client: Socket, channelId: string)

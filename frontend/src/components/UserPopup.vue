@@ -6,7 +6,7 @@ import axios from "axios";
 
 import { type User, useUserStore } from "@/stores/user";
 import { fetchUserInfo } from "@/authentication";
-import { fetchUsers } from "@/chat";
+import { fetchUsers, notifyFriendshipChange } from "@/chat";
 
 import NonInteractiveAvatar from "./NonInteractiveAvatar.vue";
 
@@ -25,6 +25,7 @@ async function sendFriendRequest ()
         return;
 
     await axios.post ("user/friends/add/" + props.user.id);
+    notifyFriendshipChange (props.user.id);
 }
 
 async function removeFriend ()
@@ -34,6 +35,7 @@ async function removeFriend ()
 
     await axios.put ("user/", { friendsToRemove: [props.user.id] });
     props.user.isFriend = false;
+    notifyFriendshipChange (props.user.id);
 }
 
 async function acceptFriendRequest ()
@@ -43,6 +45,7 @@ async function acceptFriendRequest ()
 
     await axios.post ("user/friends/accept/" + props.user.id);
     props.user.isFriend = true;
+    notifyFriendshipChange (props.user.id);
 
     if (me.value)
     {
@@ -58,6 +61,7 @@ async function declineFriendRequest ()
         return;
 
     await axios.post ("user/friends/decline/" + props.user.id);
+    notifyFriendshipChange (props.user.id);
 
     if (me.value)
     {
@@ -73,6 +77,7 @@ async function blockUser ()
         return;
 
     await axios.put ("user/", { usersToBlock: [props.user.id] });
+    notifyFriendshipChange (props.user.id);
 
     props.user.isFriend = false;
     props.user.isBlocked = true;
@@ -84,6 +89,7 @@ async function unblockUser ()
         return;
 
     await axios.put ("user/", { usersToUnblock: [props.user.id] });
+    notifyFriendshipChange (props.user.id);
 
     props.user.isBlocked = false;
 }

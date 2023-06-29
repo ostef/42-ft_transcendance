@@ -3,6 +3,7 @@ import axios from "axios";
 import { useChatStore } from "@/stores/chat";
 import { useUserStore, type User } from "@/stores/user";
 import { storeToRefs } from "pinia";
+import { fetchUserInfo } from "./authentication";
 
 // @Todo: update friend status, blocked status, and user info in real-time
 
@@ -110,6 +111,23 @@ export function connectChatSocket ()
 
         unwatchChannel (params.channelId);
     });
+
+    chatSocket.on ("friendshipChanged", async (userId: string) => {
+        await fetchUserInfo ();
+
+        const res = await axios.get ("user/profile/" + userId);
+        const newUser = res.data;
+
+        store.users.forEach (async (user, index, arr) => {
+            if (user.id == userId)
+                arr[index] = newUser;
+        });
+
+        store.messages.forEach (async (msg, index, arr) => {
+            if (msg.sender.id == userId)
+                arr[index].sender = newUser;
+        });
+    });
 }
 
 export function disconnectChatSocket ()
@@ -152,6 +170,11 @@ export function notifyChannelChange (channelId: string)
 export function notifyUserKickOrBan (channelId: string, userId: string, kicked: boolean, message: string)
 {
     chatSocket.emit ("userKickedOrBanned", {channelId: channelId, userId: userId, kicked: kicked, message: message});
+}
+
+export function notifyFriendshipChange (userId: string)
+{
+    chatSocket.emit ("userFriendshipChanged", userId);
 }
 
 export async function fetchChannelInfo (channelId: string)
