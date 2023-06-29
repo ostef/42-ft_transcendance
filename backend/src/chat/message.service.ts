@@ -86,17 +86,17 @@ export class MessageService
     {
         const sender = await this.usersService.findUserEntity ({id: senderId}, {blockedUsers: true});
         if (!sender)
-            throw new Error ("User " + senderId + " does not exist");
+            throw new Error ("User does not exist");
 
         const receiver = await this.usersService.findUserEntity ({id: userId}, {blockedUsers: true});
         if (!receiver)
-            throw new Error ("User " + userId + " does not exist");
+            throw new Error ("User  does not exist");
 
         if (receiver.hasBlocked (senderId))
-            throw new Error ("User " + senderId + " is blocked");
+            throw new Error ("User has blocked you");
 
         if (sender.hasBlocked (userId))
-            throw new Error ("User " + userId + " is blocked");
+            throw new Error ("User is blocked");
 
         const {conv, newConv} = await this.findOrCreatePrivConversation (sender, receiver, {messages: true});
 
