@@ -2,13 +2,6 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import type { User } from "./user";
 
-export type UserInChannel =
-{
-    isAdmin: boolean;
-    isMuted: boolean;
-    user: User;
-}
-
 export type Channel =
 {
     id: string;

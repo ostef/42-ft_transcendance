@@ -113,20 +113,15 @@ export function connectChatSocket ()
     });
 
     chatSocket.on ("friendshipChanged", async (userId: string) => {
+        const previousConv = store.selectedUser?.id;
+        const previousChannel = store.selectedChannel?.id;
         await fetchUserInfo ();
+        await fetchPrivateConversations ();
 
-        const res = await axios.get ("user/profile/" + userId);
-        const newUser = res.data;
-
-        store.users.forEach (async (user, index, arr) => {
-            if (user.id == userId)
-                arr[index] = newUser;
-        });
-
-        store.messages.forEach (async (msg, index, arr) => {
-            if (msg.sender.id == userId)
-                arr[index].sender = newUser;
-        });
+        if (previousConv)
+            await selectPrivConv (previousConv)
+        else if (previousChannel)
+            await selectChannel (previousChannel);
     });
 }
 

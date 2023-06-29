@@ -112,6 +112,7 @@ function sendMessage ()
                     </h3>
                     <div v-else-if="chat.selectedChannelIndex != -1 || chat.selectedUserIndex != -1">
                         <ChatMessage v-for="msg of chat.messages"
+                            :key="msg.sender.id + msg.date.toString ()"
                             :channelId="chat.selectedChannel?.id"
                             :message="msg"
                         />
