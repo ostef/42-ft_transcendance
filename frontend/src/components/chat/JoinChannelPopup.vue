@@ -51,12 +51,12 @@ async function joinChannel ()
 </script>
 
 <template>
-    <input type="checkbox" id="joinChannelModal" class="modal-toggle" @change="fetchPublicChannels ()" />
+    <input type="checkbox" id="joinChannelModal" class="modal-toggle" @change="fetchPublicChannels (), selectChannelToJoin (null)" />
     <div class="modal">
         <div class="modal-box w-xs h-lg">
             <div class="overflow-auto grid" v-if="selectedChannel == null">
                 <div class="block">
-                    <label class="float-right btn rounded-full" for="joinChannelModal" @click="selectChannelToJoin (null)">
+                    <label class="float-right btn rounded-full" for="joinChannelModal">
                         <iconify-icon class="w-4 h-4" icon="gg:close" />
                     </label>
 
@@ -66,18 +66,25 @@ async function joinChannel ()
                 <ChannelSelectionList :channels="publicChannels" @on-select="selectChannelToJoin" />
             </div>
             <div class="overflow-hidden grid" v-else>
-                <h3 class="text-lg font-bold select-none break-words">{{ selectedChannel.name }}</h3>
-                <h2 class="text-md mb-6 select-none truncate">{{ selectedChannel.description }}</h2>
+                <div class="block">
+                    <label class="float-right btn rounded-full" for="joinChannelModal">
+                        <iconify-icon class="w-4 h-4" icon="gg:close" />
+                    </label>
+
+                    <h3 class="text-lg font-bold select-none">{{ selectedChannel.name }}</h3>
+                </div>
+
+                <h3 class="text-md mb-6 select-none truncate">{{ selectedChannel.description }}</h3>
 
                 <span class="label-text w-full max-w-xs my-2 mr-2 select-none">Enter Channel Password</span>
                 <input type="password" class="input input-bordered" v-model="password" :disabled="!selectedChannel.isPasswordProtected"
                     :placeholder="selectedChannel.isPasswordProtected ? 'Password' : 'No password is required'"
                 />
-            </div>
 
-            <div>
-                <button class="btn normal-case m-2" v-if="selectedChannel" @click="joinChannel ()">Join</button>
-                <button class="btn normal-case m-2" v-if="selectedChannel" @click="selectChannelToJoin (null)">Back</button>
+                <div>
+                    <button class="btn normal-case m-2" @click="joinChannel ()">Join</button>
+                    <button class="btn normal-case m-2" @click="selectChannelToJoin (null)">Back</button>
+                </div>
             </div>
         </div>
     </div>
