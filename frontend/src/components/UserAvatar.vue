@@ -36,6 +36,12 @@ const clientIsOwner = computed (() => {
     return store.isOwner (store.loggedUser?.id, channel);
 });
 
+const isInChannel = computed (() => {
+    // @Cleanup: we use the users list to check if the user is in the channel,
+    // but it may be possible for this list to not be the same as the one of channelId
+    return props.channelId != undefined && store.users.find (val => val.id == props.user?.id) != null;
+});
+
 const isMuted = computed (() => {
     if (!props.channelId)
         return false;
@@ -150,23 +156,24 @@ async function goToPrivateConv ()
                 <a @click="goToPrivateConv ()">Send Message</a>
             </li>
 
-            <li v-if="channelId && store.loggedUser?.id != user?.id && clientIsOwner && !isAdmin">
+            <li v-if="isInChannel && store.loggedUser?.id != user?.id && clientIsOwner && !isAdmin">
                 <a @click="adminUser ()">Make Admin</a>
             </li>
 
-            <li v-if="channelId && store.loggedUser?.id != user?.id && clientIsOwner && isAdmin">
+            <li v-if="isInChannel && store.loggedUser?.id != user?.id && clientIsOwner && isAdmin">
                 <a @click="unadminUser ()">Unadmin</a>
             </li>
 
-            <li v-if="channelId && store.loggedUser?.id != user?.id && clientIsAdmin">
+            <li v-if="isInChannel && store.loggedUser?.id != user?.id && clientIsAdmin">
                 <a v-if="!isMuted" @click="muteUser ()">Mute User</a>
                 <a v-else @click="unmuteUser ()">Unmute User</a>
             </li>
 
-            <li v-if="channelId && store.loggedUser?.id != user?.id && clientIsAdmin">
+            <li v-if="isInChannel && store.loggedUser?.id != user?.id && clientIsAdmin">
                 <a @click="kickUser ()">Kick User</a>
             </li>
 
+            <!-- You can ban someone that has left the channel -->
             <li v-if="channelId && store.loggedUser?.id != user?.id && clientIsAdmin">
                 <a @click="banUser ()">Ban User</a>
             </li>
