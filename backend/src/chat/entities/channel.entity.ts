@@ -29,7 +29,7 @@ export class ChannelEntity
     isPrivate: boolean;
 
     @Column ({nullable: true})
-    password: string;
+    hashedPassword: string;
 
     @ManyToOne (() => UserEntity)
     owner: UserEntity;

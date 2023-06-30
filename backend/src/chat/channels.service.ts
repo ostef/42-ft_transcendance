@@ -8,6 +8,8 @@ import { CreateChannelDto, UpdateChannelDto } from "./entities/channel.dto";
 import { UsersService } from "src/users/users.service";
 import { UserEntity } from "src/users/entities/user.entity";
 
+import { createHash } from "crypto";
+
 export class MinimalChannelInfo
 {
     id: string;
@@ -20,7 +22,7 @@ export class MinimalChannelInfo
     {
         return {
             ...channel,
-            isPasswordProtected: channel.password != null
+            isPasswordProtected: channel.hashedPassword != null
         };
     }
 }
@@ -77,11 +79,16 @@ export class ChannelsService
             name: chan.name,
             description: chan.description,
             isPrivate: chan.isPrivate,
-            isPasswordProtected: chan.password != null,
+            isPasswordProtected: chan.hashedPassword != null,
             ownerId: chan.owner.id,
             adminIds: chan.administrators.map ((val) => val.id),
             mutedUserIds: chan.mutedUsers.map ((val) => val.id),
         };
+    }
+
+    hashPassword (password: string): string
+    {
+        return createHash ("sha256").update (password).digest ("hex");
     }
 
     async createChannel (userId: string, params: CreateChannelDto): Promise<ChannelEntity>
@@ -101,7 +108,7 @@ export class ChannelsService
         channel.description = params.description;
         channel.isPrivate = params.isPrivate;
         if (params.password != undefined)
-            channel.password = params.password;
+            channel.hashedPassword = this.hashPassword (params.password);
 
         return await this.channelRepository.save (channel);
     }
@@ -171,7 +178,7 @@ export class ChannelsService
             channel.isPrivate = params.isPrivate;
 
         if (params.password != undefined)
-            channel.password = params.password;
+            channel.hashedPassword = this.hashPassword (params.password);
 
         if (params.usersToAdmin != undefined)
         {
@@ -340,11 +347,14 @@ export class ChannelsService
         if (channel.isPrivate)
             throw new Error ("Channel is private, you need to be invited");
 
-        if (!channel.password && password != undefined)
+        if (!channel.hashedPassword && password)
             throw new Error ("Channel is not password protected");
 
-        if (channel.password && channel.password != password)
-            throw new Error ("Channel password invalid (given '" + password + "', expected '" + channel.password + "'");
+        if (channel.hashedPassword && !password)
+            throw new Error ("Channel is password protected");
+
+        if (channel.hashedPassword && channel.hashedPassword != this.hashPassword (password))
+            throw new Error ("Channel password invalid");
 
         channel.users.push (user);
         this.saveChannel (channel);

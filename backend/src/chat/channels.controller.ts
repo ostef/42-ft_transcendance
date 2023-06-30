@@ -8,7 +8,6 @@ import {
 import { ChannelsService } from "./channels.service";
 import { CreateChannelDto, InviteToChannelDto, LeaveChannelDto, MessageDto, UpdateChannelDto } from "./entities/channel.dto";
 import { MessageService } from "./message.service";
-import { JwtAuthGuard } from "src/auth/jwt_auth.guard";
 import { UsersService } from "src/users/users.service";
 import { UserEntity } from "src/users/entities/user.entity";
 
@@ -110,7 +109,7 @@ export class ChannelsController
                 id: chan.id,
                 name: chan.name,
                 description: chan.description,
-                isPasswordProtected: chan.password != null,
+                isPasswordProtected: chan.hashedPassword != null,
                 isPrivate: false,
             };
 
@@ -136,7 +135,7 @@ export class ChannelsController
                 name: chan.name,
                 description: chan.description,
                 isPrivate: chan.isPrivate,
-                isPasswordProtected: chan.password != null,
+                isPasswordProtected: chan.hashedPassword != null,
                 ownerId: chan.owner.id,
                 adminIds: chan.administrators.map ((val) => val.id),
                 mutedUserIds: chan.mutedUsers.map ((val) => val.id),
