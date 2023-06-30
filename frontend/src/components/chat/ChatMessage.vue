@@ -74,7 +74,7 @@ async function acceptInvite ()
             {{ message?.sender.nickname }}
         </div>
 
-        <div class="chat-bubble" :class="mine ? 'chat-bubble-primary' : 'chat-bubble-secondary'">
+        <div class="chat-bubble break-all" :class="mine ? 'chat-bubble-primary' : 'chat-bubble-secondary'">
             {{ message?.content }}
 
             <div v-if="message?.channelInvite">
