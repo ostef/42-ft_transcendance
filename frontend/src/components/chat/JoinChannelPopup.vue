@@ -65,9 +65,9 @@ async function joinChannel ()
 
                 <ChannelSelectionList :channels="publicChannels" @on-select="selectChannelToJoin" />
             </div>
-            <div class="overflow-auto grid" v-else>
-                <h3 class="text-lg font-bold select-none">{{ selectedChannel.name }}</h3>
-                <h2 class="text-md font-bold mb-6 select-none">{{ selectedChannel.description }}</h2>
+            <div class="overflow-hidden grid" v-else>
+                <h3 class="text-lg font-bold select-none break-words">{{ selectedChannel.name }}</h3>
+                <h2 class="text-md mb-6 select-none truncate">{{ selectedChannel.description }}</h2>
 
                 <span class="label-text w-full max-w-xs my-2 mr-2 select-none">Enter Channel Password</span>
                 <input type="password" class="input input-bordered" v-model="password" :disabled="!selectedChannel.isPasswordProtected"
