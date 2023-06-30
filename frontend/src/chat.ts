@@ -20,10 +20,16 @@ export function connectChatSocket ()
         }
     );
 
-    chatSocket.on ("connect_error", (err) => { console.error (err); });
-    chatSocket.on ("connection_error", (err) => { console.error (err); });
-    chatSocket.on ("exception", (err) => { console.error (err); });
-    chatSocket.on ("error", (err) => { console.error (err); });
+    function handleError (err: Error)
+    {
+        console.log (err);
+        store.pushAlert ("error", err.message);
+    }
+
+    chatSocket.on ("connect_error", handleError);
+    chatSocket.on ("connection_error", handleError);
+    chatSocket.on ("exception", handleError);
+    chatSocket.on ("error", err => store.pushAlert ("error", err));
 
     chatSocket.on ("newMessage", async (msg) => {
         if (msg.toUser && !store.hasPrivConv (msg.sender) && !store.hasPrivConv (msg.toUser))
