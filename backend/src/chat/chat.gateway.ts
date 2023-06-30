@@ -8,8 +8,6 @@ import { UsersService } from "src/users/users.service";
 import { MessageService } from "./message.service";
 import { ChannelInviteInfo } from "./channels.controller";
 
-// @Todo: update friend status, blocked status, and user info in real-time
-
 class JoinChannelParams
 {
     channelId: string;

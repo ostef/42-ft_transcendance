@@ -5,8 +5,6 @@ import { useUserStore, type User } from "@/stores/user";
 import { storeToRefs } from "pinia";
 import { fetchUserInfo } from "./authentication";
 
-// @Todo: update friend status, blocked status, and user info in real-time
-
 export let chatSocket: Socket;
 
 export function connectChatSocket ()
