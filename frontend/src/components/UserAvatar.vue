@@ -4,15 +4,13 @@ import axios from "axios";
 import { storeToRefs } from "pinia";
 import { computed, type PropType } from "vue";
 
-import { useUserStore, type User } from "@/stores/user";
-import { useChatStore } from "@/stores/chat";
+import { useStore, type User } from "@/store";
 import { selectPrivConv, notifyChannelChange, notifyUserKickOrBan } from "@/chat";
 
 import UserPopup from "./UserPopup.vue";
 
-const chatStore = useChatStore ();
-const { user: me } = storeToRefs (useUserStore ());
-const { channelsSelected, privateConvs, selectedUserIndex } = storeToRefs (useChatStore ());
+const store = useStore ();
+const { channelsSelected, privateConvs, selectedUserIndex } = storeToRefs (useStore ());
 
 const props = defineProps ({
     channelId: String,
@@ -24,43 +22,43 @@ const clientIsAdmin = computed (() => {
     if (!props.channelId)
         return false;
 
-    const channel = chatStore.channels.find ((val) => val.id == props.channelId);
+    const channel = store.channels.find ((val) => val.id == props.channelId);
 
-    return chatStore.isAdmin (me.value?.id, channel);
+    return store.isAdmin (store.loggedUser?.id, channel);
 });
 
 const clientIsOwner = computed (() => {
     if (!props.channelId)
         return false;
 
-    const channel = chatStore.channels.find ((val) => val.id == props.channelId);
+    const channel = store.channels.find ((val) => val.id == props.channelId);
 
-    return chatStore.isOwner (me.value?.id, channel);
+    return store.isOwner (store.loggedUser?.id, channel);
 });
 
 const isMuted = computed (() => {
     if (!props.channelId)
         return false;
 
-    const channel = chatStore.channels.find ((val) => val.id == props.channelId);
+    const channel = store.channels.find ((val) => val.id == props.channelId);
 
-    return chatStore.isMuted (props.user?.id, channel);
+    return store.isMuted (props.user?.id, channel);
 });
 
 const isAdmin = computed (() => {
     if (!props.channelId)
         return false;
 
-    const channel = chatStore.channels.find ((val) => val.id == props.channelId);
+    const channel = store.channels.find ((val) => val.id == props.channelId);
 
-    return chatStore.isAdmin (props.user?.id, channel);
+    return store.isAdmin (props.user?.id, channel);
 });
 
 const isOnline = computed (() => {
     if (!props.user)
         return false;
 
-    return chatStore.isOnline (props.user?.id);
+    return store.isOnline (props.user?.id);
 });
 
 async function muteUser ()
@@ -148,32 +146,32 @@ async function goToPrivateConv ()
             </div>
         </label>
         <ul tabindex="0" class="menu menu-compact dropdown-content w-40 m-2 shadow rounded-md bg-base-300">
-            <li v-if="me?.id != user?.id">
+            <li v-if="store.loggedUser?.id != user?.id">
                 <a @click="goToPrivateConv ()">Send Message</a>
             </li>
 
-            <li v-if="channelId && me?.id != user?.id && clientIsOwner && !isAdmin">
+            <li v-if="channelId && store.loggedUser?.id != user?.id && clientIsOwner && !isAdmin">
                 <a @click="adminUser ()">Make Admin</a>
             </li>
 
-            <li v-if="channelId && me?.id != user?.id && clientIsOwner && isAdmin">
+            <li v-if="channelId && store.loggedUser?.id != user?.id && clientIsOwner && isAdmin">
                 <a @click="unadminUser ()">Unadmin</a>
             </li>
 
-            <li v-if="channelId && me?.id != user?.id && clientIsAdmin">
+            <li v-if="channelId && store.loggedUser?.id != user?.id && clientIsAdmin">
                 <a v-if="!isMuted" @click="muteUser ()">Mute User</a>
                 <a v-else @click="unmuteUser ()">Unmute User</a>
             </li>
 
-            <li v-if="channelId && me?.id != user?.id && clientIsAdmin">
+            <li v-if="channelId && store.loggedUser?.id != user?.id && clientIsAdmin">
                 <a @click="kickUser ()">Kick User</a>
             </li>
 
-            <li v-if="channelId && me?.id != user?.id && clientIsAdmin">
+            <li v-if="channelId && store.loggedUser?.id != user?.id && clientIsAdmin">
                 <a @click="banUser ()">Ban User</a>
             </li>
 
-            <li v-if="user?.id != me?.id">
+            <li v-if="user?.id != store.loggedUser?.id">
                 <label :for="'userModal' + user?.id">
                     User Profile
                 </label>

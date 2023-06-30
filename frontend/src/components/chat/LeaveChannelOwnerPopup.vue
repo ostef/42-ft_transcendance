@@ -1,19 +1,15 @@
 <script setup lang="ts">
 
 import { computed } from "vue";
-import { storeToRefs } from "pinia";
-import axios from "axios";
 
-import { useChatStore } from "@/stores/chat";
+import { useStore } from "@/store";
 import { leaveChannel } from "@/chat";
-import { useUserStore } from "@/stores/user";
 
 import UserSelectionList from "./UserSelectionList.vue";
 
-const chatStore = useChatStore ();
-const { user: me } = storeToRefs (useUserStore ());
+const store = useStore ();
 
-const usersWithoutMe = computed (() => chatStore.users.filter (val => val.id != me.value?.id));
+const usersWithoutMe = computed (() => store.users.filter (val => val.id != store.loggedUser?.id));
 
 </script>
 

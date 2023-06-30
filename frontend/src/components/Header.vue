@@ -1,13 +1,11 @@
 <script setup lang="ts">
 
-import { storeToRefs } from "pinia";
-import { useUserStore } from "@/stores/user";
 import axios from "axios";
 
+import { useStore } from "@/store";
 import { logout } from "@/authentication";
 
-const userStore = useUserStore ();
-const { user } = storeToRefs (userStore);
+const store = useStore ();
 
 </script>
 
@@ -46,10 +44,10 @@ const { user } = storeToRefs (userStore);
             </ul>
         </div>
 
-        <div class="navbar-end" v-if="user != null">
+        <div class="navbar-end" v-if="store.loggedUser != null">
             <div class="flex flex-col select-none m-2">
-                <h3 class="text-xl">{{ user?.nickname }}</h3>
-                <h3 class="text-md">{{ user?.username }}</h3>
+                <h3 class="text-xl">{{ store.loggedUser.nickname }}</h3>
+                <h3 class="text-md">{{ store.loggedUser.username }}</h3>
             </div>
             <div class="dropdown dropdown-left flex">
                 <label tabindex="0" class="p-3 m-2 hover:bg-gray-400 hover:text-black rounded-full">
@@ -64,10 +62,10 @@ const { user } = storeToRefs (userStore);
                     <li><router-link to="/login" @click="logout ()">Logout</router-link></li>
                 </ul>
             </div>
-            <div class="avatar" :class="!user?.avatarFile ? ' placeholder' : ''">
+            <div class="avatar" :class="!store.loggedUser.avatarFile ? ' placeholder' : ''">
                 <div class="select-none rounded-full overflow-hidden h-14 w-14 bg-base-300 grid">
-                    <img v-if="user?.avatarFile" :src="user?.avatarFile" />
-                    <span v-else class="text-xl align-text-top">{{ user?.nickname.charAt (0)}}</span>
+                    <img v-if="store.loggedUser.avatarFile" :src="store.loggedUser.avatarFile" />
+                    <span v-else class="text-xl align-text-top">{{ store.loggedUser.nickname.charAt (0)}}</span>
                 </div>
             </div>
         </div>

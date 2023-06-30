@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { selectPrivConv } from "@/chat";
-import { useChatStore } from "@/stores/chat";
+import { useStore } from "@/store";
 
 import StartConversationPopup from "./StartConversationPopup.vue";
 import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
 
-const chat = useChatStore ();
+const store = useStore ();
 
 </script>
 
@@ -21,7 +21,7 @@ const chat = useChatStore ();
     <StartConversationPopup />
 
     <label class="flex flex-row btn btn-block normal-case my-2 p-2 h-fit"
-        v-for="(user, index) in chat.privateConvs"
+        v-for="(user, index) in store.privateConvs"
         :key="index"
         @click="selectPrivConv (user.id)"
     >

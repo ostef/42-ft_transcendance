@@ -1,23 +1,21 @@
 <script setup lang="ts">
 
 import { type PropType, computed } from "vue";
-import { storeToRefs } from "pinia";
 import axios from "axios";
 
-import { useUserStore, type User } from "@/stores/user";
-import type { Message } from "@/stores/chat";
+import { useStore, type User, type Message } from "@/store";
 import { fetchChannels, notifyChannelChange, selectChannel } from "@/chat";
 
 import UserAvatar from "@/components/UserAvatar.vue";
 
-const { user: me } = storeToRefs (useUserStore ());
+const store = useStore ();
 
 const props = defineProps ({
     channelId: String,
     message: Object as PropType<Message>,
 });
 
-const mine = computed (() => props.message?.sender.id == me.value?.id);
+const mine = computed (() => props.message?.sender.id == store.loggedUser?.id);
 
 const messageTimestamp = computed (() =>
 {

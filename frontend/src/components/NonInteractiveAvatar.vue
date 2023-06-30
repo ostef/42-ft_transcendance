@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 
-import type { User } from "@/stores/user";
-import { useChatStore } from "@/stores/chat";
+import { useStore, type User } from "@/store";
 
-const chatStore = useChatStore ();
+const store = useStore ();
 
 const props = defineProps ({
     user: Object as PropType<User>
@@ -13,7 +12,7 @@ const props = defineProps ({
 </script>
 
 <template>
-    <div class="avatar" :class="(chatStore.isOnline (user?.id) ? 'online' : 'offline') + (!user?.avatarFile ? ' placeholder' : '')">
+    <div class="avatar" :class="(store.isOnline (user?.id) ? 'online' : 'offline') + (!user?.avatarFile ? ' placeholder' : '')">
         <div class="select-none rounded-full overflow-hidden h-12 w-12 bg-base-300 grid">
             <img v-if="user?.avatarFile" :src="user?.avatarFile" />
             <span v-else class="text-xl align-text-top">{{ user?.nickname.charAt (0)}}</span>

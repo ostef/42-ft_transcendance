@@ -1,10 +1,8 @@
 <script setup lang="ts">
 
-import { reactive, computed, getCurrentInstance, onMounted, onUnmounted, ref } from "vue";
-import { storeToRefs } from "pinia";
+import { onMounted, ref } from "vue";
 
-import { useChatStore, type Message } from "@/stores/chat";
-import { useUserStore } from "@/stores/user";
+import { useStore, type Message } from "@/store";
 
 import ChatMessage from "@/components/chat/ChatMessage.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
@@ -17,8 +15,7 @@ import {
     fetchChannels, fetchPrivateConversations,
 } from "@/chat";
 
-const chat = useChatStore ();
-const { user: me } = storeToRefs (useUserStore ());
+const store = useStore ();
 const messageToSend = ref ("");
 
 onMounted (async () =>
@@ -32,17 +29,17 @@ function sendMessage ()
     if (messageToSend.value.length == 0)
         return;
 
-    if (chat.channelsSelected && chat.selectedChannel)
+    if (store.channelsSelected && store.selectedChannel)
     {
         chatSocket.emit ("newMessage", {
-            channelId: chat.selectedChannel.id,
+            channelId: store.selectedChannel.id,
             content: messageToSend.value
         });
     }
-    if (!chat.channelsSelected && chat.selectedUser)
+    if (!store.channelsSelected && store.selectedUser)
     {
         chatSocket.emit ("newMessage", {
-            userId: chat.selectedUser.id,
+            userId: store.selectedUser.id,
             content: messageToSend.value
         });
     }
@@ -59,61 +56,61 @@ function sendMessage ()
         <!-- Discussion list -->
         <div class="w-1/4 min-h-0 overflow-hidden mx-1 p-4 rounded-lg bg-base-200">
             <div class="tabs tabs-boxed -mx-2">
-                <a class="tab tab-xs sm:tab-md" :class="chat.channelsSelected ? 'tab-active' : ''" @click="chat.channelsSelected = true">Channels</a>
-                <a class="tab tab-xs sm:tab-md" :class="!chat.channelsSelected ? 'tab-active' : ''" @click="chat.channelsSelected = false">Users</a>
+                <a class="tab tab-xs sm:tab-md" :class="store.channelsSelected ? 'tab-active' : ''" @click="store.channelsSelected = true">Channels</a>
+                <a class="tab tab-xs sm:tab-md" :class="!store.channelsSelected ? 'tab-active' : ''" @click="store.channelsSelected = false">Users</a>
             </div>
 
-            <JoinedChannelsList v-if="chat.channelsSelected" />
+            <JoinedChannelsList v-if="store.channelsSelected" />
             <PrivateConversationsList v-else />
         </div>
 
         <div class="w-3/4 h-full min-h-0 mx-1 overflow-hidden rounded-lg bg-base-200">
             <!-- Discussion header -->
             <div class="h-[5rem] flex flex-col p-2 relative">
-                <div v-if="chat.selectedChannel" >
+                <div v-if="store.selectedChannel" >
                     <ChannelHeader />
                 </div>
-                <div class="flex flex-row" v-else-if="chat.selectedUser">
+                <div class="flex flex-row" v-else-if="store.selectedUser">
                     <div class="my-2 mx-4">
-                        <UserAvatar :user="chat.selectedUser" dropdownClass="dropdown-right" />
+                        <UserAvatar :user="store.selectedUser" dropdownClass="dropdown-right" />
                     </div>
                     <div class="flex flex-col my-2">
                         <h3 class="flex flex-row text-lg select-none">
-                            {{ chat.selectedUser?.nickname }}
-                            <iconify-icon v-if="chat.selectedUser?.hasBlockedYou" class="mx-2 my-1" icon="fluent:presence-blocked-20-regular" />
+                            {{ store.selectedUser?.nickname }}
+                            <iconify-icon v-if="store.selectedUser?.hasBlockedYou" class="mx-2 my-1" icon="fluent:presence-blocked-20-regular" />
                         </h3>
-                        <h3 class="text-sm select-none">{{ chat.selectedUser?.username }}</h3>
+                        <h3 class="text-sm select-none">{{ store.selectedUser?.username }}</h3>
                     </div>
                 </div>
             </div>
 
             <div class="h-custom-middle flex flex-col-reverse overflow-hidden">
                 <!-- Message input -->
-                <div v-if="chat.selectedChannelIndex != -1 || chat.selectedUserIndex != -1"
+                <div v-if="store.selectedChannelIndex != -1 || store.selectedUserIndex != -1"
                     class="p-4 h-auto mt-4 flex flex-row-reverse"
                 >
                     <button
-                        :disabled="chat.isMuted (me?.id)"
+                        :disabled="store.isMuted (store.loggedUser?.id)"
                         class="btn normal-case mx-4 p-4" @click="sendMessage ()">
                         Send
                     </button>
                     <input type="text"
-                        :placeholder="chat.isMuted (me?.id) ? 'You are muted' : 'Write something'"
+                        :placeholder="store.isMuted (store.loggedUser?.id) ? 'You are muted' : 'Write something'"
                         class="input input-bordered w-full"
-                        :disabled="chat.isMuted (me?.id)"
+                        :disabled="store.isMuted (store.loggedUser?.id)"
                         v-model="messageToSend" @keyup.enter="sendMessage ()"
                     />
                 </div>
 
                 <!-- Messages -->
                 <div class="overflow-y-auto overflow-x-hidden p-4 min-h-0 h-full flex flex-col-reverse">
-                    <h3 v-if="chat.selectedUser?.hasBlockedYou" class="text-sm m-4 italic select-none">
+                    <h3 v-if="store.selectedUser?.hasBlockedYou" class="text-sm m-4 italic select-none">
                         This user has blocked you, you will not see or receive any messages from them
                     </h3>
-                    <div v-else-if="chat.selectedChannelIndex != -1 || chat.selectedUserIndex != -1">
-                        <ChatMessage v-for="msg of chat.messages"
+                    <div v-else-if="store.selectedChannelIndex != -1 || store.selectedUserIndex != -1">
+                        <ChatMessage v-for="msg of store.messages"
                             :key="msg.sender.id + msg.date.toString ()"
-                            :channelId="chat.selectedChannel?.id"
+                            :channelId="store.selectedChannel?.id"
                             :message="msg"
                         />
                     </div>
@@ -124,16 +121,16 @@ function sendMessage ()
 
         <!-- Users -->
         <div class="w-1/4 min-h-0 overflow-x-hidden overflow-y-auto mx-1 p-2 rounded-lg bg-base-200">
-            <div class="flex m-2 justify-center lg:justify-start" v-for="user of chat.users" :key="user.id">
+            <div class="flex m-2 justify-center lg:justify-start" v-for="user of store.users" :key="user.id">
                 <div class="my-2 mx-4">
-                    <UserAvatar :channelId="chat.selectedChannel?.id" :user="user" dropdownClass="dropdown-bottom" />
+                    <UserAvatar :channelId="store.selectedChannel?.id" :user="user" dropdownClass="dropdown-bottom" />
                 </div>
                 <div class="hidden lg:flex flex-col my-2">
                     <h3 class="text-sm md:text-lg select-none flex flex-row">
                         {{ user.nickname }}
-                        <iconify-icon class="mx-2 my-1 w-5 h-5" v-if="chat.isOwner (user.id)" icon="tabler:crown"  />
-                        <iconify-icon class="mx-2 my-1 w-5 h-5" v-else-if="chat.isAdmin (user.id)" icon="eos-icons:admin-outlined" />
-                        <iconify-icon class="mx-2 my-1 w-5 h-5" v-if="chat.isMuted (user.id)" icon="solar:muted-linear" />
+                        <iconify-icon class="mx-2 my-1 w-5 h-5" v-if="store.isOwner (user.id)" icon="tabler:crown"  />
+                        <iconify-icon class="mx-2 my-1 w-5 h-5" v-else-if="store.isAdmin (user.id)" icon="eos-icons:admin-outlined" />
+                        <iconify-icon class="mx-2 my-1 w-5 h-5" v-if="store.isMuted (user.id)" icon="solar:muted-linear" />
                     </h3>
                     <h3 class="text-sm select-none">{{ user.username }}</h3>
                 </div>

@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import type { User } from '@/stores/user';
-import { computed, ref, type PropType } from 'vue';
+import { computed, ref, type PropType } from "vue";
 
-import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
+import { type User } from "@/store";
 
 const props = defineProps ({
     channels: Object as PropType<Channel[]>

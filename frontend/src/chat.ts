@@ -1,16 +1,14 @@
 import { Socket, io } from "socket.io-client";
 import axios from "axios";
-import { useChatStore } from "@/stores/chat";
-import { useUserStore, type User } from "@/stores/user";
-import { storeToRefs } from "pinia";
-import { fetchUserInfo } from "./authentication";
+
+import { useStore, type User } from "@/store";
+import { fetchUserInfo } from "@/authentication";
 
 export let chatSocket: Socket;
 
 export function connectChatSocket ()
 {
-    const store = useChatStore ();
-    const { user: me } = useUserStore ();
+    const store = useStore ();
 
     if (chatSocket && chatSocket.connected)
         return;
@@ -99,7 +97,7 @@ export function connectChatSocket ()
     };
 
     chatSocket.on ("kickedOrBanned", async (params: UserKickedOrBanned) => {
-        if (params.userId != me?.id)
+        if (params.userId != store.loggedUser?.id)
             return;
 
         const channelIndex = store.channels.findIndex ((val) => val.id == params.channelId);
@@ -139,7 +137,7 @@ export function disconnectChatSocket ()
 
 export async function fetchChannels ()
 {
-    const store = useChatStore ();
+    const store = useStore ();
 
     const result = await axios.get ("channels/joined");
 
@@ -152,7 +150,7 @@ export async function fetchChannels ()
 
 export async function fetchPrivateConversations ()
 {
-    const store = useChatStore ();
+    const store = useStore ();
 
     const result = await axios.get ("channels/discussions");
 
@@ -180,7 +178,7 @@ export function notifyFriendshipChange (userId: string)
 
 export async function fetchChannelInfo (channelId: string)
 {
-    const store = useChatStore ();
+    const store = useStore ();
 
     const index = store.channels.findIndex ((val) => val.id == channelId);
 
@@ -194,7 +192,7 @@ export async function fetchChannelInfo (channelId: string)
 
 export async function fetchUsers (channelId: string)
 {
-    const store = useChatStore ();
+    const store = useStore ();
 
     const result = await axios.get ("channels/" + channelId + "/users");
 
@@ -203,7 +201,7 @@ export async function fetchUsers (channelId: string)
 
 export async function fetchMessages (channelId: string)
 {
-    const store = useChatStore ();
+    const store = useStore ();
 
     const result = await axios.get ("channels/" + channelId + "/messages");
 
@@ -212,7 +210,7 @@ export async function fetchMessages (channelId: string)
 
 export async function fetchPrivateMessages (otherId: string)
 {
-    const store = useChatStore ();
+    const store = useStore ();
 
     const result = await axios.get ("channels/discussions/" + otherId);
 
@@ -236,7 +234,7 @@ export function unwatchAllChannels ()
 
 export async function selectChannel (channelId: string)
 {
-    const store = useChatStore ();
+    const store = useStore ();
 
     await fetchUsers (channelId);
     await fetchMessages (channelId);
@@ -263,37 +261,35 @@ export function unwatchAllConvs ()
 
 export async function selectPrivConv (userId: string)
 {
-    const chat = useChatStore ();
-    const {user: me} = storeToRefs (useUserStore ());
+    const store = useStore ();
 
     await fetchPrivateMessages (userId);
 
-    chat.selectedUserIndex = chat.privateConvs.findIndex ((val) => val.id == userId);
-    chat.selectedChannelIndex = -1;
+    store.selectedUserIndex = store.privateConvs.findIndex ((val) => val.id == userId);
+    store.selectedChannelIndex = -1;
 
-    chat.users.length = 0;
+    store.users.length = 0;
 
-    if (chat.selectedUser)
+    if (store.selectedUser)
     {
-        if (me.value)
-            chat.users.push (me.value);
-        if (chat.selectedUser)
-            chat.users.push (chat.selectedUser);
+        if (store.loggedUser)
+            store.users.push (store.loggedUser);
+        if (store.selectedUser)
+            store.users.push (store.selectedUser);
 
-        chat.users.sort ((a, b) => a.nickname.localeCompare (b.nickname));
+        store.users.sort ((a, b) => a.nickname.localeCompare (b.nickname));
     }
 }
 
 export async function leaveChannel (newOwnerId?: string)
 {
-    const chatStore = useChatStore ();
-    const {user: me} = storeToRefs (useUserStore ());
+    const store = useStore ();
 
-    if (!chatStore.selectedChannel || !me.value)
+    if (!store.selectedChannel || !store.loggedUser)
         return;
 
-    await axios.post ("channels/" + chatStore.selectedChannel.id + "/leave", {newOwnerId: newOwnerId});
-    notifyChannelChange (chatStore.selectedChannel.id);
+    await axios.post ("channels/" + store.selectedChannel.id + "/leave", {newOwnerId: newOwnerId});
+    notifyChannelChange (store.selectedChannel.id);
     await fetchChannels ();
 
     clearDiscussions ();
@@ -301,13 +297,13 @@ export async function leaveChannel (newOwnerId?: string)
 
 export async function deleteChannel ()
 {
-    const chatStore = useChatStore ();
+    const store = useStore ();
 
-    if (!chatStore.selectedChannel)
+    if (!store.selectedChannel)
         return;
 
-    await axios.delete ("channels/" + chatStore.selectedChannel.id);
-    chatSocket.emit ("channelDeleted", chatStore.selectedChannel.id);
+    await axios.delete ("channels/" + store.selectedChannel.id);
+    chatSocket.emit ("channelDeleted", store.selectedChannel.id);
     await fetchChannels ();
 
     clearDiscussions ();
@@ -315,10 +311,10 @@ export async function deleteChannel ()
 
 export function clearDiscussions ()
 {
-    const chatStore = useChatStore ();
+    const store = useStore ();
 
-    chatStore.selectedChannelIndex = -1;
-    chatStore.selectedUserIndex = -1;
-    chatStore.users.length = 0;
-    chatStore.messages.length = 0;
+    store.selectedChannelIndex = -1;
+    store.selectedUserIndex = -1;
+    store.users.length = 0;
+    store.messages.length = 0;
 }

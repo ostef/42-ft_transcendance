@@ -1,23 +1,22 @@
 <script setup lang="ts">
 
 import { computed, type PropType } from "vue";
-import { storeToRefs } from "pinia";
 import axios from "axios";
 
-import { type User, useUserStore } from "@/stores/user";
+import { type User, useStore } from "@/store";
 import { fetchUserInfo } from "@/authentication";
 import { fetchUsers, notifyFriendshipChange } from "@/chat";
 
 import NonInteractiveAvatar from "./NonInteractiveAvatar.vue";
 
-const { user: me } = storeToRefs (useUserStore ());
+const store = useStore ();
 
 const props = defineProps ({
     user: Object as PropType<User>,
     isOnline: Boolean,
 });
 
-const receivedRequest = computed (() => me.value?.receivedFriendRequests.findIndex ((val) => val == props.user?.id) != -1);
+const receivedRequest = computed (() => store.loggedUser?.receivedFriendRequests.findIndex ((val) => val == props.user?.id) != -1);
 
 async function sendFriendRequest ()
 {
@@ -47,11 +46,11 @@ async function acceptFriendRequest ()
     props.user.isFriend = true;
     notifyFriendshipChange (props.user.id);
 
-    if (me.value)
+    if (store.loggedUser)
     {
-        const index = me.value.receivedFriendRequests.findIndex ((val) => val == props.user?.id);
+        const index = store.loggedUser.receivedFriendRequests.findIndex ((val) => val == props.user?.id);
         if (index != -1)
-            me.value.receivedFriendRequests.splice (index, 1);
+            store.loggedUser.receivedFriendRequests.splice (index, 1);
     }
 }
 
@@ -63,11 +62,11 @@ async function declineFriendRequest ()
     await axios.post ("user/friends/decline/" + props.user.id);
     notifyFriendshipChange (props.user.id);
 
-    if (me.value)
+    if (store.loggedUser)
     {
-        const index = me.value.receivedFriendRequests.findIndex ((val) => val == props.user?.id);
+        const index = store.loggedUser.receivedFriendRequests.findIndex ((val) => val == props.user?.id);
         if (index != -1)
-            me.value.receivedFriendRequests.splice (index, 1);
+            store.loggedUser.receivedFriendRequests.splice (index, 1);
     }
 }
 

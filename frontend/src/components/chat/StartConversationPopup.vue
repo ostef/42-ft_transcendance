@@ -3,8 +3,7 @@
 import { onMounted, ref } from 'vue';
 import axios from 'axios';
 
-import { type User } from '@/stores/user';
-import { useChatStore } from '@/stores/chat';
+import { useStore, type User } from '@/store';
 import { selectPrivConv } from '@/chat';
 
 import UserSelectionList from "./UserSelectionList.vue";
@@ -13,23 +12,23 @@ const friends = ref ([] as User[]);
 
 async function fetchFriends ()
 {
-    const chatStore = useChatStore ();
+    const store = useStore ();
     const result = await axios.get ("user/friends");
 
     friends.value.length = 0;
     for (const friend of result.data)
     {
-        if (!chatStore.hasPrivConv (friend.id))
+        if (!store.hasPrivConv (friend.id))
             friends.value.push (friend);
     }
 }
 
 async function startConversation (user: User)
 {
-    const chatStore = useChatStore ();
-    const index = chatStore.privateConvs.findIndex ((val) => val.id == user.id);
+    const store = useStore ();
+    const index = store.privateConvs.findIndex ((val) => val.id == user.id);
     if (index == -1)
-        chatStore.privateConvs.push (user);
+        store.privateConvs.push (user);
 
     await selectPrivConv (user.id);
 }

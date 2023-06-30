@@ -4,7 +4,7 @@ import { onMounted, ref } from "vue";
 import axios from "axios";
 
 import { fetchChannels, notifyChannelChange, selectChannel } from "@/chat";
-import { useChatStore, type Channel } from "@/stores/chat";
+import { useStore, type Channel } from "@/store";
 
 import ChannelSelectionList from "./ChannelSelectionList.vue";
 
@@ -14,13 +14,13 @@ const password = ref ("");
 
 async function fetchPublicChannels ()
 {
-    const chatStore = useChatStore ();
+    const store = useStore ();
     const result = await axios.get ("channels/public");
 
     publicChannels.value.length = 0;
     for (const chan of result.data)
     {
-        if (!chatStore.channels.find (val => val.id == chan.id))
+        if (!store.channels.find (val => val.id == chan.id))
             publicChannels.value.push (chan);
     }
 }

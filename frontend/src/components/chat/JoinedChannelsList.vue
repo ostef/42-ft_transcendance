@@ -1,12 +1,12 @@
 <script setup lang="ts">
 
 import { selectChannel } from "@/chat";
-import { useChatStore } from "@/stores/chat";
+import { useStore } from "@/store";
 
 import JoinChannelPopup from "./JoinChannelPopup.vue";
 import CreateChannelPopup from "./CreateChannelPopup.vue";
 
-const chat = useChatStore ();
+const store = useStore ();
 
 </script>
 
@@ -14,7 +14,7 @@ const chat = useChatStore ();
     <div class="flex flex-col-reverse h-full">
         <div class="overflow-y-auto h-full">
             <button class="btn btn-block normal-case my-1 p-4 h-fit max-h-20 overflow-clip"
-                v-for="(chan, index) in chat.channels"
+                v-for="(chan, index) in store.channels"
                 :key="index"
                 @click="selectChannel (chan.id)"
             >

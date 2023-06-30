@@ -15,7 +15,7 @@ import { onMounted, ref } from "vue";
 import axios from "axios";
 import router from "@/router";
 
-import { useUserStore } from "@/stores/user";
+import { useStore } from "@/store";
 import { login, logout } from "@/authentication";
 
 const username = ref ("");

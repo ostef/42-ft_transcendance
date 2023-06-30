@@ -3,15 +3,14 @@
 import axios from "axios";
 import { onMounted, ref } from "vue";
 
-import type { User } from "@/stores/user";
-import { useChatStore } from "@/stores/chat";
+import { useStore, type User } from "@/store";
 
 import UserSelectionList from "./UserSelectionList.vue";
 import { chatSocket } from "@/chat";
 
 const friends = ref ([] as User[]);
 
-const chatStore = useChatStore ();
+const store = useStore ();
 
 async function fetchFriends ()
 {
@@ -20,18 +19,18 @@ async function fetchFriends ()
     friends.value.length = 0;
     for (const friend of result.data)
     {
-        if (!chatStore.users.find (val => val.id == friend.id))
+        if (!store.users.find (val => val.id == friend.id))
             friends.value.push (friend);
     }
 };
 
 function inviteToChannel (userId: string)
 {
-    if (!chatStore.selectedChannel)
+    if (!store.selectedChannel)
         return;
 
     chatSocket.emit ("channelInvite", {
-        channelId: chatStore.selectedChannel.id,
+        channelId: store.selectedChannel.id,
         userId: userId,
         message: "Hey, check out this cool channel!"
     });

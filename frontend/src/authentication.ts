@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useUserStore } from "@/stores/user";
+import { useStore } from "@/store";
 import { connectChatSocket, disconnectChatSocket } from "@/chat";
 
 export async function login (username: string, password: string)
@@ -20,14 +20,14 @@ export function logout ()
     delete axios.defaults.headers.common["Authorization"];
 
     disconnectChatSocket ();
-    const userStore = useUserStore ();
-    userStore.user = null;
+    const store = useStore ();
+    store.loggedUser = null;
 }
 
 export async function fetchUserInfo ()
 {
-    const userStore = useUserStore ();
-    userStore.user = (await axios.get ("user/")).data;
+    const store = useStore ();
+    store.loggedUser = (await axios.get ("user/")).data;
 }
 
 export async function isAuthenticated (): Promise<boolean>

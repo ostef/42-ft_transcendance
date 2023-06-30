@@ -1,6 +1,18 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import type { User } from "./user";
+
+export type User =
+{
+    id: string;
+    avatarFile: string;
+    username: string;
+    nickname: string;
+    receivedFriendRequests: string[];
+    isFriend: boolean;
+    isBlocked: boolean;
+    isOnline: boolean;
+    hasBlockedYou: boolean;
+}
 
 export type Channel =
 {
@@ -30,8 +42,9 @@ export type Message =
     channelInvite?: ChannelInvite;
 }
 
-export const useChatStore = defineStore ("chat", () =>
+export const useStore = defineStore ("global", () =>
 {
+    const loggedUser = ref (null as User | null);
     const messages = ref ([] as Message[]);
     const users = ref ([] as User[]);
     const channels = ref ([] as Channel[]);
@@ -104,6 +117,7 @@ export const useChatStore = defineStore ("chat", () =>
     }
 
     return {
+        loggedUser,
         users, messages, channels, privateConvs,
         selectedChannelIndex, selectedChannel, selectedUserIndex, selectedUser,
         channelsSelected, onlineUsers,
