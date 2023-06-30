@@ -3,7 +3,7 @@
 import { onMounted, ref } from "vue";
 import axios from "axios";
 
-import { fetchChannels, notifyChannelChange } from "@/chat";
+import { fetchChannels, notifyChannelChange, selectChannel } from "@/chat";
 import { useChatStore, type Channel } from "@/stores/chat";
 
 import ChannelSelectionList from "./ChannelSelectionList.vue";
@@ -25,7 +25,7 @@ async function fetchPublicChannels ()
     }
 }
 
-function selectChannel (chan: Channel | null)
+function selectChannelToJoin (chan: Channel | null)
 {
     selectedChannel.value = chan;
     password.value = "";
@@ -45,6 +45,7 @@ async function joinChannel ()
 
     notifyChannelChange (selectedChannel.value.id);
     await fetchChannels ();
+    await selectChannel (selectedChannel.value.id);
 }
 
 </script>
@@ -55,14 +56,14 @@ async function joinChannel ()
         <div class="modal-box w-xs h-lg">
             <div class="overflow-auto grid" v-if="selectedChannel == null">
                 <div class="block">
-                    <label class="float-right btn rounded-full" for="joinChannelModal" @click="selectChannel (null)">
+                    <label class="float-right btn rounded-full" for="joinChannelModal" @click="selectChannelToJoin (null)">
                         <iconify-icon class="w-4 h-4" icon="gg:close" />
                     </label>
 
                     <h3 class="text-lg font-bold select-none">Join Channel</h3>
                 </div>
 
-                <ChannelSelectionList :channels="publicChannels" @on-select="selectChannel" />
+                <ChannelSelectionList :channels="publicChannels" @on-select="selectChannelToJoin" />
             </div>
             <div class="overflow-auto grid" v-else>
                 <h3 class="text-lg font-bold select-none">{{ selectedChannel.name }}</h3>
@@ -76,7 +77,7 @@ async function joinChannel ()
 
             <div>
                 <button class="btn normal-case m-2" v-if="selectedChannel" @click="joinChannel ()">Join</button>
-                <button class="btn normal-case m-2" v-if="selectedChannel" @click="selectChannel (null)">Back</button>
+                <button class="btn normal-case m-2" v-if="selectedChannel" @click="selectChannelToJoin (null)">Back</button>
             </div>
         </div>
     </div>
