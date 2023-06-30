@@ -24,6 +24,7 @@ onErrorCaptured ((err, vm, info) =>
 
         if (msg == "Unauthorized" || msg == "Token expired")
         {
+            msg += ", redirecting to login page";
             logout ();
             router.replace ("/login");
         }
@@ -61,7 +62,7 @@ onErrorCaptured ((err, vm, info) =>
     </Transition>
 </template>
 
-// Style for transition of error alert
+// Style for transition of alerts
 <style scoped>
 .v-enter-active,
 .v-leave-active {
