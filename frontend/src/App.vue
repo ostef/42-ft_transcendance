@@ -1,45 +1,40 @@
 <script setup lang="ts">
 
-import { onErrorCaptured, ref } from "vue";
+import { onErrorCaptured, onMounted, ref } from "vue";
 import { isAxiosError } from "axios";
 import { RouterView } from "vue-router";
 
 import router from "@/router";
 import { logout } from "@/authentication";
+import { useStore } from "@/store";
 
 import Header from "@/components/Header.vue";
 
-const lastError = ref ("");
-const lastErrorTimeout = ref (0);
+const store = useStore ();
 
 onErrorCaptured ((err, vm, info) =>
 {
     if (isAxiosError (err))
     {
+        let msg = "";
         if (err.response)
-            lastError.value = err.response.data.message;
+            msg = err.response.data.message;
         else
-            lastError.value = err.message;
+            msg = err.message;
 
-        if (lastError.value == "Unauthorized" || lastError.value == "Token expired")
+        if (msg == "Unauthorized" || msg == "Token expired")
         {
             logout ();
             router.replace ("/login");
         }
 
-        clearTimeout (lastErrorTimeout.value);
-        lastErrorTimeout.value = setTimeout (() => lastError.value = "", 5000);
-        console.error (err);
+        store.pushAlert ("error", msg);
 
         return false;
     }
     else if (err instanceof Error)
     {
-        lastError.value = err.message;
-        clearTimeout (lastErrorTimeout.value);
-        lastErrorTimeout.value = setTimeout (() => lastError.value = "", 5000);
-
-        console.error (err);
+        store.pushAlert ("error", err.message);
 
         return false;
     }
@@ -57,10 +52,10 @@ onErrorCaptured ((err, vm, info) =>
     </div>
 
     <Transition>
-        <div class="toast" v-if="lastError != ''">
-            <div class="alert alert-error">
+        <div class="toast">
+            <div class="alert select-none" v-for="alert of store.alerts" :class="'alert-' + alert.type">
                 <iconify-icon icon="material-symbols:error-outline" class="h-5 w-5" />
-                <span>{{ lastError }}</span>
+                {{ alert.message }}
             </div>
         </div>
     </Transition>

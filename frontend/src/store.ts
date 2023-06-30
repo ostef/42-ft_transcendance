@@ -42,6 +42,14 @@ export type Message =
     channelInvite?: ChannelInvite;
 }
 
+export type AlertType = "info" | "success" | "warning" | "error";
+
+export type Alert =
+{
+    type: AlertType;
+    message: string;
+}
+
 export const useStore = defineStore ("global", () =>
 {
     const loggedUser = ref (null as User | null);
@@ -53,6 +61,7 @@ export const useStore = defineStore ("global", () =>
     const privateConvs = ref ([] as User[]);
     const channelsSelected = ref (true);
     const onlineUsers = ref ([] as string[]); // These are all user ids
+    const alerts = ref ([] as Alert[]);
 
     const selectedChannel = computed ((): Channel | null =>
     {
@@ -116,11 +125,34 @@ export const useStore = defineStore ("global", () =>
         return privateConvs.value.findIndex (val => val.id == userId) != -1;
     }
 
+    function pushAlert (type: AlertType, message: string)
+    {
+        switch (type)
+        {
+        case "info":
+            console.info (message);
+            break;
+        case "success":
+            console.info (message);
+            break;
+        case "warning":
+            console.warn (message);
+            break;
+        case "error":
+            console.error (message);
+            break;
+        }
+
+        alerts.value.push ({type, message});
+        setTimeout (() => { if (alerts.value.length != 0) alerts.value.splice (0, 1); }, 5000);
+    }
+
     return {
         loggedUser,
         users, messages, channels, privateConvs,
         selectedChannelIndex, selectedChannel, selectedUserIndex, selectedUser,
         channelsSelected, onlineUsers,
-        isOnline, isMuted, isAdmin, isOwner, hasPrivConv
+        isOnline, isMuted, isAdmin, isOwner, hasPrivConv,
+        alerts, pushAlert
     };
 });
