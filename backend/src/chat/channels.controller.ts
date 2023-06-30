@@ -268,11 +268,13 @@ export class ChannelsController
     }
 
     @Post ()
-    async createChannel (@Request () req, @Body () body: CreateChannelDto)
+    async createChannel (@Request () req, @Body () body: CreateChannelDto): Promise<string>
     {
         try
         {
-            await this.channelService.createChannel (req.user.id, body);
+            const chan = await this.channelService.createChannel (req.user.id, body);
+
+            return chan.id;
         }
         catch (err)
         {

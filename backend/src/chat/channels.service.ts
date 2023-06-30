@@ -84,8 +84,11 @@ export class ChannelsService
         };
     }
 
-    async createChannel (userId: string, params: CreateChannelDto)
+    async createChannel (userId: string, params: CreateChannelDto): Promise<ChannelEntity>
     {
+        if (params.isPrivate && params.password != undefined)
+            throw new Error ("Cannot create a private password protected channel");
+
         const user = await this.usersService.findUserEntity ({id: userId });
         if (!user)
             throw new Error ("User " + userId + " does not exist");
@@ -100,7 +103,7 @@ export class ChannelsService
         if (params.password != undefined)
             channel.password = params.password;
 
-        await this.channelRepository.save (channel);
+        return await this.channelRepository.save (channel);
     }
 
     // Throws and exception if:

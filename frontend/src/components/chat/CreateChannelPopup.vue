@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import axios from "axios";
 
-import { fetchChannels } from "@/chat";
+import { fetchChannels, selectChannel } from "@/chat";
 
 const name = ref ("");
 const description = ref ("");
@@ -28,7 +28,7 @@ async function createChannel ()
             throw new Error ("Password do not match");
     }
 
-    await axios.post ("channels", {
+    const res = await axios.post ("channels", {
         name: name.value,
         description: description.value,
         isPrivate: isPrivate.value,
@@ -43,6 +43,7 @@ async function createChannel ()
     isPrivate.value = false;
 
     await fetchChannels ();
+    await selectChannel (res.data);
 }
 
 </script>
@@ -61,12 +62,12 @@ async function createChannel ()
 
             <div class="flex">
                 <span class="label-text w-full max-w-xs my-2 mr-2 select-none">Private Channel</span>
-                <input type="checkbox" class="toggle float-right my-2" v-model="isPrivate" />
+                <input type="checkbox" class="toggle float-right my-2" @change="if (isPrivate) hasPassword = false;" v-model="isPrivate" />
             </div>
 
             <div class="flex">
                 <span class="label-text w-full max-w-xs my-2 mr-2 select-none">Password Protected</span>
-                <input type="checkbox" class="toggle float-right my-2" v-model="hasPassword" />
+                <input type="checkbox" class="toggle float-right my-2" :disabled="isPrivate" v-model="hasPassword" />
             </div>
 
             <span class="label-text my-2 mr-2 mt-6 select-none">Name</span>
