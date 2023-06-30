@@ -34,16 +34,20 @@ export function connectChatSocket ()
             clearDiscussions ();
         }
 
+        // We received a message in a discussion that is not visible on the screen, ignore
         if (!store.selectedChannel && !store.selectedUser)
             return;
 
-        if (store.selectedChannel && msg.toChannel != store.selectedChannel.id)
-            return;
-
-        if (store.selectedUser
-            && msg.sender != me?.id && msg.toUser != me?.id
-            && msg.sender != store.selectedUser.id && msg.toUser != store.selectedUser.id)
-            return;
+        if (msg.toUser)
+        {
+            if (msg.toUser !== store.selectedUser?.id && msg.sender !== store.selectedUser?.id)
+                return;
+        }
+        else if (msg.toChannel)
+        {
+            if (msg.toChannel !== store.selectedChannel?.id)
+                return;
+        }
 
         const user = store.users.find ((val) => val.id == msg.sender);
 
