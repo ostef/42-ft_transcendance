@@ -9,16 +9,21 @@ import { useChatStore } from "@/stores/chat";
 import UserSelectionList from "./UserSelectionList.vue";
 import { chatSocket } from "@/chat";
 
-const name = ref ("");
 const friends = ref ([] as User[]);
 
 const chatStore = useChatStore ();
 
-onMounted (async () => {
+async function fetchFriends ()
+{
     const result = await axios.get ("user/friends");
 
-    friends.value = result.data;
-});
+    friends.value.length = 0;
+    for (const friend of result.data)
+    {
+        if (!chatStore.users.find (val => val.id == friend.id))
+            friends.value.push (friend);
+    }
+};
 
 function inviteToChannel (userId: string)
 {
@@ -35,7 +40,7 @@ function inviteToChannel (userId: string)
 </script>
 
 <template>
-<input type="checkbox" id="inviteToChannelModal" class="modal-toggle" />
+<input type="checkbox" id="inviteToChannelModal" class="modal-toggle" @change="fetchFriends ()" />
 <div class="modal">
     <div class="modal-box w-xs h-lg grid">
         <div class="block">
