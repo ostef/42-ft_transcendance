@@ -233,6 +233,9 @@ export class ChannelsService
                 if (otherId == channel.owner.id)
                     throw new Error ("Cannot ban channel owner");
 
+                if (channel.isAdmin (otherId))
+                    throw new Error ("Cannot ban admin");
+
                 const user = await this.usersService.findUserEntity ({id: otherId});
                 if (!user)
                     throw new Error ("User does not exist");
@@ -312,8 +315,7 @@ export class ChannelsService
                 if (otherId == channel.owner.id)
                     throw new Error ("Cannot kick channel owner");
 
-                const adminIndex = channel.administrators.findIndex ((val: UserEntity) => val.id == otherId);
-                if (adminIndex != -1)
+                if (channel.isAdmin (otherId))
                     throw new Error ("Cannot kick admin");
 
                 channel.removeUser (otherId);
@@ -333,16 +335,19 @@ export class ChannelsService
 
     async joinChannel (channelId: string, userId: string, password?: string)
     {
-        const channel = await this.findChannelEntity ({id: channelId}, {users: true});
+        const channel = await this.findChannelEntity ({id: channelId}, {users: true, bannedUsers: true});
         if (!channel)
             throw new Error ("Channel does not exist");
 
-        const user = await this.usersService.findUserEntity ({id: userId}, {joinedChannels: true});
+        const user = await this.usersService.findUserEntity ({id: userId});
         if (!user)
             throw new Error ("User does not exist");
 
         if (channel.hasUser (user))
             throw new Error ("User is already in channel");
+
+        if (channel.isBanned (user))
+            throw new Error ("You are banned from this channel");
 
         if (channel.isPrivate)
             throw new Error ("Channel is private, you need to be invited");
