@@ -30,8 +30,12 @@ export function connectChatSocket ()
     chatSocket.on ("newMessage", async (msg) => {
         if (msg.toUser && !store.hasPrivConv (msg.sender) && !store.hasPrivConv (msg.toUser))
         {
+            const prevConv = store.selectedUser?.id;
+
             await fetchPrivateConversations ();
-            clearDiscussions ();
+
+            if (prevConv)
+                selectPrivConv (prevConv);
         }
 
         // We received a message in a discussion that is not visible on the screen, ignore
