@@ -265,12 +265,15 @@ export async function selectPrivConv (userId: string)
 
     chat.users.length = 0;
 
-    if (me.value)
-        chat.users.push (me.value);
     if (chat.selectedUser)
-        chat.users.push (chat.selectedUser);
+    {
+        if (me.value)
+            chat.users.push (me.value);
+        if (chat.selectedUser)
+            chat.users.push (chat.selectedUser);
 
-    chat.users.sort ((a, b) => a.nickname.localeCompare (b.nickname));
+        chat.users.sort ((a, b) => a.nickname.localeCompare (b.nickname));
+    }
 }
 
 export async function leaveChannel (newOwnerId?: string)
