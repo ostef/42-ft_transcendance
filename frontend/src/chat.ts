@@ -235,13 +235,6 @@ export async function selectChannel (channelId: string)
     await fetchUsers (channelId);
     await fetchMessages (channelId);
 
-    if (store.selectedChannel)
-        unwatchChannel (store.selectedChannel.id);
-
-    if (store.selectedUser)
-        unwatchPrivConv (store.selectedUser.id);
-
-    watchChannel (channelId);
     store.selectedChannelIndex = store.channels.findIndex ((val) => val.id == channelId);
     store.selectedUserIndex = -1;
     store.channelsSelected = true;
@@ -269,13 +262,6 @@ export async function selectPrivConv (userId: string)
 
     await fetchPrivateMessages (userId);
 
-    if (chat.selectedChannel)
-        unwatchChannel (chat.selectedChannel.id);
-
-    if (chat.selectedUser)
-        unwatchPrivConv (chat.selectedUser.id);
-
-    watchPrivConv (userId);
     chat.selectedUserIndex = chat.privateConvs.findIndex ((val) => val.id == userId);
     chat.selectedChannelIndex = -1;
 
