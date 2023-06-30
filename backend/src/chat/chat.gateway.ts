@@ -251,14 +251,14 @@ export class ChatGateway
    }
 
     @SubscribeMessage ("userFriendshipChanged")
-    async notifyUserFriendshipChange (client: Socket, userId: string)
+    async notifyUserFriendshipChange (client: Socket, params: UserFriendshipChanged)
     {
         const sockets = await this.server.fetchSockets ();
 
         for (const other of sockets)
         {
-            if (other.data.userId == userId)
-                other.emit ("friendshipChanged", client.data.userId);
+            if (other.data.userId == params.userId)
+                other.emit ("friendshipChanged", {userId: client.data.userId, event: params.event});
         }
     }
 

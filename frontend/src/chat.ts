@@ -1,10 +1,18 @@
 import { Socket, io } from "socket.io-client";
 import axios from "axios";
 
-import { useStore, type User } from "@/store";
+import { useStore, type User, type Channel } from "@/store";
 import { fetchUserInfo } from "@/authentication";
 
 export let chatSocket: Socket;
+
+type UserFriendshipEvent = "blocked" | "unblocked" | "friend-removed" | "friend-accepted" | "friend-declined" | "friend-request";
+
+type UserFriendshipChanged =
+{
+    userId: string;
+    event: UserFriendshipEvent;
+}
 
 export function connectChatSocket ()
 {
@@ -40,6 +48,8 @@ export function connectChatSocket ()
 
             if (prevConv)
                 selectPrivConv (prevConv);
+
+            store.pushAlert ("info", "You have received a new message from someone");
         }
 
         // We received a message in a discussion that is not visible on the screen, ignore
@@ -83,6 +93,11 @@ export function connectChatSocket ()
         if (channelIndex == -1)
             return;
 
+        if (params.kicked)
+            store.pushAlert ("info", "You have been kicked from channel '" + store.channels[channelIndex].name + "'");
+        else
+            store.pushAlert ("info", "You have been banned from channel '" + store.channels[channelIndex].name + "'");
+
         store.channels.splice (channelIndex, 1);
 
         if (channelIndex == store.selectedChannelIndex)
@@ -110,6 +125,9 @@ export function connectChatSocket ()
         if (channelIndex == -1)
             return;
 
+        if (store.channels[channelIndex].ownerId != store.loggedUser?.id)
+            store.pushAlert ("info", "Channel '" + store.channels[channelIndex].name + "' has been deleted by the owner");
+
         store.channels.splice (channelIndex, 1);
 
         if (channelIndex == store.selectedChannelIndex)
@@ -122,7 +140,7 @@ export function connectChatSocket ()
         unwatchChannel (params.channelId);
     });
 
-    chatSocket.on ("friendshipChanged", async (userId: string) => {
+    chatSocket.on ("friendshipChanged", async (params: UserFriendshipChanged) => {
         const previousConv = store.selectedUser?.id;
         const previousChannel = store.selectedChannel?.id;
         await fetchUserInfo ();
@@ -132,6 +150,30 @@ export function connectChatSocket ()
             await selectPrivConv (previousConv)
         else if (previousChannel)
             await selectChannel (previousChannel);
+
+        const userRes = await axios.get ("user/profile/" + params.userId);
+        const user = userRes.data;
+        switch (params.event)
+        {
+        case "blocked":
+            store.pushAlert ("info", user.username + " has blocked you");
+            break;
+        case "unblocked":
+            store.pushAlert ("info", user.username + " has unblocked you");
+            break;
+        case "friend-removed":
+            store.pushAlert ("info", user.username + " has removed you from his friends list");
+            break;
+        case "friend-accepted":
+            store.pushAlert ("info", user.username + " has accepted your friend request");
+            break;
+        case "friend-declined":
+            store.pushAlert ("info", user.username + " has declined your friend request");
+            break;
+        case "friend-request":
+            store.pushAlert ("info", user.username + " has sent you a friend request");
+            break;
+        }
     });
 }
 
@@ -177,9 +219,9 @@ export function notifyUserKickOrBan (channelId: string, userId: string, kicked: 
     chatSocket.emit ("userKickedOrBanned", {channelId: channelId, userId: userId, kicked: kicked, message: message});
 }
 
-export function notifyFriendshipChange (userId: string)
+export function notifyFriendshipChange (userId: string, event: UserFriendshipEvent)
 {
-    chatSocket.emit ("userFriendshipChanged", userId);
+    chatSocket.emit ("userFriendshipChanged", {userId, event});
 }
 
 export async function fetchChannelInfo (channelId: string)
@@ -191,7 +233,6 @@ export async function fetchChannelInfo (channelId: string)
     if (index != -1)
     {
         const result = await axios.get ("channels/" + channelId);
-
         store.channels[index] = result.data;
     }
 }
@@ -309,7 +350,10 @@ export async function deleteChannel ()
         return;
 
     await axios.delete ("channels/" + store.selectedChannel.id);
+
+    store.pushAlert ("success", "Successfully deleted channel '" + store.selectedChannel.name + "'");
     chatSocket.emit ("channelDeleted", store.selectedChannel.id);
+
     await fetchChannels ();
 
     clearDiscussions ();

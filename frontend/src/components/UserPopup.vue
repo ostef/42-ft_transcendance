@@ -24,7 +24,8 @@ async function sendFriendRequest ()
         return;
 
     await axios.post ("user/friends/add/" + props.user.id);
-    notifyFriendshipChange (props.user.id);
+    notifyFriendshipChange (props.user.id, "friend-request");
+    store.pushAlert ("success", "Sent a friend request to " + props.user.username);
 }
 
 async function removeFriend ()
@@ -34,7 +35,7 @@ async function removeFriend ()
 
     await axios.put ("user/", { friendsToRemove: [props.user.id] });
     props.user.isFriend = false;
-    notifyFriendshipChange (props.user.id);
+    notifyFriendshipChange (props.user.id, "friend-removed");
 }
 
 async function acceptFriendRequest ()
@@ -44,7 +45,7 @@ async function acceptFriendRequest ()
 
     await axios.post ("user/friends/accept/" + props.user.id);
     props.user.isFriend = true;
-    notifyFriendshipChange (props.user.id);
+    notifyFriendshipChange (props.user.id, "friend-accepted");
 
     if (store.loggedUser)
     {
@@ -60,7 +61,7 @@ async function declineFriendRequest ()
         return;
 
     await axios.post ("user/friends/decline/" + props.user.id);
-    notifyFriendshipChange (props.user.id);
+    notifyFriendshipChange (props.user.id, "friend-declined");
 
     if (store.loggedUser)
     {
@@ -76,7 +77,7 @@ async function blockUser ()
         return;
 
     await axios.put ("user/", { usersToBlock: [props.user.id] });
-    notifyFriendshipChange (props.user.id);
+    notifyFriendshipChange (props.user.id, "blocked");
 
     props.user.isFriend = false;
     props.user.isBlocked = true;
@@ -88,7 +89,7 @@ async function unblockUser ()
         return;
 
     await axios.put ("user/", { usersToUnblock: [props.user.id] });
-    notifyFriendshipChange (props.user.id);
+    notifyFriendshipChange (props.user.id, "unblocked");
 
     props.user.isBlocked = false;
 }

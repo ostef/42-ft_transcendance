@@ -45,7 +45,7 @@ const inviteHasExpired = computed (() => {
 
 async function acceptInvite ()
 {
-    if (!props.message?.channelInvite)
+    if (!props.message?.channelInvite || !store.loggedUser)
         return;
 
     await axios.post ("channels/invite/" + props.message.channelInvite.id + "/accept");

@@ -8,13 +8,13 @@ import { useStore, type Channel } from "@/store";
 
 import ChannelSelectionList from "./ChannelSelectionList.vue";
 
+const store = useStore ();
 const publicChannels = ref ([] as Channel[]);
 const selectedChannel = ref (null as Channel | null);
 const password = ref ("");
 
 async function fetchPublicChannels ()
 {
-    const store = useStore ();
     const result = await axios.get ("channels/public");
 
     publicChannels.value.length = 0;
@@ -33,7 +33,7 @@ function selectChannelToJoin (chan: Channel | null)
 
 async function joinChannel ()
 {
-    if (!selectedChannel.value)
+    if (!selectedChannel.value || !store.loggedUser)
         return;
 
     if (selectedChannel.value.isPasswordProtected)
