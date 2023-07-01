@@ -18,10 +18,10 @@ const emit = defineEmits (["on-no", "on-yes"]);
             <h3 class="text-lg font-bold select-none">{{ title }}</h3>
             <div class="mt-8 w-full flex flex-row">
                 <label :for="id" @click="emit ('on-no')"
-                    class="float-left btn normal-case m-2 bg-red-400 hover:bg-red-600 text-black text-opacity-60"
+                    class="float-left btn normal-case m-2 bg-primary hover:bg-primary-focus text-primary-content"
                 >{{ noText }}</label>
                 <label :for="id" @click="emit ('on-yes')"
-                    class="float-right btn normal-case m-2 bg-green-400 hover:bg-green-600 text-black text-opacity-60"
+                    class="float-right btn normal-case m-2"
                 >{{ yesText }}</label>
             </div>
         </div>
