@@ -147,12 +147,25 @@ export const useStore = defineStore ("global", () =>
         setTimeout (() => { if (alerts.value.length != 0) alerts.value.splice (0, 1); }, 5000);
     }
 
+    function resetChat ()
+    {
+        users.value.length = 0;
+        messages.value.length = 0;
+        channels.value.length = 0;
+        privateConvs.value.length = 0;
+        selectedChannelIndex.value = -1;
+        selectedUserIndex.value = -1;
+        channelsSelected.value = true;
+        onlineUsers.value.length = 0;
+    }
+
     return {
         loggedUser,
         users, messages, channels, privateConvs,
         selectedChannelIndex, selectedChannel, selectedUserIndex, selectedUser,
         channelsSelected, onlineUsers,
         isOnline, isMuted, isAdmin, isOwner, hasPrivConv,
+        resetChat,
         alerts, pushAlert
     };
 });

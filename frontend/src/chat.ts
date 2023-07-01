@@ -49,7 +49,7 @@ export function connectChatSocket ()
             if (prevConv)
                 selectPrivConv (prevConv);
 
-            store.pushAlert ("info", "You have received a new message from someone");
+            store.pushAlert ("info", "You have a new message from someone new");
         }
 
         // We received a message in a discussion that is not visible on the screen, ignore
