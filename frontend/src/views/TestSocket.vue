@@ -44,6 +44,8 @@ type Segment = { A: Point; B : Point}
 type PaddlePos = {height : number, width: number, centerPos : {x : number, y : number}, front : Segment}
 type Score =  {p1 : number, p2 : number}
 
+
+//Todo : faire les dto cote front
 export default {
     name : 'TestSocket',
     components : {
@@ -95,7 +97,7 @@ export default {
 			
 		)
 
-		//Todo Coder toutes les fonctions des listens
+		//Todo : Faire en sorte que le rayon de la balle soit en pourcentage 
 
 		//Events to connect
 		this.socket.on("onConnection" , data => {
@@ -103,9 +105,6 @@ export default {
 		})
 
 		//Events to join waiting room or games
-		this.socket.on("waitingMessage", data => {
-			//this.launchWaitRoom()
-		})
 		this.socket.on("foundGame", (playerPos, gameId, difficulty, color) => {
 			this.difficulty = difficulty
 			if (this.canvas)
@@ -268,13 +267,13 @@ export default {
 		searchGame() {
 			this.menu = false
 			this.waitingPlayer = true
-			this.socket.emit("searchGame", {canvas : {width : this.canvas?.width, height : this.canvas?.height}, window  : { width : window.innerWidth, height : window.innerHeight} })
+			this.socket.emit("searchGame")
 		},
 
 		createGame()
 		{
 			console.log("creating a Game")
-			this.socket.emit("createGame", {canvas : {width : this.canvas?.width, height : this.canvas?.height}, window  : { width : window.innerWidth, height : window.innerHeight} })
+			this.socket.emit("createGame")
 		},
 
 		configureGame(gameId)
@@ -447,18 +446,16 @@ export default {
 		//Methode d'invitation
 		creatorGameInvite(gameId : string)
 		{
-			this.socket.emit("startInvite", {instanceId : gameId, canvas : {width : this.canvas?.width, height : this.canvas?.height}, 
-			windonw : {width : window.innerWidth, height : window.innerHeight}})
+			this.socket.emit("startInvite", { gameId : gameId })
 		},
 
 		joinGameInvite(gameId : string)
 		{
-			this.socket.emit("joinInvite", gameId)
+			this.socket.emit("joinInvite", { gameId : gameId })
 		},
 
 		waitPlayer2()
 		{
-			//Todo : coder en front un ecran de waiting
 			this.menu = false
 			this.waitingPlayer = true
 		},
