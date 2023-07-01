@@ -93,10 +93,8 @@ export function connectChatSocket ()
         if (channelIndex == -1)
             return;
 
-        if (params.kicked)
-            store.pushAlert ("info", "You have been kicked from channel '" + store.channels[channelIndex].name + "'");
-        else
-            store.pushAlert ("info", "You have been banned from channel '" + store.channels[channelIndex].name + "'");
+        if (store.channels[channelIndex].ownerId != store.loggedUser?.id)
+            store.pushAlert ("info", "Channel '" + store.channels[channelIndex].name + "' has been deleted by the owner");
 
         store.channels.splice (channelIndex, 1);
 
@@ -125,8 +123,10 @@ export function connectChatSocket ()
         if (channelIndex == -1)
             return;
 
-        if (store.channels[channelIndex].ownerId != store.loggedUser?.id)
-            store.pushAlert ("info", "Channel '" + store.channels[channelIndex].name + "' has been deleted by the owner");
+        if (params.kicked)
+            store.pushAlert ("info", "You have been kicked from channel '" + store.channels[channelIndex].name + "'");
+        else
+            store.pushAlert ("info", "You have been banned from channel '" + store.channels[channelIndex].name + "'");
 
         store.channels.splice (channelIndex, 1);
 
