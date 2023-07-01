@@ -184,6 +184,10 @@ async function goToPrivateConv ()
                 </label>
             </li>
 
+            <li v-if="user?.id == store.loggedUser?.id">
+                <label>My Profile</label>
+            </li>
+
         </ul>
     </div>
 
