@@ -36,6 +36,12 @@ class UserKickedOrBanned
     kicked: boolean;
 }
 
+class UserFriendshipChanged
+{
+    userId: string;
+    event: "blocked" | "unblocked" | "friend-removed" | "friend-accepted" | "friend-request" | "friend-declined";
+}
+
 @WebSocketGateway ({
     namespace: "chat",
     cors: {
