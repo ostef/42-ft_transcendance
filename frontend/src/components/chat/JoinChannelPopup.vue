@@ -77,7 +77,7 @@ async function joinChannel ()
                 <h3 class="text-md mb-6 select-none truncate">{{ selectedChannel.description }}</h3>
 
                 <span class="label-text w-full max-w-xs my-2 mr-2 select-none">Enter Channel Password</span>
-                <input type="password" class="input input-bordered" v-model="password" :disabled="!selectedChannel.isPasswordProtected"
+                <input type="password" class="input input-bordered m-2" v-model="password" :disabled="!selectedChannel.isPasswordProtected"
                     :placeholder="selectedChannel.isPasswordProtected ? 'Password' : 'No password is required'"
                 />
 

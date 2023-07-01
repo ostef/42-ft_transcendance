@@ -179,6 +179,9 @@ export function connectChatSocket ()
 
 export function disconnectChatSocket ()
 {
+    const store = useStore ();
+    store.resetChat ();
+
     if (chatSocket && chatSocket.connected)
         chatSocket.disconnect ();
 }
