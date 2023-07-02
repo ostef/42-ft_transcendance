@@ -75,7 +75,24 @@ export function connectChatSocket ()
             console.error ("Received new message but sender wasn't found:", msg);
     });
 
-    chatSocket.on ("onlineUsers", (onlineUsers) => {
+    chatSocket.on ("onlineUsers", async (onlineUsers: any[]) => {
+
+        const friends : any[] = (await axios.get ("user/friends")).data;
+
+        for (const userId of onlineUsers)
+        {
+            const friend = friends.find (u => u.id == userId);
+            if (friend && !store.onlineUsers.find (val => val == userId))
+                store.pushAlert ("info", friend.username + " is connected");
+        }
+
+        for (const userId of store.onlineUsers)
+        {
+            const friend = friends.find (u => u.id == userId);
+            if (friend && !onlineUsers.find (val => val == userId))
+                store.pushAlert ("info", friend.username + " has disconnected");
+        }
+
         store.onlineUsers = onlineUsers
     });
 
