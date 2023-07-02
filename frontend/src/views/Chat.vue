@@ -29,14 +29,14 @@ function sendMessage ()
     if (messageToSend.value.length == 0)
         return;
 
-    if (store.channelsSelected && store.selectedChannel)
+    if (store.selectedChannel)
     {
         chatSocket.emit ("newMessage", {
             channelId: store.selectedChannel.id,
             content: messageToSend.value
         });
     }
-    if (!store.channelsSelected && store.selectedUser)
+    else if (store.selectedUser)
     {
         chatSocket.emit ("newMessage", {
             userId: store.selectedUser.id,
