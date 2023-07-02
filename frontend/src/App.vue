@@ -6,11 +6,29 @@ import { RouterView } from "vue-router";
 
 import router from "@/router";
 import { logout } from "@/authentication";
-import { useStore } from "@/store";
+import { useStore, type AlertType } from "@/store";
 
 import Header from "@/components/Header.vue";
 
 const store = useStore ();
+
+function getAlertClassName (type: AlertType)
+{
+    // For some reason I can't do 'alert-' + type
+    switch (type)
+    {
+    case "error":
+        return "alert-error";
+    case "info":
+        return "alert-info";
+    case "success":
+        return "alert-success";
+    case "warning":
+        return "alert-warning";
+    }
+
+    return "";
+}
 
 onErrorCaptured ((err, vm, info) =>
 {
@@ -54,7 +72,8 @@ onErrorCaptured ((err, vm, info) =>
 
     <Transition>
         <div class="toast">
-            <div class="alert select-none" v-for="alert of store.alerts" :class="'alert-' + alert.type">
+            <div class="alert select-none" v-for="alert of store.alerts"
+                :class="getAlertClassName (alert.type)">
                 <iconify-icon icon="material-symbols:error-outline" class="h-5 w-5" />
                 {{ alert.message }}
             </div>
