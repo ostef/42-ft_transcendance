@@ -75,7 +75,7 @@ export function connectChatSocket ()
             console.error ("Received new message but sender wasn't found:", msg);
     });
 
-    chatSocket.on ("onlineUsers", async (onlineUsers: any[]) => {
+    chatSocket.on ("onlineUsers", async (onlineUsers) => {
         store.onlineUsers = onlineUsers
     });
 
