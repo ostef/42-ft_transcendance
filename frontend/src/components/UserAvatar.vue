@@ -50,10 +50,20 @@ async function unblockUser (id: string | undefined)
     await axios.put ("user/", { usersToUnblock: [id] });
 }
 
+async function checkStatus ()
+{
+    console.log ("checkStatus");
+    if (this.userId == undefined)
+        return;
+
+    const res = await axios.get ("user/friends/" + userId);
+    (res.data) ? isFriend.value = res.data : isFriend.value = false;
+}
+
 </script>
 
 <template>
-    <div class="tooltip dropdown flex" :class="left ? 'dropdown-left' : 'dropdown-right'" :data-tip="username" >
+    <div class="tooltip dropdown flex" :class="left ? 'dropdown-left' : 'dropdown-right'" :data-tip="username"  @click="checkStatus">
         <label tabindex="0" class="avatar"
             :class="(online ? 'online' : 'offline') + (picture == null ? ' placeholder' : '')">
             <div class="h-12 w-12 btn btn-circle overflow-hidden grid">

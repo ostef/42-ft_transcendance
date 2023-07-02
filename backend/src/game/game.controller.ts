@@ -32,6 +32,10 @@ export class GameController {
         return this.gameService.deleteTodo(id);
     }*/
 
+    @Get('matchHistory/:id')
+     getMatchHistory(@Param('id') id : string) {
+        return this.gameService.getMatchHistory(id);
+    }
 
     @Post()
     createInvite() : number {

@@ -1,6 +1,6 @@
 import {
     Entity,
-    PrimaryGeneratedColumn, Column, ManyToMany, OneToMany, JoinTable,
+    PrimaryGeneratedColumn, Column, ManyToMany, OneToMany, JoinTable, JoinColumn,
 } from "typeorm";
 
 import { ChannelEntity } from "src/chat/entities/channel.entity";
@@ -27,6 +27,9 @@ export class UserEntity
     @Column ()
     has2FA: boolean;
 
+    @Column ({ select: false, nullable: true })
+    twoFactorSecret: string;
+
     @Column ({ nullable: true })
     avatarFile: string;
 
@@ -46,10 +49,10 @@ export class UserEntity
     @JoinTable ()
     privateConversations: PrivateConversationEntity[];
 
-    @OneToMany(() => gameHistoryEntity, (gameHistoryEntity) => gameHistoryEntity.user1)
+    @OneToMany(() => gameHistoryEntity, (gameHistoryEntity) => gameHistoryEntity.user1, {eager: true})
     gameHistory : gameHistoryEntity[]
 
-    @OneToMany(() => gameHistoryEntity, (gameHistoryEntity) => gameHistoryEntity.user2)
+    @OneToMany(() => gameHistoryEntity, (gameHistoryEntity) => gameHistoryEntity.user2, {eager: true})
     gameHistory2 : gameHistoryEntity[]
 
     isFriendsWith (other: string | UserEntity): boolean

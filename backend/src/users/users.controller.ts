@@ -29,6 +29,7 @@ import { UserEntity } from "./entities/user.entity";
 import { FriendRequestDto } from "./entities/friend_request.dto";
 import { FilesService } from "../files/files.service";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { concat } from "rxjs";
 
 @Controller ("user")
 export class UsersController
@@ -128,13 +129,30 @@ export class UsersController
     }
 
     @Get ("friends")
-    async getFriends (@Request () req): Promise<string[]>
+    async getFriends (@Request () req)
+    {
+        // const user = await this.usersService.findUserEntity ({id: req.user.id}, {friends: true});
+        // if (!user)
+        //     throw new NotFoundException ("User " + req.user.id + " does not exist");
+        if (!req.user.friends)
+            return undefined;
+        return req.user.friends.map((val: UserEntity) => {
+            return {
+                id: val.id,
+                avatarFile: val.avatarFile,
+                nickname: val.nickname,
+            };
+        });
+    }
+
+    @Get ("friends/:id")
+    async isFriend (@Request () req, @Param ("id") id: string): Promise<boolean>
     {
         const user = await this.usersService.findUserEntity ({id: req.user.id}, {friends: true});
         if (!user)
             throw new NotFoundException ("User " + req.user.id + " does not exist");
 
-        return user.friends.map ((val: UserEntity) => val.id);
+        return user.friends.some ((val: UserEntity) => val.id === id);
     }
 
     @Post ("friends/add/:id")
@@ -189,5 +207,19 @@ export class UsersController
         const { password, ...result } = entity;
 
         return result as unknown as UserDto;
+    }
+
+    @Get (":id/matchHistory")
+    async getMatchHistory (@Param ("id") id: string)
+    {
+        const user = await this.usersService.findUserEntity({id: id});
+        if (!user)
+            throw new NotFoundException ("User " + id + " does not exist");
+        const matchHistory =
+        console.log("gameHistory", user.gameHistory);
+        console.log("gameHistory2", user.gameHistory2);
+        if (user.gameHistory && user.gameHistory2)
+            return concat(user.gameHistory, user.gameHistory2);
+        return user.gameHistory ? user.gameHistory : user.gameHistory2;
     }
 }

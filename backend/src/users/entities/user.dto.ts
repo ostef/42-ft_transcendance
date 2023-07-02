@@ -6,6 +6,7 @@ export class UserDto
     username: string;
     nickname: string;
     has2FA: boolean;
+    twoFactorSecret: string;
     avatarFile: string;
 
     static validate (value: UserDto)
@@ -46,6 +47,7 @@ export class UpdateUserDto
     username?: string;
     nickname?: string;
     has2FA?: boolean;
+    twoFactorSecret?: string;
     avatarFile?: string;
     password?: string;
 

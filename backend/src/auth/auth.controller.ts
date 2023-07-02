@@ -9,12 +9,13 @@ import {
     SetMetadata,
     Get,
     BadRequestException,
-    UseGuards,
+    UseGuards, UnauthorizedException, HttpCode,
 } from "@nestjs/common";
 import { IsNotEmpty } from "class-validator";
 import { AuthService } from "./auth.service";
 import { ExtractJwt } from "passport-jwt";
 import { FortyTwoAuthGuard } from "./42_auth.guard";
+import { UsersService } from "../users/users.service";
 
 class LoginData
 {
@@ -32,6 +33,7 @@ export class AuthController
 
     constructor (
         private authService: AuthService,
+        private usersService: UsersService,
     ) {}
 
     @SetMetadata ("isPublic", true)
@@ -54,12 +56,7 @@ export class AuthController
     @SetMetadata ("isPublic", true)
     @UseGuards (FortyTwoAuthGuard)
     @Get("42")
-    async login42 (@Request () req)
-    {
-        // const token = await this.authService.login42 (req);
-        //
-        // return token;
-    }
+
 
     @SetMetadata ("isPublic", true)
     @UseGuards (FortyTwoAuthGuard)
@@ -81,6 +78,7 @@ export class AuthController
         }
     }
 
+
     @SetMetadata ("isPublic", true)
     @Get ("check-jwt")
     async checkJwt (@Request () req)
@@ -92,5 +90,32 @@ export class AuthController
             return false;
 
         return true;
+    }
+
+    @Post("2fa/authenticate")
+    @HttpCode(200)
+    async authenticate2fa(@Request() req, @Body() body) {
+        const isCodeValid = await this.authService.isTwoFactorCodeValid(req.user.id, req.body.code);
+        if (!isCodeValid)
+            throw new UnauthorizedException('Invalid two-factor code');
+        return this.authService.login2FA(req.user.id);
+    }
+
+    @Get('2fa/generate')
+    async generate2fa(@Request() req)
+    {
+       const otpauth = await this.authService.generate2FASecret(req.user.id);
+       return this.authService.generate2FAQrCode(otpauth) ;
+    }
+
+    @Post('2fa/turn-on')
+    async turnOn2fa(@Request() req, @Body() body)
+    {
+        const code: string = body.code;
+        console.log(code);
+        const isCodeValid = this.authService.isTwoFactorCodeValid(code, req.user);
+        if (!isCodeValid)
+            throw new UnauthorizedException('Invalid two-factor code');
+        await this.usersService.turnonTwoFactorAuth(req.user.id);
     }
 }

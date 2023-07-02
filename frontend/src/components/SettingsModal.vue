@@ -16,6 +16,7 @@ import { storeToRefs } from "pinia";
 import { useUserStore } from "@/stores/user";
 import { ref } from "vue";
 import axios from "axios";
+import QRCodeVue3 from "qrcode-vue3";
 
 
 const userStore = useUserStore();
@@ -23,8 +24,11 @@ const { user } = storeToRefs (userStore);
 
 const isChangingNickname = ref(false);
 const isChangingPicture = ref(false);
+const isChanging2fa = ref(false);
 const nickNameNew = ref("");
 const pictureNew = ref<File | null>(null);
+const qrCode2fa = ref("");
+const code2fa = ref("");
 async function changePicture()
 {
     const fd = new FormData();
@@ -40,9 +44,23 @@ async function changeNickname() {
     toggleChangeNickname();
 }
 
-function change2fa() {
-    console.log("change2fa");
-    console.log();
+async function change2fa() {
+    isChanging2fa.value = !isChanging2fa.value;
+    const res = await axios.get("/auth/2fa/generate");
+    if (res.status != 200)
+        return;
+    console.log(res.data);
+    qrCode2fa.value = res.data.toString();
+
+}
+
+async function turon2fa() {
+    const res = await axios.post("/auth/2fa/turn-on", { code: code2fa.value });
+    if (res.status != 200)
+        return;
+    console.log(res.data);
+    qrCode2fa.value = ""
+
 }
 
 function toggleChangeNickname() {
@@ -85,7 +103,7 @@ function onPictureSelectionChanged($event: Event) {
                     <button class="btn btn-error input-group-btn" @click="toggleChangePicture">Cancel</button>
                 </div>
 
-            </div>
+            </div>3
             <div>
                 <button v-if="!isChangingNickname" class="btn btn-primary input-group-btn" @click="toggleChangeNickname">Change Nickname</button>
                 <div v-else class="input-group">
@@ -99,6 +117,13 @@ function onPictureSelectionChanged($event: Event) {
             <label class="toggle-label">
                 <span>2FA </span>
                 <input type="checkbox" class="toggle toggle-primary" :checked="userStore.user.has2Fa" @click="change2fa"/>
+                <div v-if="isChanging2fa" class="input-group">
+                    <img :src="qrCode2fa" />
+                    <QRCodeVue3 v-if="qrCode2fa != ''" :value="qrCode2fa" />
+                    <input type="text" v-model="code2fa" placeholder="Enter 2fa code" class="input input-bordered" />
+                    <button class="btn btn-success input-group-btn" :disabled="code2fa.length == 0" @click="turon2fa">Validate</button>
+                    <button class="btn btn-error input-group-btn" @click="">Cancel</button>
+                </div>
             </label>
         </div>
     </div>

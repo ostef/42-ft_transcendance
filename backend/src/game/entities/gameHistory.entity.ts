@@ -19,7 +19,7 @@ export class gameHistoryEntity
     @ManyToOne(() => UserEntity, (UserEntity) => UserEntity.gameHistory)
     user1 : UserEntity
 
-    @ManyToOne(() => UserEntity, (UserEntity) => UserEntity.gameHistory)
+    @ManyToOne(() => UserEntity, (UserEntity) => UserEntity.gameHistory2)
     user2 : UserEntity
 
     @Column()

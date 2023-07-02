@@ -21,12 +21,14 @@ export class JwtStrategy extends PassportStrategy (Strategy, "jwtt")
         });
     }
 
-    async validate (payload: JwtPayload): Promise<UserEntity>
+    async validate (payload): Promise<UserEntity>
     {
         const user = await this.authService.validateUser (payload.userId);
         if (!user)
             throw new UnauthorizedException ("Invalid user");
 
-        return user;
+        if (!user.has2FA) return user;
+        if (payload.isTwoFactorCodeValid) return user;
+        throw new UnauthorizedException ("Invalid 2FA auth");
     }
 }

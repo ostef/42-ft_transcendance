@@ -452,4 +452,45 @@ export class GameService {
 		})
 
 	}
+
+	async getMatchHistory(playerId : string)
+	{
+		const matchHistory = await this.gameRepository.find({
+			where: [
+				{ user1: { id: playerId } },
+				{ user2: { id: playerId } }
+			],
+			relations: ["user1", "user2"],
+			select: {
+				user1: {
+					id: true,
+					nickname: true,
+					avatarFile: true,
+					gameHistory: false,
+					gameHistory2: false,
+				},
+				user2: {
+					id: true,
+					nickname: true,
+					avatarFile: true,
+					gameHistory: false,
+					gameHistory2: false,
+				}
+			},
+			order: {
+				id: "DESC"
+			}
+		});
+		return matchHistory.map((game) => {
+			return {
+				id: game.id,
+				opponentId: game.user1.id == playerId ? game.user2.id : game.user1.id,
+				opponentNickname: game.user1.id == playerId ? game.user2.nickname : game.user1.nickname,
+				opponentAvatarFile: game.user1.id == playerId ? game.user2.avatarFile : game.user1.avatarFile,
+				playerScore: game.user1.id == playerId ? game.scoreP1 : game.scoreP2,
+				opponentScore: game.user1.id == playerId ? game.scoreP2 : game.scoreP1,
+			};
+
+		});
+	}
 }

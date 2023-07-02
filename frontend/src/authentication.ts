@@ -21,13 +21,17 @@ export async function login42 () {
     while (loginpopup && !loginpopup.closed) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
     }
+
+
     const token = document.cookie.split("=")[1];
-    if (token) {
+    if (!token) throw new Error("Login using 42 failed");
+
         localStorage.setItem("token", token);
         axios.defaults.headers.common["Authorization"] = "Bearer " + token;
         await updateUserInfo();
-    }
-    throw new Error("Login with 42 failed");
+
+
+
 }
 
 

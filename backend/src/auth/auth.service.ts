@@ -4,6 +4,8 @@ import { JwtService } from "@nestjs/jwt";
 import { UserEntity } from "src/users/entities/user.entity";
 import { UsersService } from "src/users/users.service";
 import { JwtPayload } from "./jwt.strategy";
+import { authenticator } from "otplib";
+import  { toDataURL } from "qrcode";
 
 @Injectable ()
 export class AuthService {
@@ -57,4 +59,38 @@ export class AuthService {
             access_token: await this.jwtService.signAsync(payload)
         };
     }
+
+    async login2FA(userWithoutPsw: Partial<UserEntity>)
+    {
+        const payload = {
+            userId: userWithoutPsw.id,
+            has2FA: !!userWithoutPsw.has2FA,
+            is2FAAuthenticated: true
+        };
+        return {
+            access_token: await this.jwtService.signAsync(payload)
+        }
+    }
+
+    async generate2FASecret(user: UserEntity)
+    {
+        const secret = authenticator.generateSecret();
+        const otpauthUrl = authenticator.keyuri(user.username, "Ft_transcendance", secret);
+
+        await this.usersService.updateUser(user.id, { twoFactorSecret: secret });
+        return otpauthUrl;
+    }
+
+     generate2FAQrCode(otpAuthUrl: string)
+    {
+        return toDataURL(otpAuthUrl);
+    }
+
+    isTwoFactorCodeValid(twoFactorCode: string, user: UserEntity)
+    {
+        console.log("isTwoFactorCodeValid", twoFactorCode, user.twoFactorSecret);
+        return authenticator.check(twoFactorCode, user.twoFactorSecret);
+    }
+
+
 }

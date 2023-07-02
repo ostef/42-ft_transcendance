@@ -6,19 +6,61 @@
             </div>
             <h2 class="text-3xl">  {{ userStore.user.nickname }}</h2>
         </div>
-        <div id="matchHistory" class="flex flex-col space-y-4">
+        <div id="friendList" class="flex flex-col space-y-4">
+            <h2 class="text-2xl">Friend List</h2>
+            <span v-if="friendList.length == 0">You have no friends yet</span>
+            <div v-else class="overflow-x-auto">
+                <table class="table table-zebra table-pin-cols">
+                    <thread>
+                        <tr>
+                            <th>Nickname</th>
+                            <th>Status</th>
+                        </tr>
+                    </thread>
+                    <tbody>
+                        <tr v-for="friend in friendList">
+                            <td class="flex flex-row space-x-4 items-center">
+                                <img  :src="friend.avatarFile" />
+                            </td>
+                            <td>{{ friend.nickname }}</td>
+                            <td>
+                                WIP
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="matchHistory" class="flex flex-col space-y-4 w-fit">
             <h2 class="text-2xl">Match History</h2>
-            <table class="table">
-                <thread>
-                    <tr>
-                        <th>Joueur 1</th>
-                        <th>Joueur 2</th>
-                        <th>Resultat</th>
-                        <th>Score Joueur 1</th>
-                        <th>Score Joueur 2</th>
-                    </tr>
-                </thread>
-            </table>
+            <span v-if="matchHistory.length == 0">You have no match history yet</span>
+            <div v-else class="overflow-x-auto">
+                <table class="table table-zebra table-pin-cols">
+                    <thread>
+                        <tr>
+                            <th>Adversaire</th>
+                            <th>Resultat</th>
+                            <th>Score perso</th>
+                            <th>Score adversaire</th>
+                        </tr>
+                    </thread>
+                    <tbody>
+                        <tr v-for="match in matchHistory">
+                            <td class="flex flex-row space-x-4 items-center">
+                                <UserAvatar :user-id="match.opponentId" :nickname="match.opponentNickname" :picture="match.opponentAvatarFile"/>
+                                <span>{{ match.opponentNickname }}</span>
+                            </td>
+                            <td>
+                                <span v-if="match.playerScore > match.opponentScore">Victoire</span>
+                                <span v-else-if="match.playerScore < match.opponentScore">Defaite</span>
+                                <span v-else>Match nul</span>
+                            </td>
+                            <td>{{ match.playerScore }}</td>
+                            <td>{{ match.opponentScore}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -28,8 +70,34 @@
 
 import { ref } from "vue";
 import { useUserStore } from "@/stores/user";
+import axios from "axios";
+import UserAvatar from "@/components/UserAvatar.vue";
 
 const userStore = useUserStore();
+const matchHistory = ref ([]);
+const friendList = ref ([]);
+
+async function getMatchHistory ()
+{
+    // TODO: get match history from id user
+    const id = userStore.user.id;
+
+    const res = await axios.get ("http://localhost:3000/game/matchHistory/" + id, {
+        params: {
+            id: userStore.user.id
+        }});
+
+    if (res.data)  matchHistory.value = res.data;
+}
+
+async function getFriendList ()
+{
+    const res = await axios.get ("http://localhost:3000/user/friends/");
+    if (res.data)  friendList.value = res.data;
+}
+
+getMatchHistory ();
+getFriendList ();
 
 </script>
 
