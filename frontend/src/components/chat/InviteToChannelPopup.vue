@@ -50,6 +50,7 @@ function inviteToChannel (user: User)
             </label>
 
             <h3 class="text-lg font-bold select-none">Invite To Channel</h3>
+            <h3 class="text-sm select-none">Invitations expire after 48 hours</h3>
         </div>
 
         <div class="h-lg">
