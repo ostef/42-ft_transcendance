@@ -233,8 +233,11 @@ export class ChannelsService
                 if (otherId == channel.owner.id)
                     throw new Error ("Cannot ban channel owner");
 
-                if (channel.isAdmin (otherId))
-                    throw new Error ("Cannot ban admin");
+                if (channel.owner.id == otherId)
+                    throw new Error ("Cannot ban channel owner");
+
+                if (channel.owner.id != userId && channel.isAdmin (otherId))
+                    throw new Error ("Only the channel owner can ban admins");
 
                 const user = await this.usersService.findUserEntity ({id: otherId});
                 if (!user)
@@ -243,6 +246,10 @@ export class ChannelsService
                 const indexInBanned = channel.bannedUsers.findIndex ((val) => val.id == otherId);
                 if (indexInBanned != -1)
                     throw new Error ("User is already banned");
+
+                const indexInAdmin = channel.administrators.findIndex (val => val.id == otherId);
+                if (indexInAdmin != -1)
+                    channel.administrators.splice (indexInAdmin, 1);
 
                 channel.bannedUsers.push (user);
 
@@ -280,8 +287,11 @@ export class ChannelsService
                 if (channel.isMuted (otherId))
                     throw new Error ("User is already muted");
 
-                if (channel.isAdmin (otherId))
-                    throw new Error ("Cannot mute admin");
+                if (channel.owner.id == otherId)
+                    throw new Error ("Cannot mute channel owner");
+
+                if (channel.owner.id != userId && channel.isAdmin (otherId))
+                    throw new Error ("Only the channel owner can mute admins");
 
                 channel.mutedUsers.push (user);
             }
@@ -315,8 +325,12 @@ export class ChannelsService
                 if (otherId == channel.owner.id)
                     throw new Error ("Cannot kick channel owner");
 
-                if (channel.isAdmin (otherId))
-                    throw new Error ("Cannot kick admin");
+                if (channel.owner.id != userId && channel.isAdmin (otherId))
+                    throw new Error ("Only the channel owner can kick admins");
+
+                const adminIndex = channel.administrators.findIndex (val => val.id == otherId);
+                if (adminIndex != -1)
+                    channel.administrators.splice (adminIndex, 1);
 
                 channel.removeUser (otherId);
             }
@@ -369,11 +383,11 @@ export class ChannelsService
     {
         const channel = await this.findChannelEntity ({id: channelId}, {owner: true, users: true, administrators: true});
         if (!channel)
-            throw new Error ("Channel " + channelId + " does not exist");
+            throw new Error ("Channel does not exist");
 
         const user = await this.usersService.findUserEntity ({id: userId}, {blockedUsers: true, joinedChannels: true});
         if (!user)
-            throw new Error ("User " + userId + " does not exist");
+            throw new Error ("User does not exist");
 
         if (channel.owner.id == user.id)
         {
@@ -389,6 +403,12 @@ export class ChannelsService
 
             if (!channel.isAdmin (newOwnerId))
                 channel.administrators.push (newOwner);
+
+            if (channel.isMuted (newOwnerId))
+            {
+                const mutedIndex = channel.mutedUsers.findIndex (val => val.id == newOwnerId);
+                channel.mutedUsers.splice (mutedIndex, 1);
+            }
 
             if (user.hasBlocked (newOwner))
                 throw new Error ("You have blocked this user");
