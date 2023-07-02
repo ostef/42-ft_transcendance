@@ -24,16 +24,18 @@ async function fetchFriends ()
     }
 };
 
-function inviteToChannel (userId: string)
+function inviteToChannel (user: User)
 {
     if (!store.selectedChannel)
         return;
 
     chatSocket.emit ("channelInvite", {
         channelId: store.selectedChannel.id,
-        userId: userId,
+        userId: user.id,
         message: "Hey, check out this cool channel!"
     });
+
+    store.pushAlert ("success", "Invited " + user.username + " to '" + store.selectedChannel.name + "'");
 }
 
 </script>
@@ -51,7 +53,7 @@ function inviteToChannel (userId: string)
         </div>
 
         <div class="h-lg">
-            <UserSelectionList :users="friends" @on-select="(u) => inviteToChannel (u.id)" />
+            <UserSelectionList :users="friends" @on-select="(u) => inviteToChannel (u)" />
         </div>
     </div>
 </div>
