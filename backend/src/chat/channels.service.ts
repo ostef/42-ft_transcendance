@@ -443,7 +443,7 @@ export class ChannelsService
             throw new Error ("Invite does not exist");
 
         if (invite.toUser.id != fromUserId)
-            throw new Error ("User is not you");
+            throw new Error ("Unauthorized");
 
         if (invite.accepted)
             throw new Error ("Invite has already been accepted");
@@ -452,10 +452,10 @@ export class ChannelsService
             throw new Error ("Invite has expired");
 
         if (invite.channel.hasUser (invite.toUser))
-            throw new Error ("User is already in channel");
+            throw new Error ("You are already in channel");
 
         if (invite.channel.isBanned (invite.toUser))
-            throw new Error ("User is banned");
+            throw new Error ("You are banned from this channel");
 
         invite.accepted = true;
         await this.inviteRepository.save (invite);
