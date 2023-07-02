@@ -33,6 +33,16 @@ const messageTimestamp = computed (() =>
     return date.toLocaleTimeString ();
 });
 
+const inviteExpirationTimestamp = computed (() =>
+{
+    if (!props.message?.channelInvite)
+        return "";
+
+    const date = new Date (props.message.channelInvite.expirationDate);
+
+    return date.toLocaleString ();
+});
+
 const inviteHasExpired = computed (() => {
     if (!props.message?.channelInvite)
         return false;
@@ -103,6 +113,7 @@ async function acceptInvite ()
                 >
                     Accepted
                 </button>
+                <h3 class="text-sm italic" v-if="!inviteHasExpired">Expires on {{inviteExpirationTimestamp}}</h3>
             </div>
         </div>
 
