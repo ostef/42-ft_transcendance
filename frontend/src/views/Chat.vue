@@ -127,10 +127,12 @@ function sendMessage ()
                 </div>
                 <div class="hidden lg:flex flex-col my-2">
                     <h3 class="text-sm md:text-lg select-none flex flex-row">
-                        {{ user.nickname }}
-                        <iconify-icon class="mx-2 my-1 w-5 h-5" v-if="store.isOwner (user.id)" icon="tabler:crown"  />
-                        <iconify-icon class="mx-2 my-1 w-5 h-5" v-else-if="store.isAdmin (user.id)" icon="eos-icons:admin-outlined" />
-                        <iconify-icon class="mx-2 my-1 w-5 h-5" v-if="store.isMuted (user.id)" icon="solar:muted-linear" />
+                        <div class="mr-1">{{ user.nickname }}</div>
+                        <div class="flex ml-1">
+                            <iconify-icon class="mx-1 my-1 w-5 h-5" v-if="store.isOwner (user.id)" icon="tabler:crown"  />
+                            <iconify-icon class="mx-1 my-1 w-5 h-5" v-else-if="store.isAdmin (user.id)" icon="eos-icons:admin-outlined" />
+                            <iconify-icon class="mx-1 my-1 w-5 h-5" v-if="store.isMuted (user.id)" icon="solar:muted-linear" />
+                        </div>
                     </h3>
                     <h3 class="text-sm select-none">{{ user.username }}</h3>
                 </div>
