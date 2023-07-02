@@ -6,6 +6,7 @@ import { leaveChannel, deleteChannel } from "@/chat";
 import InviteToChannelPopup from "@/components/chat/InviteToChannelPopup.vue";
 import ConfirmPopup from "@/components/ConfirmPopup.vue";
 import LeaveChannelOwnerPopup from "@/components/chat/LeaveChannelOwnerPopup.vue";
+import ChannelSettingsPopup from "@/components/chat/ChannelSettingsPopup.vue";
 
 const store = useStore ();
 
@@ -75,8 +76,15 @@ const store = useStore ();
     <LeaveChannelOwnerPopup />
     <InviteToChannelPopup />
 
-    <div class="flex flex-col ml-6 my-2 overflow-hidden">
-        <h3 class="text-lg select-none truncate">{{ store.selectedChannel?.name }}</h3>
-        <h3 class="text-sm select-none truncate">{{ store.selectedChannel?.description }}</h3>
+    <div class="flex">
+        <label v-if="store.selectedChannel?.ownerId == store.loggedUser?.id" for="channelSettingsModal"
+            class="ml-2 my-2 w-fit h-fit p-3 hover:bg-gray-400 hover:text-black rounded-full">
+            <iconify-icon class="w-5 h-5" icon="material-symbols:settings-outline"/>
+        </label>
+        <div class="ml-4 my-2 flex flex-col overflow-hidden">
+            <h3 class="text-lg select-none truncate">{{ store.selectedChannel?.name }}</h3>
+            <h3 class="text-sm select-none truncate">{{ store.selectedChannel?.description }}</h3>
+        </div>
     </div>
+    <ChannelSettingsPopup />
 </template>

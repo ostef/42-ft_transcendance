@@ -18,6 +18,8 @@ export class CreateChannelDto
 export class UpdateChannelDto extends
     PartialType (CreateChannelDto)
 {
+    passwordForAuth?: string;
+    removePassword?: boolean;
     usersToAdmin?: string[];
     usersToUnadmin?: string[];
     usersToBan?: string[];

@@ -167,18 +167,61 @@ export class ChannelsService
         const channel = channelAndAdmin.channel;
 
         if (params.name != undefined)
+        {
+            if (channel.owner.id != userId)
+                throw new Error ("Only the owner can change the channel name");
+
+            if (channel.hashedPassword && (!params.passwordForAuth || channel.hashedPassword != this.hashPassword (params.passwordForAuth)))
+                throw new Error ("Invalid password");
+
             channel.name = params.name;
+        }
 
         if (params.description != undefined)
+        {
+            if (channel.owner.id != userId)
+                throw new Error ("Only the owner can change the channel description");
+
+            if (channel.hashedPassword && (!params.passwordForAuth || channel.hashedPassword != this.hashPassword (params.passwordForAuth)))
+                throw new Error ("Invalid password");
+
             channel.description = params.description;
+        }
 
         // @Note (stefan): Should we cancel all pending invites when making
         // channels private ?
         if (params.isPrivate != undefined)
+        {
+            if (channel.owner.id != userId)
+                throw new Error ("Only the owner can change the channel visibility");
+
+            if (channel.hashedPassword && (!params.passwordForAuth || channel.hashedPassword != this.hashPassword (params.passwordForAuth)))
+                throw new Error ("Invalid password");
+
             channel.isPrivate = params.isPrivate;
+        }
+
+        if (params.removePassword != undefined)
+        {
+            if (channel.owner.id != userId)
+                throw new Error ("Only the owner can change the channel description");
+
+            if (channel.hashedPassword && (!params.passwordForAuth || channel.hashedPassword != this.hashPassword (params.passwordForAuth)))
+                throw new Error ("Invalid password");
+
+            channel.hashedPassword = null;
+        }
 
         if (params.password != undefined)
+        {
+            if (channel.owner.id != userId)
+                throw new Error ("Only the owner can change the channel description");
+
+            if (channel.hashedPassword && (!params.passwordForAuth || channel.hashedPassword != this.hashPassword (params.passwordForAuth)))
+                throw new Error ("Invalid password");
+
             channel.hashedPassword = this.hashPassword (params.password);
+        }
 
         if (params.usersToAdmin != undefined)
         {
