@@ -150,10 +150,9 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     }
     console.log("userId is : " + data.userId)
     this.gameService.addUserIdToGame(client, data.gameId, data.userId)
+	this.gameService.addUserIdtoInGame(data.userId)
    }
 
-
-   
 
 
    //Invite Event to handle connection from an invite URL
@@ -175,5 +174,17 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
       return ;
     }
     this.gameService.joinInvite(client, data.gameId)
+   }
+
+
+   //Spectate Events
+   @SubscribeMessage('getSpectateList')
+   onSpectateList(@ConnectedSocket() client : Socket)
+   {
+	if (this.isSocket(client.id) === false)
+    {
+      return ;
+    }
+	client.emit('spectateList', this.gameService.getPlayingGames())
    }
 }

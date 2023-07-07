@@ -1,6 +1,6 @@
 <template>
     <div class="place-content-center content-center justify-center">
-		<MenuComp v-if="menu" @on-search="searchGame()" @on-create="createGame()"/>
+		<MenuComp v-if="menu" @on-search="searchGame()" @on-create="createGame()" @on-spectate="spectateGame()"/>
 		<div class="flex justify-center font-bold text-6xl text-black" v-show="game">
 			<div class="h-4/6" id="player1-score">0</div>
 			<div class="h-2/6">-</div>
@@ -10,6 +10,7 @@
 		<div class="flex flex-none content-center justify-center place-content-center">
 			<canvas class="flex-none w-3/5 border-4 mt-12 h-3/5 mb-10" id="myCanvas" v-show="game"></canvas>
 		</div>
+		<Spectate v-if="spectate" @spectateEnd="returnToMenu"/>
 		<ConfigurateComp v-if="configurate" @on-config="configurateChoice" @disconnect="disconnectPlayerWaiting"/>
 		<DisconnectVue v-if="disconnect" @disconnectOk="returnToMenu" />
 		<LooseVue v-if="lost" @looseOk="returnToMenu" />
@@ -37,6 +38,7 @@ import WinVue from '../components/game/Win.vue';
 import LooseVue from "@/components/game/Loose.vue";
 import DisconnectGameVue from "@/components/game/DisconnectGame.vue"
 import GameNotFoundVue from '@/components/game/GameNotFound.vue'
+import Spectate from "@/components/game/Spectate.vue";
 
 //Todo faire des fichiers de types
 type Point = {x: number; y: number}
@@ -57,6 +59,7 @@ export default {
 		LooseVue,
 		DisconnectGameVue,
 		GameNotFoundVue,
+		Spectate,
     },
     data () {
         return {
@@ -88,7 +91,8 @@ export default {
 			won : false,
 			lost : false,
 			disconnectGame : false,
-			gameNotFoundState : false
+			gameNotFoundState : false,
+			spectate : false
         }
     },
     created () {
@@ -96,8 +100,6 @@ export default {
         this.socket = io("http://" + window.location.hostname + ":3000/game", 
 			
 		)
-
-		//Todo : Faire en sorte que le rayon de la balle soit en pourcentage 
 
 		//Events to connect
 		this.socket.on("onConnection" , data => {
@@ -250,12 +252,15 @@ export default {
 			this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
 			this.ball.mainCanvas.width = this.canvas.width
 			this.ball.mainCanvas.height = this.canvas.height
-			this.paddleLeft.mainCanvas.width = this.canvas.width
-			this.paddleLeft.mainCanvas.height = this.canvas.height
-			this.paddleLeft.setHeightDif()
-			this.paddleRight.mainCanvas.width = this.canvas.width
-			this.paddleRight.mainCanvas.height = this.canvas.height
-			this.paddleRight.setHeightDif()
+			if (this.isPlaying == true)
+			{
+				this.paddleLeft.mainCanvas.width = this.canvas.width
+				this.paddleLeft.mainCanvas.height = this.canvas.height
+				this.paddleLeft.setHeightDif()
+				this.paddleRight.mainCanvas.width = this.canvas.width
+				this.paddleRight.mainCanvas.height = this.canvas.height
+				this.paddleRight.setHeightDif()
+			}
 		},
 
 
@@ -274,6 +279,12 @@ export default {
 		{
 			console.log("creating a Game")
 			this.socket.emit("createGame")
+		},
+
+		spectateGame()
+		{
+			this.menu = false
+			this.spectate = true
 		},
 
 		configureGame(gameId)
@@ -440,6 +451,7 @@ export default {
 			this.lost = false
 			this.disconnectGame = false
 			this.gameNotFoundState = false
+			this.spectate = false
 			this.updateScore({p1 : 0, p2 : 0 })
 		},
 
@@ -471,7 +483,6 @@ export default {
 			this.gameId = gameId
 			this.menu = false
 			this.waitingPlayer = true
-			//Todo : coder la partie front pour annoncer que l'on attend que le createur de partie finisse de configurer
 		}
 	}
 }

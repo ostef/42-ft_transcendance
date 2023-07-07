@@ -8,7 +8,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 import cluster from 'cluster';
-import { ConfigurateDto, StartInviteDto } from './dto/game.dto';
+import { ConfigurateDto, GameSpectateDto, StartInviteDto } from './dto/game.dto';
+import { stringify } from 'querystring';
+import { SpectateGame } from './types/game.types';
 
 @Injectable()
 export class GameService {
@@ -17,9 +19,11 @@ export class GameService {
 	//Waitroms for the multiple state of games that exists
 	waitRoom : Socket[] = []
 	gamesRoom : Game[] = []
+	gamesPlayingRoom : Game[] = []
 	gamesWaitingRoom : Game[] = []
 	gamesCreateRoom : Game[] = []
 	gamesInvite : Game[] = []
+	usersInGame : string[] = []
 
 	constructor(
 		@InjectRepository (gameHistoryEntity)
@@ -28,6 +32,8 @@ export class GameService {
 		private usersService: UsersService,
 	) {}
 
+	// Todo : Creer une room de spectator et permettre de rejoindre une game en spectateur + faire les events liess
+	// Todo : faire les trucs pour leave la gamesPlayingRoom en cas de fin et de disconnect
 
 	//Leave Room Fonctions, called on disconnect or on leave
 	quitWaitRoom(client : Socket)
@@ -68,6 +74,40 @@ export class GameService {
 		})
 	}
 
+	quitInGame(userId : string)
+	{
+		console.log("Quitting the IngameRoom for " + userId)
+		this.usersInGame = this.usersInGame.filter(Id => userId == Id)
+	}
+
+
+	//Getters for Game rooms
+	async getPlayingGames() : Promise<GameSpectateDto>
+	{
+		let gamesSpectate = {} as GameSpectateDto
+		gamesSpectate.games = []
+		for (let gamesPlaying of this.gamesPlayingRoom)
+		{
+			let gameSpec = {} as SpectateGame
+			gameSpec.gameId = gamesPlaying.instanceId
+			let user1 = await this.usersService.findUserEntity({ id : gamesPlaying.player1DataBaseId })
+			if (user1 == null)
+			{
+				//Todo : throw error
+				console.log("Error from user 1 user entity")
+			}
+			gameSpec.user1 = user1.nickname
+			let user2 = await this.usersService.findUserEntity({ id : gamesPlaying.player2DataBaseId })
+			if (user2 == null)
+			{
+				//Todo : throw error
+				console.log("Error from user 2 user entity")
+			}
+			gameSpec.user2 = user2.nickname
+			gamesSpectate.games.push(gameSpec)
+		}
+		return (gamesSpectate)
+	}
 
 
 
@@ -121,6 +161,7 @@ export class GameService {
 			{
 				//Game is configurated so it can start right away
 				newGame.startGame()
+				this.addPlayingGame(newGame)
 				return ({player1 : newGame.player1Socket, instanceId : newGame.instanceId, difficulty : newGame.difficulty, color : newGame.color})
 			}
 		}
@@ -156,10 +197,11 @@ export class GameService {
 		this.gamesCreateRoom.push(newGame)
 	}
 
-
-
-
-
+	addPlayingGame(game : Game)
+	{
+		console.log("adding a game to the playing Game room")
+		this.gamesPlayingRoom.push(game)
+	}
 
 
 	//Configuration functions to add difficulty, color and user infos
@@ -197,6 +239,7 @@ export class GameService {
 		}
 		if (currentInstance == null)
 		{
+			return
 			//Todo : throw error game not found
 		}
 		if (currentInstance.player1Socket.id == client.id)
@@ -207,6 +250,11 @@ export class GameService {
 		{
 			currentInstance.player2DataBaseId = userId
 		}
+	}
+
+	addUserIdtoInGame(userId : string)
+	{
+		this.usersInGame.push(userId)
 	}
 
 
@@ -227,9 +275,9 @@ export class GameService {
 			)
 			this.gamesCreateRoom.splice(index, 1)
 			currentGame.startGame()
+			this.addPlayingGame(currentGame)
 			currentGame.player1Socket.emit("foundGame", "left", currentGame.instanceId, currentGame.difficulty, currentGame.color)
 			currentGame.player2Socket.emit("foundGame", "right", currentGame.instanceId, currentGame.difficulty, currentGame.color)
-			
 		}
 	}
 
@@ -262,6 +310,8 @@ export class GameService {
 			this.createGameHistory(this.gamesRoom[index].player1DataBaseId, 
 				this.gamesRoom[index].player2DataBaseId, 
 				this.gamesRoom[index].score.p1, this.gamesRoom[index].score.p2, this.gamesRoom[index].isWinner)
+			this.quitInGame(this.gamesRoom[index].player1DataBaseId)
+			this.quitInGame(this.gamesRoom[index].player2DataBaseId)
 			this.gamesRoom.splice(index, 1)
 		}
 	}
@@ -409,6 +459,12 @@ export class GameService {
 		return (index)
 	}
 
+	isInGame(userId : string) : number
+	{
+		let index = this.usersInGame.findIndex(Id => userId == Id)
+		return (index)
+	}
+
 
 
 	//Invite functions to redirect players who followed and invite link
@@ -493,5 +549,18 @@ export class GameService {
 			console.log("Failed to add the game to the history")
 		})
 
+	}
+
+	isInGameUser( userId : string) : boolean
+	{
+		let index = this.usersInGame.findIndex( Id => Id == userId )
+		if (index == -1)
+		{
+			return false
+		}
+		else
+		{
+			return true
+		}
 	}
 }

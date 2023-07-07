@@ -7,3 +7,10 @@ export type FindGame = {
 	color : string
 }
 
+
+export type SpectateGame = {
+	gameId : number,
+	user1 : string,
+	user2 : string,
+}
+ 

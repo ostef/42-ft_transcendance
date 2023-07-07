@@ -138,14 +138,14 @@ export default class gameInstance {
 
 	handleWin()
 	{
-		if (this.score.p1 >= 10)
+		if (this.score.p1 >= 100)
 		{
 			this.isWinner = 1
 			this.player1Socket.emit("winGame")
 			this.player2Socket.emit("looseGame")
 			this.stopGame()
 		}
-		if (this.score.p2 >= 10)
+		if (this.score.p2 >= 100)
 		{
 			this.isWinner = 2
 			this.player2Socket.emit("winGame")
