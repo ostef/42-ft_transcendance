@@ -51,3 +51,9 @@ export class GameSpectateDto {
 	
 	games : SpectateGame[]
 }
+
+export class SpectateDto {
+
+	@IsNotEmpty()
+	gameId : number
+}

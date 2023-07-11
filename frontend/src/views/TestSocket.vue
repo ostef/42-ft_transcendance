@@ -10,7 +10,7 @@
 		<div class="flex flex-none content-center justify-center place-content-center">
 			<canvas class="flex-none w-3/5 border-4 mt-12 h-3/5 mb-10" id="myCanvas" v-show="game"></canvas>
 		</div>
-		<Spectate v-if="spectate" @spectateEnd="returnToMenu"/>
+		<Spectate v-if="spectate" @spectateEnd="returnToMenu" @spectateGame="startSpectateGame"/>
 		<ConfigurateComp v-if="configurate" @on-config="configurateChoice" @disconnect="disconnectPlayerWaiting"/>
 		<DisconnectVue v-if="disconnect" @disconnectOk="returnToMenu" />
 		<LooseVue v-if="lost" @looseOk="returnToMenu" />
@@ -92,7 +92,8 @@ export default {
 			lost : false,
 			disconnectGame : false,
 			gameNotFoundState : false,
-			spectate : false
+			spectate : false,
+			isSpectating : false
         }
     },
     created () {
@@ -170,6 +171,16 @@ export default {
 			console.log("Other player disconnected")
 			this.playerDisconnect()
 		})
+
+		//Event de spectate 
+		this.socket.on('endOfSpectate', () => {
+			console.log("End of the spectate")
+			this.endSpectate()
+		})
+		this.socket.on('endOfSpectateDisconnect', () => {
+			console.log("End of spectate because of disconnect")
+			this.spectateDisconnect()
+		})
     },
 
 	mounted() {
@@ -208,8 +219,9 @@ export default {
 			let mouseHeight = 0
 			if (this.isPlaying)
 			{
-				if (e.y <= window.innerHeight * this.canvasAbsoluteStart + this.paddleLeft.getHeight() / 2)
+				if (e.y <= (window.innerHeight * this.canvasAbsoluteStart) + this.paddleLeft.getHeight() / 2)
 				{
+					console.log("lol")
 					mouseHeight = (this.paddleLeft.getHeight() / 2) / this.canvas.height
 					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 					return
@@ -281,11 +293,40 @@ export default {
 			this.socket.emit("createGame")
 		},
 
+
+		//Fonctions de spectate
 		spectateGame()
 		{
 			this.menu = false
 			this.spectate = true
 		},
+
+		startSpectateGame(gameInstance : number, gameDifficulty : string)
+		{
+			this.difficulty = gameDifficulty
+			this.ownPaddle = "left"
+			console.log(gameInstance + "  ---  " + gameDifficulty)
+			this.socket.emit("StartSpectating", { gameId : gameInstance })
+			this.paddleLeft = new Paddle("canvas", "black", 0.01 * this.canvas.width, true, this.difficulty)
+			this.paddleRight = new Paddle("canvas", "black", this.canvas.width - 0.01 * this.canvas.width, false, this.difficulty)
+			this.spectate = false
+			this.game = true
+			this.isSpectating = true
+		},
+
+		endSpectate()
+		{
+			this.game = false
+			this.menu = true
+		},
+
+		SpectateDisconnect()
+		{
+			this.game = false
+			this.menu = true
+		},
+
+
 
 		configureGame(gameId)
 		{
@@ -320,7 +361,7 @@ export default {
 
 		//Event pour le déroulement de la partie
 		updateBall( ballCenter : Point ) {
-			if (this.isPlaying)
+			if (this.isPlaying || this.isSpectating)
 			{
 				this.ball.setxpos(ballCenter.x * this.canvas.width)
 				this.ball.setypos(ballCenter.y * this.canvas.height)
@@ -329,7 +370,7 @@ export default {
 
 		updateOwnPadle(ownPaddle : PaddlePos) 
 		{
-			if (this.isPlaying)
+			if (this.isPlaying || this.isSpectating)
 			{
 				if (this.ownPaddle === "left")
 				{
@@ -346,7 +387,7 @@ export default {
 
 		updateOtherPaddle(otherPaddle : PaddlePos)
 		{
-			if (this.isPlaying)
+			if (this.isPlaying || this.isSpectating)
 			{
 				if (this.ownPaddle === "right")
 				{
@@ -370,7 +411,7 @@ export default {
 
 		drawFrame()
 		{
-			if (this.isPlaying)
+			if (this.isPlaying || this.isSpectating)
 			{
 				if (this.canvas)
 					this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -382,7 +423,7 @@ export default {
 
 		drawNextFrame()
 		{
-			if (this.isPlaying)
+			if (this.isPlaying || this.isSpectating)
 			{
 				if (this.canvas)
 					this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)

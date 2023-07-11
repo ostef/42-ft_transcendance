@@ -4,7 +4,7 @@ import { find } from 'rxjs';
 import { Server, Socket } from 'socket.io'
 import { GameService } from './game.service'
 import { FindGame } from './types/game.types'
-import { UpdatePaddleDto, ConfigurateDto, UserIdDtto, StartInviteDto, JoinInviteDto } from './dto/game.dto';
+import { UpdatePaddleDto, ConfigurateDto, UserIdDtto, StartInviteDto, JoinInviteDto, SpectateDto } from './dto/game.dto';
 
 
 @WebSocketGateway({
@@ -181,10 +181,21 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
    @SubscribeMessage('getSpectateList')
    onSpectateList(@ConnectedSocket() client : Socket)
    {
-	if (this.isSocket(client.id) === false)
+	  if (this.isSocket(client.id) === false)
     {
       return ;
     }
-	client.emit('spectateList', this.gameService.getPlayingGames())
+	  client.emit('spectateList', this.gameService.getPlayingGames())
+   }
+
+   @SubscribeMessage('StartSpectating')
+   onStartSpectating(@ConnectedSocket() client : Socket, @MessageBody() data : SpectateDto)
+   {
+    if (this.isSocket(client.id) === false)
+    {
+      return ;
+    }
+    console.log(data)
+    this.gameService.addSpectatorToGame(client, data.gameId)
    }
 }

@@ -27,6 +27,7 @@ export default class gameInstance {
 	isConfig : boolean
 	isPlaying : boolean
 	isWinner : number
+	spectators : Socket[] = []
 
 
 
@@ -92,7 +93,7 @@ export default class gameInstance {
 		{
 			this.handleLose()
 		}
-		if (this.score.p1 >= 10 || this.score.p2 >= 10)
+		if (this.score.p1 >= 100 || this.score.p2 >= 100)
 		{
 			this.handleWin()
 		}
@@ -105,6 +106,12 @@ export default class gameInstance {
 		this.player2Socket.emit('ownPaddle', this.paddleRight.getPaddlePos())
 		this.player2Socket.emit('otherPaddle', this.paddleLeft.getPaddlePos())
 
+		for (let spectator of this.spectators)
+		{
+			spectator.emit('ballUpdate', this.ball.getcenterpos())
+			spectator.emit('ownPaddle', this.paddleRight.getPaddlePos())
+			spectator.emit('otherPaddle', this.paddleLeft.getPaddlePos())
+		}
 	}
 
 	isLose() 
@@ -124,12 +131,20 @@ export default class gameInstance {
 			this.score.p1 += 1
 			this.player2Socket.emit('score', this.score)
 			this.player1Socket.emit('score', this.score)
+			for (let spectator of this.spectators)
+			{
+				spectator.emit('score', this.score)
+			}
 		}
 		else 
 		{
 			this.score.p2 += 1
 			this.player1Socket.emit('score', this.score)
 			this.player2Socket.emit('score', this.score)
+			for (let spectator of this.spectators)
+			{
+				spectator.emit('score', this.score)
+			}
 		}
 		this.ball.reset()
 		this.paddleLeft.reset()
@@ -143,6 +158,10 @@ export default class gameInstance {
 			this.isWinner = 1
 			this.player1Socket.emit("winGame")
 			this.player2Socket.emit("looseGame")
+			for (let spectator of this.spectators)
+			{
+				spectator.emit('endOfSpectate')
+			}
 			this.stopGame()
 		}
 		if (this.score.p2 >= 100)
@@ -150,6 +169,10 @@ export default class gameInstance {
 			this.isWinner = 2
 			this.player2Socket.emit("winGame")
 			this.player1Socket.emit("looseGame")
+			for (let spectator of this.spectators)
+			{
+				spectator.emit('endOfSpectate')
+			}
 			this.stopGame()
 		}
 	}
@@ -198,8 +221,11 @@ export default class gameInstance {
 		console.log("Disconnect from player 1")
 		if (this.player2Socket)
 		{
-			console.log("ca marche pas")
 			this.player2Socket.emit("otherPlayerDisconnectedGame")
+			for (let spectator of this.spectators)
+			{
+				spectator.emit('endOfSpectateDisconnect')
+			}
 		}
 		this.isWinner = 2
 		this.stopGame()
@@ -211,6 +237,10 @@ export default class gameInstance {
 		if (this.player1Socket)
 		{
 			this.player1Socket.emit("otherPlayerDisconnectedGame")
+			for (let spectator of this.spectators)
+			{
+				spectator.emit('endOfSpectateDisconnect')
+			}
 		}
 		this.isWinner = 1
 		this.stopGame()
@@ -244,5 +274,16 @@ export default class gameInstance {
 			}
 		}
 		this.stopGameBeforeStart()
+	}
+
+	disconnectSpectator(socketId : string)
+	{
+		this.spectators = this.spectators.filter(spectator =>
+			spectator.id !== socketId)
+	}
+
+	addSpectator(client : Socket)
+	{
+		this.spectators.push(client)
 	}
 }

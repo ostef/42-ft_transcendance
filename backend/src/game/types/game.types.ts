@@ -12,5 +12,11 @@ export type SpectateGame = {
 	gameId : number,
 	user1 : string,
 	user2 : string,
+	difficulty : string
+}
+
+export type Spectator = {
+	socket : Socket,
+	gameId : number
 }
  
