@@ -41,13 +41,8 @@ import GameNotFoundVue from '@/components/game/GameNotFound.vue'
 import Spectate from "@/components/game/Spectate.vue";
 
 //Todo faire des fichiers de types
-type Point = {x: number; y: number}
-type Segment = { A: Point; B : Point}
-type PaddlePos = {height : number, width: number, centerPos : {x : number, y : number}, front : Segment}
-type Score =  {p1 : number, p2 : number}
 
 
-//Todo : faire les dto cote front
 export default {
     name : 'TestSocket',
     components : {
@@ -125,7 +120,7 @@ export default {
 		})
 
 		//Events to join waiting room or games
-		this.socket.on("foundGame", (playerPos, gameId, difficulty, color) => {
+		this.socket.on("foundGame", (playerPos : number, gameId : number , difficulty : string, color : string) => {
 			this.difficulty = difficulty
 			if (this.canvas)
 			{
@@ -137,46 +132,49 @@ export default {
 			this.waitingPlayer = false
 			this.joinGame(playerPos, gameId, difficulty, color)
 		})
-		this.socket.on("configurateGame", (gameId) => {
+		this.socket.on("configurateGame", (gameId : number) => {
 			this.configureGame(gameId)
 		})
 
 		//Game events on updtaing padddle, ball and score
-		this.socket.on("ballUpdate", data => {
+		this.socket.on("ballUpdate", (data : Point) => {
 			this.updateBall(data)
 		})
-		this.socket.on("ownPaddle", data => {
+
+
+		this.socket.on("ownPaddle", (data : PaddlePos) => {
 			this.updateOwnPadle(data)
 		})
-		this.socket.on("otherPaddle", data => {
+		this.socket.on("otherPaddle", (data : PaddlePos) => {
 			this.updateOtherPaddle(data)
 			this.drawFrame()
 		})
-		this.socket.on("score", data => {
+
+		this.socket.on("score", (data : Score) => {
 			this.updateScore(data)
 		})
         
 
 		//Game events for the end of the game
-		this.socket.on("winGame", data => {
+		this.socket.on("winGame", () => {
 			console.log("Won the game")
 			this.handleWin()
 		})
-		this.socket.on("looseGame", data => {
+		this.socket.on("looseGame", () => {
 			console.log("Lost the game")
 			this.handleLoose()
 		})
 
 		//Event d'invitation
-		this.socket.on("waitingPlayerInvite", data => {
+		this.socket.on("waitingPlayerInvite", () => {
 			console.log("Waiting for the invited player")
 			this.waitPlayer2()
 		}) 
-		this.socket.on("gameNotFound", data => {
+		this.socket.on("gameNotFound", () => {
 			console.log("GameNotFound")
 			this.gameNotFound()
 		})
-		this.socket.on("joinedGameInvite", data => {
+		this.socket.on("joinedGameInvite", (data : number) => {
 			console.log("Joined a game in wich i was invited")
 			this.joinedGameInvite(data)
 		})
@@ -306,7 +304,6 @@ export default {
 		},
 		
 		windowresize() {
-			//Todo : debug mouse pos on resize hors game
 			this.canvaspos = this.canvas.getBoundingClientRect()
 			this.canvasAbsoluteStart = this.canvaspos.top / window.innerHeight
 			this.canvasAbsoluteEnd = this.canvaspos.bottom / window.innerHeight
@@ -381,7 +378,7 @@ export default {
 
 
 
-		configureGame(gameId)
+		configureGame(gameId : number)
 		{
 			this.gameId = gameId
 			this.menu = false
@@ -552,12 +549,14 @@ export default {
 		//Methode d'invitation
 		creatorGameInvite(gameId : string)
 		{
-			this.socket.emit("startInvite", { gameId : gameId , userId : this.userStore.loggedUser?.id})
+			console.log("the game strig :" + parseInt(gameId))
+			this.socket.emit("startInvite", { gameId : parseInt(gameId) , userId : this.userStore.loggedUser?.id})
 		},
 
 		joinGameInvite(gameId : string)
 		{
-			this.socket.emit("joinInvite", { gameId : gameId , userId : this.userStore.loggedUser?.id})
+			console.log("the game strig :" + parseInt(gameId))
+			this.socket.emit("joinInvite", { gameId : parseInt(gameId) , userId : this.userStore.loggedUser?.id})
 		},
 
 		waitPlayer2()

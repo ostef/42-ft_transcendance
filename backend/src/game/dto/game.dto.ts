@@ -29,7 +29,6 @@ export class ConfigurateDto {
 	difficulty : string
 }
 
-//Todo : faire une validation du userId ? en mode est ce qu'il est dans la database
 export class UserIdDtto {
 
 	@IsNotEmpty()

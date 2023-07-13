@@ -18,6 +18,11 @@ export default {
 		let spectateGame = {} as GameSpectateDto
 		spectateGame.games = [] as SpectateGame[]
 		let getResult = await axios.get("game/Spectate")
+		if (getResult == null)
+		{
+			this.$emit('spectateEnd')
+			return 
+		}
 		spectateGame = getResult.data
 		this.gameSpectateList = spectateGame.games
 	},
