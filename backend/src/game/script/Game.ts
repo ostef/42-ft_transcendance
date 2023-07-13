@@ -224,6 +224,7 @@ export default class gameInstance {
 			this.player2Socket.emit("otherPlayerDisconnectedGame")
 			for (let spectator of this.spectators)
 			{
+				console.log('We are disconnecting spectators !!!!!!!!!!!!!!!')
 				spectator.emit('endOfSpectateDisconnect')
 			}
 		}
@@ -237,6 +238,7 @@ export default class gameInstance {
 		if (this.player1Socket)
 		{
 			this.player1Socket.emit("otherPlayerDisconnectedGame")
+			console.log("The spectators are : " + this.spectators)
 			for (let spectator of this.spectators)
 			{
 				spectator.emit('endOfSpectateDisconnect')

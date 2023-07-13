@@ -64,6 +64,9 @@ export default {
     data () {
         return {
 			socket : {} as ReturnType<typeof io>,
+
+
+			//Game related objects
 			context : {} as CanvasRenderingContext2D | null,
 			ball :  {} as Ball,
 			paddleLeft : {} as Paddle,
@@ -71,18 +74,31 @@ export default {
 			leftScore : {} as HTMLElement | null,
 			rightScore : {} as HTMLElement | null,
 			canvas : {} as HTMLCanvasElement | null,
+
+			//Drawing informations about canvas position on the window
 			canvasAbsoluteSize : 60/100,
 			canvasAbsoluteStart : 20/100,
-			ownPaddle : "",
+			canvasAbsoluteEnd : 0,
+			canvaspos : {},
+
+
 			gameId : 0,
 			waiting : false as boolean,
 			isPlaying : false as boolean,
 			intervalId : {} as ReturnType<typeof setInterval>,
 			delta : 15,
+
+			//Game configuration options
+			ownPaddle : "",
 			difficulty : "default" as string,
 			color : "" as string,
-			inviteId : "" as any,
+
+			inviteId : "" as string,
+			
 			userStore : null,
+
+
+			//VUE js Components states
 			menu : true,
 			game : false,
 			configurate : false,
@@ -93,7 +109,8 @@ export default {
 			disconnectGame : false,
 			gameNotFoundState : false,
 			spectate : false,
-			isSpectating : false
+			isSpectating : false,
+			initialised : false
         }
     },
     created () {
@@ -217,16 +234,24 @@ export default {
 
 		document.addEventListener("mousemove", e => {
 			let mouseHeight = 0
+			
 			if (this.isPlaying)
 			{
+				if (!this.initialised)
+				{
+					this.canvaspos = this.canvas.getBoundingClientRect()
+					this.canvasAbsoluteStart = this.canvaspos.top / window.innerHeight
+					this.canvasAbsoluteEnd = this.canvaspos.bottom / window.innerHeight
+					console.log("The absolute start is : " + this.canvasAbsoluteStart)
+					console.log("The absolute end : " + this.canvasAbsoluteEnd)
+				}
 				if (e.y <= (window.innerHeight * this.canvasAbsoluteStart) + this.paddleLeft.getHeight() / 2)
 				{
-					console.log("lol")
 					mouseHeight = (this.paddleLeft.getHeight() / 2) / this.canvas.height
 					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 					return
 				}
-				else if (e.y >= window.innerHeight - window.innerHeight * this.canvasAbsoluteStart - this.paddleLeft.getHeight() / 2)
+				else if (e.y >= window.innerHeight * this.canvasAbsoluteEnd - this.paddleLeft.getHeight() / 2)
 				{
 					if (this.canvas)
 						mouseHeight = (this.canvas.height - this.paddleLeft.getHeight() / 2) / this.canvas.height
@@ -260,6 +285,9 @@ export default {
 		},
 		
 		windowresize() {
+			this.canvaspos = this.canvas.getBoundingClientRect()
+			this.canvasAbsoluteStart = this.canvaspos.top / window.innerHeight
+			this.canvasAbsoluteEnd = this.canvaspos.bottom / window.innerHeight
 			this.canvas.height = window.innerHeight * this.canvasAbsoluteSize
 			this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
 			this.ball.mainCanvas.width = this.canvas.width
@@ -301,11 +329,11 @@ export default {
 			this.spectate = true
 		},
 
-		startSpectateGame(gameInstance : number, gameDifficulty : string)
+		startSpectateGame(gameInstance : number, gameDifficulty : string, gameColor : string)
 		{
 			this.difficulty = gameDifficulty
 			this.ownPaddle = "left"
-			console.log(gameInstance + "  ---  " + gameDifficulty)
+			this.ball.color = gameColor
 			this.socket.emit("StartSpectating", { gameId : gameInstance })
 			this.paddleLeft = new Paddle("canvas", "black", 0.01 * this.canvas.width, true, this.difficulty)
 			this.paddleRight = new Paddle("canvas", "black", this.canvas.width - 0.01 * this.canvas.width, false, this.difficulty)
@@ -318,12 +346,14 @@ export default {
 		{
 			this.game = false
 			this.menu = true
+			this.updateScore({p1 : 0, p2 : 0 })
 		},
 
-		SpectateDisconnect()
+		spectateDisconnect()
 		{
 			this.game = false
 			this.menu = true
+			this.updateScore({p1 : 0, p2 : 0 })
 		},
 
 
@@ -517,6 +547,7 @@ export default {
 		{
 			this.menu = false
 			this.gameNotFoundState = true
+			this.game = false
 		},
 
 		joinedGameInvite(gameId : number)

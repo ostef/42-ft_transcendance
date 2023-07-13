@@ -16,6 +16,6 @@ export default {
             <span class="label-text text-lg fontwin-bold mr-4 p-2">Waiting for player</span>
             <span class="loading loading-infinity loading-lg"></span>
         </div>
-        <router-link to="/test/0" class="btn bg-gray-600" @click="$emit('disconnect')">Quit</router-link>
+        <router-link to="/game/0" class="btn bg-gray-600" @click="$emit('disconnect')">Quit</router-link>
     </div>
 </template>

@@ -33,8 +33,6 @@ export class GameService {
 		private usersService: UsersService,
 	) {}
 
-	// Todo : Creer une room de spectator et permettre de rejoindre une game en spectateur + faire les events liess
-
 	//Leave Room Fonctions, called on disconnect or on leave
 	quitWaitRoom(client : Socket)
 	{
@@ -104,6 +102,7 @@ export class GameService {
 			let gameSpec = {} as SpectateGame
 			gameSpec.gameId = gamesPlaying.instanceId
 			gameSpec.difficulty = gamesPlaying.difficulty
+			gameSpec.color = gamesPlaying.color
 			let user1 = await this.usersService.findUserEntity({ id : gamesPlaying.player1DataBaseId })
 			if (user1 == null)
 			{
@@ -285,6 +284,7 @@ export class GameService {
 		}
 		else
 		{
+			client.emit('gameNotFound')
 			//Todo : throw error game not found
 		}
 	}
@@ -298,18 +298,24 @@ export class GameService {
 			let index = this.gamesCreateRoom.findIndex(game => 
 				game.instanceId == currentGame.instanceId
 			)
-			this.gamesCreateRoom.splice(index, 1)
+			if (index != -1)
+			{
+				this.gamesCreateRoom.splice(index, 1)
+			}
 		}
 		else
 		{
 			let index = this.gamesCreateRoom.findIndex(game => 
 				game.instanceId == currentGame.instanceId
 			)
-			this.gamesCreateRoom.splice(index, 1)
-			currentGame.startGame()
-			this.addPlayingGame(currentGame)
-			currentGame.player1Socket.emit("foundGame", "left", currentGame.instanceId, currentGame.difficulty, currentGame.color)
-			currentGame.player2Socket.emit("foundGame", "right", currentGame.instanceId, currentGame.difficulty, currentGame.color)
+			if (index != -1)
+			{
+				this.gamesCreateRoom.splice(index, 1)
+				currentGame.startGame()
+				this.addPlayingGame(currentGame)
+				currentGame.player1Socket.emit("foundGame", "left", currentGame.instanceId, currentGame.difficulty, currentGame.color)
+				currentGame.player2Socket.emit("foundGame", "right", currentGame.instanceId, currentGame.difficulty, currentGame.color)
+			}
 		}
 	}
 
@@ -345,8 +351,13 @@ export class GameService {
 				this.gamesRoom[index].score.p1, this.gamesRoom[index].score.p2, this.gamesRoom[index].isWinner)
 			this.quitInGame(this.gamesRoom[index].player1DataBaseId)
 			this.quitInGame(this.gamesRoom[index].player2DataBaseId)
+			for ( let spectator of this.gamesRoom[index].spectators )
+			{	
+				this.quitSpectators(spectator.id)
+			}
 			this.gamesRoom.splice(index, 1)
 		}
+
 	}
 
 	stopGameBeforeStart(gameId : number)
