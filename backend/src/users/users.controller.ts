@@ -10,8 +10,6 @@ import {
     Post, Put,
     Request,
     SetMetadata,
-
-    Injectable, NestInterceptor, ExecutionContext, CallHandler, UseInterceptors
 } from "@nestjs/common";
 
 import { UsersService } from "./users.service";
@@ -19,6 +17,12 @@ import { UsersService } from "./users.service";
 import { CreateUserDto, UpdateUserDto, UserDto } from "./entities/user.dto";
 import { UserEntity } from "./entities/user.entity";
 import { FriendRequestDto } from "./entities/friend_request.dto";
+import { UserInfo } from "src/chat/channels.controller";
+
+class SensitiveUserInfo extends UserDto
+{
+    receivedFriendRequests: string[];
+}
 
 @Controller ("user")
 export class UsersController
@@ -30,15 +34,20 @@ export class UsersController
     ) {}
 
     @Get ()
-    async findCurrentUser (@Request () req): Promise<UserDto>
+    async findCurrentUser (@Request () req): Promise<SensitiveUserInfo>
     {
         const entity = await this.usersService.findUserEntity ({id: req.user.id});
         if (entity == null)
             throw new NotFoundException ("User with id " + req.user.id + " does not exist");
 
-        const { password, ...result } = entity;
+        const requests = await this.usersService.findMultipleFriendRequests ({toUser: req.user.id});
 
-        return result as unknown as UserDto;
+        const result : SensitiveUserInfo = {
+            ...entity,
+            receivedFriendRequests: requests.map ((val) => val.fromUser.id)
+        };
+
+        return result;
     }
 
     @SetMetadata ("isPublic", true)
@@ -77,9 +86,20 @@ export class UsersController
     {
         const user = await this.usersService.findUserEntity ({id: req.user.id}, {friends: true});
         if (!user)
-            throw new NotFoundException ("User " + req.user.id + " does not exist");
+            throw new NotFoundException ("User does not exist");
 
-        return user.friends.map ((val: UserEntity) => val.id);
+        const result = [];
+        for (const u of user.friends)
+        {
+            result.push ({
+                id: u.id,
+                username: u.username,
+                nickname: u.nickname,
+                avatarFile: u.avatarFile
+            });
+        }
+
+        return result;
     }
 
     @Post ("friends/add/:id")
@@ -124,15 +144,26 @@ export class UsersController
         }
     }
 
+    // @Get ("profile/:id")
+    // async findUser (@Param ("id") id: string): Promise<UserDto>
+    // {
+    //     const entity = await this.usersService.findUserEntity ({id: id});
+    //     if (entity == null)
+    //         throw new NotFoundException ("User does not exist");
+
+    //     const { password, ...result } = entity;
+
+    //     return result as unknown as UserDto;
+    // }
+
     @Get ("profile/:id")
-    async findUser (@Param ("id") id: string): Promise<UserDto>
+    async getUserInfo (@Request () req, @Param ("id") id: string): Promise<UserInfo>
     {
-        const entity = await this.usersService.findUserEntity ({id: id});
-        if (entity == null)
-            throw new NotFoundException ("User with id " + id + " does not exist");
+        const me = await this.usersService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
+        const user = await this.usersService.findUserEntity ({id: id}, {friends: true, blockedUsers: true});
+        if (!user)
+            throw new BadRequestException ("User does not exist");
 
-        const { password, ...result } = entity;
-
-        return result as unknown as UserDto;
+        return UserInfo.fromUserEntity (me, user)
     }
 }

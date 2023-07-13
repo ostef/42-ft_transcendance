@@ -1,5 +1,6 @@
 import axios from "axios";
-import { useUserStore } from "@/stores/user";
+import { useStore } from "@/store";
+import { connectChatSocket, disconnectChatSocket } from "@/chat";
 
 export async function login (username: string, password: string)
 {
@@ -9,7 +10,8 @@ export async function login (username: string, password: string)
     localStorage.setItem ("token", token);
     axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 
-    await updateUserInfo ();
+    await fetchUserInfo ();
+    connectChatSocket ();
 }
 
 export function logout ()
@@ -17,14 +19,15 @@ export function logout ()
     localStorage.removeItem ("token");
     delete axios.defaults.headers.common["Authorization"];
 
-    const userStore = useUserStore ();
-    userStore.user = null;
+    disconnectChatSocket ();
+    const store = useStore ();
+    store.loggedUser = null;
 }
 
-export async function updateUserInfo ()
+export async function fetchUserInfo ()
 {
-    const userStore = useUserStore ();
-    userStore.user = (await axios.get ("user/")).data;
+    const store = useStore ();
+    store.loggedUser = (await axios.get ("user/")).data;
 }
 
 export async function isAuthenticated (): Promise<boolean>

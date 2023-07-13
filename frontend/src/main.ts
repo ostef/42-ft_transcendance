@@ -1,7 +1,7 @@
 import "./assets/app.css";
 
 import { createApp } from "vue";
-import { createPinia, storeToRefs } from "pinia";
+import { createPinia } from "pinia";
 import { Icon } from "@iconify/vue";
 
 import { Socket, io } from "socket.io-client";

@@ -54,6 +54,8 @@ export function validatePngFilename (value: string): boolean
         return false;
 
     const ext = value.split (".").pop ();
+    if (!ext)
+        return false;
 
     return ext.toLowerCase () == "png";
 }

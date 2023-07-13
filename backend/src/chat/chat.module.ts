@@ -5,7 +5,7 @@ import { ChatGateway } from "./chat.gateway";
 import { ChannelEntity } from "./entities/channel.entity";
 import { PrivateConversationEntity } from "./entities/private_conversation.entity";
 import { MessageEntity } from "./entities/message.entity";
-import { InviteEntity } from "./entities/invite.entity";
+import { ChannelInviteEntity } from "./entities/channel_invite.entity";
 import { ChannelsService } from "./channels.service";
 import { ChannelsController } from "./channels.controller";
 import { MessageService } from "./message.service";
@@ -18,7 +18,7 @@ import { AuthModule } from "src/auth/auth.module";
         AuthModule,
         TypeOrmModule.forFeature ([
             ChannelEntity, PrivateConversationEntity,
-            MessageEntity, InviteEntity,
+            MessageEntity, ChannelInviteEntity,
         ]),
     ],
     controllers: [ChannelsController],

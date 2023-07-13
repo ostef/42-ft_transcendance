@@ -39,7 +39,6 @@ export class UserEntity
     blockedUsers: UserEntity[];
 
     @ManyToMany (() => ChannelEntity, (chan) => chan.users)
-    @JoinTable ()
     joinedChannels: ChannelEntity[];
 
     @ManyToMany (() => PrivateConversationEntity)
@@ -51,20 +50,37 @@ export class UserEntity
 
     @OneToMany(() => gameHistoryEntity, (gameHistoryEntity) => gameHistoryEntity.user2)
     gameHistory2 : gameHistoryEntity[]
+    
+    isInChannel (other: string | ChannelEntity): boolean
+    {
+        if (!this.joinedChannels)
+            throw new Error ("joinedChannels relation is not loaded");
+
+        if (typeof other == "string")
+            return this.joinedChannels.findIndex ((val) => val.id == other) != -1;
+        else
+            return this.joinedChannels.findIndex ((val) => val.id == other.id) != -1;
+    }
 
     isFriendsWith (other: string | UserEntity): boolean
     {
+        if (!this.friends)
+            throw new Error ("friends relation is not loaded");
+
         if (typeof other == "string")
-            return this.friends.findIndex ((val: UserEntity) => val.id == other) != -1;
+            return this.friends.findIndex ((val) => val.id == other) != -1;
         else
-            return this.friends.findIndex ((val: UserEntity) => val.id == other.id) != -1;
+            return this.friends.findIndex ((val) => val.id == other.id) != -1;
     }
 
     hasBlocked (other: string | UserEntity): boolean
     {
+        if (!this.blockedUsers)
+            throw new Error ("blockedUsers relation is not loaded");
+
         if (typeof other == "string")
-            return this.blockedUsers.findIndex ((val: UserEntity) => val.id == other) != -1;
+            return this.blockedUsers.findIndex ((val) => val.id == other) != -1;
         else
-            return this.blockedUsers.findIndex ((val: UserEntity) => val.id == other.id) != -1;
+            return this.blockedUsers.findIndex ((val) => val.id == other.id) != -1;
     }
 };

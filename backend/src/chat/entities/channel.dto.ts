@@ -1,5 +1,5 @@
 import { PartialType, OmitType } from "@nestjs/mapped-types";
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty, IsOptional } from "class-validator";
 
 export class CreateChannelDto
 {
@@ -18,9 +18,8 @@ export class CreateChannelDto
 export class UpdateChannelDto extends
     PartialType (CreateChannelDto)
 {
-    @IsNotEmpty ()
-    id: string;
-
+    passwordForAuth?: string;
+    removePassword?: boolean;
     usersToAdmin?: string[];
     usersToUnadmin?: string[];
     usersToBan?: string[];
@@ -32,6 +31,7 @@ export class UpdateChannelDto extends
 
 export class LeaveChannelDto
 {
+    @IsOptional ()
     @IsNotEmpty ()
     newOwnerId?: string;
 }
@@ -46,4 +46,10 @@ export class MessageDto
 
     @IsNotEmpty ()
     content: string;
+}
+
+export class InviteToChannelDto
+{
+    userId: string;
+    message: string;
 }

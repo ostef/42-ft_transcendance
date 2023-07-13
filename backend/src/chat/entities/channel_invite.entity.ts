@@ -9,7 +9,7 @@ import { ChannelEntity } from "./channel.entity";
 import { MessageEntity } from "./message.entity";
 
 @Entity ()
-export class InviteEntity
+export class ChannelInviteEntity
 {
     @PrimaryGeneratedColumn ("uuid")
     id: string;
@@ -20,7 +20,7 @@ export class InviteEntity
     @ManyToOne (() => UserEntity, {eager: true})
     toUser: UserEntity;
 
-    @ManyToOne (() => ChannelEntity, {eager: true})
+    @ManyToOne (() => ChannelEntity, {nullable: true, eager: true})
     channel: ChannelEntity;
 
     @CreateDateColumn ()
@@ -31,7 +31,4 @@ export class InviteEntity
 
     @Column ()
     accepted: boolean;
-
-    @OneToOne (() => MessageEntity, (msg) => msg.invite)
-    message: MessageEntity;
 }
