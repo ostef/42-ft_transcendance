@@ -8,22 +8,23 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 import cluster from 'cluster';
+import { ConfigurateDto, GameSpectateDto, StartInviteDto } from './dto/game.dto';
+import { stringify } from 'querystring';
+import { SpectateGame, Spectator } from './types/game.types';
 
 @Injectable()
 export class GameService {
 
 
-    //Todo Creer un module qui s'occupe du matchmaking et de la gestion des instances 
-    //et sauvegarde des scores etc.
-
-	//Emplacement des joueurs qui attendent une game
-	//Lorsqu'une personne arrive dans la waitroom on regarde si
-	//on peut lancer une game a deux, sinon il est ajouté à la wairoom
+	//Waitroms for the multiple state of games that exists
 	waitRoom : Socket[] = []
 	gamesRoom : Game[] = []
+	gamesPlayingRoom : Game[] = []
 	gamesWaitingRoom : Game[] = []
 	gamesCreateRoom : Game[] = []
 	gamesInvite : Game[] = []
+	usersInGame : string[] = []
+	spectators : Spectator[] = []
 
 	constructor(
 		@InjectRepository (gameHistoryEntity)
@@ -32,6 +33,7 @@ export class GameService {
 		private usersService: UsersService,
 	) {}
 
+	//Leave Room Fonctions, called on disconnect or on leave
 	quitWaitRoom(client : Socket)
 	{
 		console.log("Quitting the wait room for ", client.id)
@@ -70,13 +72,66 @@ export class GameService {
 		})
 	}
 
+	quitInGame(userId : string)
+	{
+		console.log("Quitting the IngameRoom for " + userId)
+		this.usersInGame = this.usersInGame.filter(Id => userId == Id)
+	}
+
+	quitPlayingGame(gameIndex : number)
+	{
+		console.log("Quitting the playing game room for game " + gameIndex)
+		this.gamesPlayingRoom = this.gamesPlayingRoom.filter(game =>
+			game.instanceId !== gameIndex)
+	}
+
+	quitSpectators(socketId : string)
+	{
+		this.spectators = this.spectators.filter(spectator =>
+			spectator.socket.id !== socketId)
+	}
+
+
+	//Getters for Game rooms
+	async getPlayingGames() : Promise<GameSpectateDto>
+	{
+		let gamesSpectate = {} as GameSpectateDto
+		gamesSpectate.games = []
+		for (let gamesPlaying of this.gamesPlayingRoom)
+		{
+			let gameSpec = {} as SpectateGame
+			gameSpec.gameId = gamesPlaying.instanceId
+			gameSpec.difficulty = gamesPlaying.difficulty
+			gameSpec.color = gamesPlaying.color
+			let user1 = await this.usersService.findUserEntity({ id : gamesPlaying.player1DataBaseId })
+			if (user1 == null)
+			{
+				//Todo : throw error
+				console.log("Error from user 1 user entity")
+			}
+			gameSpec.user1 = user1.nickname
+			let user2 = await this.usersService.findUserEntity({ id : gamesPlaying.player2DataBaseId })
+			if (user2 == null)
+			{
+				//Todo : throw error
+				console.log("Error from user 2 user entity")
+			}
+			gameSpec.user2 = user2.nickname
+			gamesSpectate.games.push(gameSpec)
+		}
+		return (gamesSpectate)
+	}
+
+
+
+	//Matchmaking functions to join Queue or create game and wait for player
 	addPlayerToWaitRoom(client : Socket)
 	{
 		console.log("adding client to wait room", client.id)
 		this.waitRoom.push(client)
 	}
 
-	createGame(client : Socket, data : any)
+	createGame(client : Socket)
 	{
 		if (this.waitRoom.length >= 1)
 		{
@@ -97,43 +152,53 @@ export class GameService {
 			newGame.createGame()
 			newGame.isReady = false
 			this.gamesCreateRoom.push(newGame)
+			this.gamesWaitingRoom.push(newGame)
 		}
 	}
 
-	findGame(client : Socket, data : any) : {player1 : Socket | null, instanceId : number, difficulty : number, color : string}
+	findGame(client : Socket) : {player1 : Socket | null, instanceId : number, difficulty : string, color : string}
 	{
 		console.log("trying to find a game for ", client.id)
+		//One game is waiting for player
 		if (this.gamesWaitingRoom.length >= 1)
 		{
-			//Player 1 is left bar 
-			//Player 2 is right bar
 			let newGame = this.gamesWaitingRoom.shift()
 			newGame.player2Socket = client
-			newGame.startGame()
-			//Return le deuxième joueur au gateway pour pouvoir le prévenir
-			return ({player1 : newGame.player1Socket, instanceId : newGame.instanceId, difficulty : newGame.difficulty, color : newGame.color})
+			//The game has not been configurated yet so player will wait for configuration
+			if (newGame.isConfig == false)
+			{
+				newGame.isReady = true
+				return ({player1 : null, instanceId : -2, difficulty : "default", color : ""})
+			}
+			else
+			{
+				//Game is configurated so it can start right away
+				newGame.startGame()
+				this.addPlayingGame(newGame)
+				return ({player1 : newGame.player1Socket, instanceId : newGame.instanceId, difficulty : newGame.difficulty, color : newGame.color})
+			}
 		}
+
+		//Another player is waiting for a game, creates a game for both a them, player 1 will configurate it
 		else if (this.waitRoom.length >= 1)
 		{
-			//Si il y a un autre joueur en attente on créé une game par défault
 			let client2 = this.waitRoom.pop()
-
-			this.addWaitingGame(client, client2, data, true)
-			console.log("Created a game with a difficulty")
-			return ({player1 : null, instanceId : -2, difficulty : 0, color : ""})
+			this.addWaitingGame(client, client2, true)
+			return ({player1 : null, instanceId : -2, difficulty : "default", color : ""})
 		}
 		else
 		{
-			//Sinon on l'ajoute à la waitroom
+			//No other player waiting and no game waiting, join the queue
 			this.waitRoom.push(client)
 			console.log("adding player to waitroom")
-			return ({player1 : null, instanceId : -1, difficulty : 0, color : ""})
+			return ({player1 : null, instanceId : -1, difficulty : "default", color : ""})
 
 		}
 	}
 
-	addWaitingGame(client : Socket, client2 : Socket, data : any, ready : boolean)
+	addWaitingGame(client : Socket, client2 : Socket, ready : boolean)
 	{
+		//Creating a game with 2 players and waiting for player 1 to configurate it
 		let newGame : Game = new Game(this.gamesRoom.length, client, client2 , this)
 		this.gamesRoom.push(newGame)
 		console.log("new game id : ", newGame.instanceId)
@@ -145,9 +210,16 @@ export class GameService {
 		this.gamesCreateRoom.push(newGame)
 	}
 
-	addDifficulty(client : Socket, data : any)
+	addPlayingGame(game : Game)
 	{
-		console.log("adding diffuclty")
+		console.log("adding a game to the playing Game room")
+		this.gamesPlayingRoom.push(game)
+	}
+
+
+	//Configuration functions to add difficulty, color and user infos
+	configurateGame(client : Socket, data : ConfigurateDto)
+	{
 		let currentInstance = null
 		for (let game of this.gamesCreateRoom)
 		{
@@ -156,55 +228,19 @@ export class GameService {
 				currentInstance = game
 				break
 			}
+		}
+		if (currentInstance == null)
+		{
+			//Todo : throw error game Not found
 		}
 		currentInstance.addDifficulty(data.difficulty)
-		this.redirectGame(currentInstance)
-		//this.gamesWaitingRoom.push(currentInstance)
-	}
-
-	addColor(client : Socket, data : any)
-	{
-		console.log("adding color")
-		let currentInstance = null
-		for (let game of this.gamesCreateRoom)
-		{
-			if (game.instanceId == data.gameId)
-			{
-				currentInstance = game
-				break
-			}
-		}
-		console.log(data.color)
 		currentInstance.addColor(data.color)
-		console.log(currentInstance.color)
-	}
-
-	redirectGame(currentGame : Game)
-	{
-		if (currentGame.isReady === false)
-		{
-			this.gamesWaitingRoom.push(currentGame)
-			let index = this.gamesCreateRoom.findIndex(game => 
-				game.instanceId == currentGame.instanceId
-			)
-			this.gamesCreateRoom.splice(index, 1)
-		}
-		else
-		{
-			let index = this.gamesCreateRoom.findIndex(game => 
-				game.instanceId == currentGame.instanceId
-			)
-			this.gamesCreateRoom.splice(index, 1)
-			currentGame.startGame()
-			currentGame.player1Socket.emit("foundGame", "left", currentGame.instanceId, currentGame.difficulty, currentGame.color)
-			currentGame.player2Socket.emit("foundGame", "right", currentGame.instanceId, currentGame.difficulty, currentGame.color)
-			
-		}
+		currentInstance.isConfig = true
+		this.redirectGame(currentInstance)
 	}
 
 	addUserIdToGame(client : Socket, gameId : number, userId : string)
 	{
-		console.log("Added userId to the game " + userId)	
 		let currentInstance = null
 		for (let game of this.gamesRoom)
 		{
@@ -213,6 +249,11 @@ export class GameService {
 				currentInstance = game
 				break
 			}
+		}
+		if (currentInstance == null)
+		{
+			return
+			//Todo : throw error game not found
 		}
 		if (currentInstance.player1Socket.id == client.id)
 		{
@@ -224,6 +265,62 @@ export class GameService {
 		}
 	}
 
+	addUserIdtoInGame(userId : string)
+	{
+		this.usersInGame.push(userId)
+	}
+
+	addSpectatorToGame(client :Socket, gameId : number)
+	{
+		let index = this.gamesRoom.findIndex(game =>
+			game.instanceId == gameId)
+		if (index != -1)
+		{
+			this.gamesRoom[index].addSpectator(client)
+			let newSpectate = {} as Spectator
+			newSpectate.gameId = gameId
+			newSpectate.socket = client
+			this.spectators.push(newSpectate)
+		}
+		else
+		{
+			client.emit('gameNotFound')
+			//Todo : throw error game not found
+		}
+	}
+
+
+	//Once game is configurated, launch it if 2 players are in or wait for a second one
+	redirectGame(currentGame : Game)
+	{
+		if (currentGame.isReady === false)
+		{
+			let index = this.gamesCreateRoom.findIndex(game => 
+				game.instanceId == currentGame.instanceId
+			)
+			if (index != -1)
+			{
+				this.gamesCreateRoom.splice(index, 1)
+			}
+		}
+		else
+		{
+			let index = this.gamesCreateRoom.findIndex(game => 
+				game.instanceId == currentGame.instanceId
+			)
+			if (index != -1)
+			{
+				this.gamesCreateRoom.splice(index, 1)
+				currentGame.startGame()
+				this.addPlayingGame(currentGame)
+				currentGame.player1Socket.emit("foundGame", "left", currentGame.instanceId, currentGame.difficulty, currentGame.color)
+				currentGame.player2Socket.emit("foundGame", "right", currentGame.instanceId, currentGame.difficulty, currentGame.color)
+			}
+		}
+	}
+
+
+	//Ingame functions
 	updatePaddlePos(client : Socket, gameId : number, paddlePos : number)
 	{
 		let currentInstance = null
@@ -238,92 +335,137 @@ export class GameService {
 		currentInstance.updatePaddlePos(client, paddlePos)
 	}
 
+
+
+	//Leave game functions
 	stopGame(gameId : number)
 	{
-		let index = this.gamesRoom.findIndex(game => 
+		this.quitPlayingGame(gameId)
+		let index = this.gamesRoom.findIndex(game =>
 			game.instanceId == gameId
 		)
 		if (index != -1)
 		{
 			this.createGameHistory(this.gamesRoom[index].player1DataBaseId, 
 				this.gamesRoom[index].player2DataBaseId, 
-				this.gamesRoom[index].score.p1, this.gamesRoom[index].score.p2)
+				this.gamesRoom[index].score.p1, this.gamesRoom[index].score.p2, this.gamesRoom[index].isWinner)
+			this.quitInGame(this.gamesRoom[index].player1DataBaseId)
+			this.quitInGame(this.gamesRoom[index].player2DataBaseId)
+			for ( let spectator of this.gamesRoom[index].spectators )
+			{
+				this.quitSpectators(spectator.id)
+			}
+			this.gamesRoom.splice(index, 1)
+		}
+
+	}
+
+	stopGameBeforeStart(gameId : number)
+	{
+		let index = this.gamesRoom.findIndex(game =>
+			game.instanceId == gameId
+		)
+		if (index != -1)
+		{
 			this.gamesRoom.splice(index, 1)
 		}
 	}
 
-
+	//Global disconnect function, leave all rooms and treat the game regarding it's current state
 	disconnectPlayer(socketId : string)
 	{
-		//On check si le joueur etait en game et si oui on la coupe pour deconnexion
 		let index = this.isGaming(socketId)
 		if (index != -1)
 		{
-			if (this.gamesRoom[index].player1Socket.id == socketId)
-				this.gamesRoom[index].disconnectPlayer1();
-			else if (this.gamesRoom[index].player2Socket.id == socketId)
+			//Game is playing so we will choose a winner based on the disconnected player
+			if (this.gamesRoom[index].isPlaying == true)
 			{
-				this.gamesRoom[index].disconnectPlayer2();
+				if (this.gamesRoom[index].player1Socket.id == socketId)
+					this.gamesRoom[index].disconnectPlayer1()
+				else if (this.gamesRoom[index].player2Socket.id == socketId)
+				{
+					this.gamesRoom[index].disconnectPlayer2()
+				}
 			}
 		}
-		//Ensuite on check si il etait en waitroom et on l'enleve
+
+		//If player was in queue, leave it
 		index = this.isWaiting(socketId)
 		if (index != -1)
 		{
+			console.log("Disconnecting a waiting player")
 			this.quitWaitRoom(this.waitRoom[index])
 		}
-		
-		//On eleve les game de la create room en cas de deconnexion
+
+		//If Game was being created, stops the process
 		index = this.isGameCreating(socketId)
 		if (index != -1)
 		{
-			if (this.gamesCreateRoom[index].player1Socket.id == socketId)
+			console.log("Disconnecting a game getting created")
+			if (this.gamesCreateRoom[index].isReady == false)
 			{
-				this.gamesCreateRoom[index].disconnectPlayer1()
+				this.gamesCreateRoom[index].stopGameBeforeStart()
 			}
-			else if (this.gamesCreateRoom[index].player2Socket.id == socketId)
+			else
 			{
-				this.gamesCreateRoom[index].disconnectPlayer2()
+				this.gamesCreateRoom[index].disconnectPlayerBeforeStart(socketId)
 			}
 			this.quitGameCreateRoom(socketId, index)
 		}
-		// On enleve les games en gamewaiting room
+
+		//If Game was waiting for second player stops the process
 		index = this.isGameWaiting(socketId)
 		if (index != -1)
 		{
-			this.gamesWaitingRoom[index].disconnectPlayer1()
+			console.log("Disconnecting a waiting game")
+			this.gamesWaitingRoom[index].stopGameBeforeStart()
 			this.quitGameWaitingRoom(socketId, index)
 		}
 
-		//Todo : faire le disconect pour les invits
+
 		index = this.isGameInvite(socketId)
 		if (index != -1)
 		{
-			if (this.gamesInvite[index].player1Socket)
-			{
-				if (this.gamesInvite[index].player1Socket.id == socketId)
-					this.gamesInvite[index].disconnectPlayer1()
-			}
-			else if (this.gamesInvite[index].player2Socket)
-			{
-				if (this.gamesInvite[index].player2Socket.id == socketId)
-				{
-					this.gamesInvite[index].disconnectPlayer2()
-				}
-			}
+			console.log("Disconnecting an Invite game")
+			this.gamesInvite[index].disconnectPlayerBeforeStart(socketId)
 			this.quitGameInvite(socketId)
 		}
+
+		index = this.isSpectating(socketId)
+		if (index != -1)
+		{
+			let index2 = this.gamesRoom.findIndex(game =>
+				game.instanceId == this.spectators[index].gameId)
+			if (index != -1)
+			{
+				this.gamesRoom[index2].disconnectSpectator(socketId)
+			}
+			this.quitSpectators(socketId)
+		}
+		console.log("The game room : " + this.gamesRoom)
+		console.log("The Game waiting room : " + this.gamesWaitingRoom)
+		console.log("The game Create room : " + this.gamesCreateRoom)
+		console.log("The playing games are : " + this.gamesPlayingRoom)
+		console.log("The playing players are : " + this.usersInGame)
+		console.log("The spectators are : " + this.spectators)
 	}
 
+
+	//State information functions to identify the state of the game of the player
 	isGaming(socketId : string)
 	{
-		let index = this.gamesRoom.findIndex(game => 
-			game.player1Socket.id == socketId 
+		let index = this.gamesRoom.findIndex(game => {
+			if (game.player1Socket)
+			{
+				return (game.player1Socket.id == socketId)
+			}
+			return (false)
+		}
 		)
 		if (index == -1)
 		{
 			index = this.gamesRoom.findIndex(game => 
-				game.player2Socket.id == socketId 
+				game.player2Socket?.id === socketId
 			)
 		}
 		return (index)
@@ -360,22 +502,38 @@ export class GameService {
 		let index = this.gamesInvite.findIndex(game => {
 			if (game.player1Socket)
 			{
-				game.player1Socket.id == socketId
-			}})
+				return (game.player1Socket.id == socketId)
+			}
+			return (false)
+		})
 		if (index == -1)
 		{
 			index  = this.gamesInvite.findIndex(game => {
 				if (game.player2Socket)
 				{
-					game.player2Socket.id == socketId
+					game.player2Socket?.id == socketId
 				}
 			})
 		}
 		return (index)
 	}
 
+	isInGame(userId : string) : number
+	{
+		let index = this.usersInGame.findIndex(Id => userId == Id)
+		return (index)
+	}
 
-	//Creation d'invitation 
+	isSpectating(socketId : string) : number
+	{
+		let index = this.spectators.findIndex(spectator =>
+			spectator.socket.id == socketId)
+		return (index)
+	}
+
+
+
+	//Invite functions to redirect players who followed and invite link
 	createInvite()
 	{
 		let newGame : Game = new Game(this.gamesRoom.length, null, null , this)
@@ -384,14 +542,12 @@ export class GameService {
 		newGame.changeInviteId(this.gamesInvite.length)
 		this.gamesInvite.push(newGame)
 		//Todo mettre un timeout si le createur arrive pas sur la page, on detruit la game
-		//Todo : envoyer un message a l'autre mec qui va devoir join via le chat servcie de steff
-		
 		return (newGame.inviteId)
 	}
 
-	startInvite(client : Socket, data : any)
+	startInvite(client : Socket, data : StartInviteDto)
 	{
-		let index = this.gamesInvite.findIndex(game => game.inviteId == data.instanceId)
+		let index = this.gamesInvite.findIndex(game => game.inviteId == data.gameId)
 		if (index != -1)
 		{
 			this.gamesInvite[index].player1Socket = client
@@ -422,9 +578,9 @@ export class GameService {
 		}
 	}
 
-	//Create History 
-
-	async createGameHistory(player1Id : string, player2Id : string, scoreP1 : number, scoreP2 : number)
+	//Game history functions to add the history to the database
+	//Todo : faire des throw et gerer les erreurs mieux
+	async createGameHistory(player1Id : string, player2Id : string, scoreP1 : number, scoreP2 : number, winnerId : number)
 	{
 		let gameHistory = this.gameRepository.create()
 		let user1 = await this.usersService.findUserEntity({id : player1Id})
@@ -445,6 +601,14 @@ export class GameService {
 		gameHistory.user2 = user2
 		gameHistory.scoreP1 = scoreP1
 		gameHistory.scoreP2 = scoreP2
+		if (winnerId == 1)
+		{
+			gameHistory.winner = user1
+		}
+		else
+		{
+			gameHistory.winner = user2
+		}
 		this.gameRepository.save(gameHistory).then(() => {
 			console.log("Added a game history for " + player1Id + "and " + player2Id)
 		}).catch(() => {

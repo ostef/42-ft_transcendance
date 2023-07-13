@@ -18,8 +18,9 @@ export default class Paddle {
 	paddlePos : {height : number, width: number, centerPos : {x : number, y : number}, front : Segment}
 	frontSegment : Segment
 	player : boolean
+	difficulty : number
 
-	constructor(canvas : string, color :string, xpos : number, player : boolean, difficulty : number) {
+	constructor(canvas : string, color :string, xpos : number, player : boolean, difficulty : string) {
 		//True is left, False is right
 		this.player = player
 		this.xpos = xpos
@@ -27,12 +28,14 @@ export default class Paddle {
 		this.ypos = 0
 		this.canvasAbsoluteStart = 20 / 100
 		this.mainCanvas = document.querySelector(canvas)
-		this.height = this.setDifficulty(difficulty)
+		this.difficulty = this.setDifficulty(difficulty)
+		this.height = 0
 		this.width = this.mainCanvas.width * 0.01
 		this.context = this.mainCanvas.getContext("2d")
 		this.frontSegment = { A : {x : 0, y : 0}, B : {x : 0, y : 0} }
 		this.paddlePos = { height : this.height, width : this.width, 
 			centerPos : {x : this.xpos, y : this.ypos}, front : this.frontSegment}
+		this.setHeightDif()
 		this.setYpos(this.mainCanvas?.height / 2)
 		if (player)
 		{
@@ -74,21 +77,41 @@ export default class Paddle {
 		return(this.width)
 	}
 
-	setDifficulty(difficulty : number) : number
+	setDifficulty(difficulty : string) : number
 	{
-		if (difficulty === 1)
+		if (difficulty === "default")
 		{
-			return this.mainCanvas.height / 7
+			return 1
 		}
-		if (difficulty === 2)
+		if (difficulty === "easy")
 		{
-			return (this.mainCanvas.height / 9)
+			return 1
 		}
-		if (difficulty === 3)
+		if (difficulty === "medium")
 		{
-			return this.mainCanvas.height / 11
+			return (2)
+		}
+		if (difficulty === "hard")
+		{
+			return 3
 		}
 		return 0
+	}
+
+	setHeightDif()
+	{
+		if (this.difficulty == 1)
+		{
+			this.setHeight(this.mainCanvas.height / 7)
+		}
+		if (this.difficulty == 2)
+		{
+			this.setHeight(this.mainCanvas.height / 11)
+		}
+		if (this.difficulty == 3)
+		{
+			this.setHeight(this.mainCanvas.height / 13)
+		}
 	}
 
 	setXpos(value : number) : void

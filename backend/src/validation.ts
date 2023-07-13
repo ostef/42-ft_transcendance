@@ -55,5 +55,5 @@ export function validatePngFilename (value: string): boolean
 
     const ext = value.split (".").pop ().split("?")[0];
 
-    return (ext.toLowerCase () == "png" || ext.toLowerCase () == "jpg");
+    return ext.toLowerCase () == "png";
 }

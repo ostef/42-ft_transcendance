@@ -2,14 +2,12 @@ import { createRouter, createWebHistory } from "vue-router"
 import HomeView from "@/views/Home.vue";
 import ChatView from "@/views/Chat.vue";
 import LoginView from "@/views/Login.vue";
-import ProfileView from "@/views/Profile.vue";
-import SettingsView from "@/components/SettingsModal.vue";
-import GamePage from '../views/GamePage.vue';
 import TestPage from '../views/TestSocket.vue';
 import axios from "axios";
 
 import { useUserStore } from "@/stores/user";
 import { updateUserInfo, logout, isAuthenticated } from "@/authentication";
+
 
 const router = createRouter ({
     history: createWebHistory (import.meta.env.BASE_URL),
@@ -30,19 +28,9 @@ const router = createRouter ({
             component: ChatView
         },
         {
-            path: '/game',
-            name: 'gamepage',
-            component: GamePage
-        },
-        {
-            path: '/test/:id',
+            path: '/game/:id',
             name: 'testpage',
             component: TestPage
-        },
-        {
-            path: "/settings",
-            name: "Settings",
-            component: SettingsView
         },
         {
             path: "/profile",
@@ -53,7 +41,7 @@ const router = createRouter ({
 });
 
 router.beforeEach (async (to, from, next) => {
-    const userStore = useUserStore ();
+    const store = useStore ();
 
     const authenticated = await isAuthenticated ();
 
@@ -67,7 +55,8 @@ router.beforeEach (async (to, from, next) => {
     {
         try
         {
-            await updateUserInfo ();
+            await fetchUserInfo ();
+            connectChatSocket ();
         }
         catch (err)
         {
@@ -81,7 +70,7 @@ router.beforeEach (async (to, from, next) => {
     }
     else
     {
-        userStore.user = null;
+        store.loggedUser = null;
     }
 
     return next ();

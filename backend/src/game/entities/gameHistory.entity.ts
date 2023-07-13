@@ -27,4 +27,7 @@ export class gameHistoryEntity
 
     @Column()
     scoreP2 : number
+
+    @ManyToOne(() => UserEntity)
+    winner : UserEntity
 }

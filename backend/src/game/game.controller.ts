@@ -1,5 +1,7 @@
 import { Controller, Get, Post, Body, Param, Patch, Delete} from '@nestjs/common';
 import { GameService } from './game.service';
+import { get } from 'http';
+import { GameSpectateDto } from './dto/game.dto';
 
 
 @Controller('game')
@@ -36,6 +38,13 @@ export class GameController {
      getMatchHistory(@Param('id') id : string) {
         return this.gameService.getMatchHistory(id);
     }
+
+	@Get("Spectate")
+	async getSpectateList() : Promise<GameSpectateDto> {
+		let gamesSpectate = await this.gameService.getPlayingGames()
+		console.log(gamesSpectate)
+		return (gamesSpectate)
+	}
 
     @Post()
     createInvite() : number {

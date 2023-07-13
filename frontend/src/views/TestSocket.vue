@@ -1,16 +1,22 @@
 <template>
-    <div>
-    <div class="leftbar"></div>
-    <div class="rightbar"></div>
-    <div class="navbar2"></div>
-	<button class="btn normal-case" @click="searchGame()">Search Game</button>
-	<button class="btn normal-case" @click="createGame()">Create Game</button>
-    <div class="score">
-        <div id="player1-score">0</div>
-        <div id="player2-score">0</div>
-    </div>
-
-    <canvas class="canvas" id="myCanvas"></canvas>
+    <div class="place-content-center content-center justify-center">
+		<MenuComp v-if="menu" @on-search="searchGame()" @on-create="createGame()" @on-spectate="spectateGame()"/>
+		<div class="flex justify-center font-bold text-6xl text-black" v-show="game">
+			<div class="h-4/6" id="player1-score">0</div>
+			<div class="h-2/6">-</div>
+			<div class="h-4/6" id="player2-score">0</div>
+		</div>
+		<WaitingForPlayerVue v-if="waitingPlayer" @disconnect="disconnectPlayerWaiting"/>
+		<div class="flex flex-none content-center justify-center place-content-center">
+			<canvas class="flex-none w-3/5 border-4 mt-12 h-3/5 mb-10" id="myCanvas" v-show="game"></canvas>
+		</div>
+		<Spectate v-if="spectate" @spectateEnd="returnToMenu" @spectateGame="startSpectateGame"/>
+		<ConfigurateComp v-if="configurate" @on-config="configurateChoice" @disconnect="disconnectPlayerWaiting"/>
+		<DisconnectVue v-if="disconnect" @disconnectOk="returnToMenu" />
+		<LooseVue v-if="lost" @looseOk="returnToMenu" />
+		<WinVue v-if="won" @winOk="returnToMenu" />
+		<DisconnectGameVue v-if="disconnectGame" @disconnectGameOk="returnToMenu"/>
+		<GameNotFoundVue v-if="gameNotFoundState" @gameNotFoundOk="returnToMenu" />
     </div>
 </template>
 
@@ -24,6 +30,15 @@ import Paddle from "../script/game/Paddle"
 import App from "../App.vue";
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from 'pinia';
+import MenuComp from "../components/game/Menu.vue"
+import ConfigurateComp from "../components/game/Configurate.vue"
+import WaitingForPlayerVue from '../components/game/WaitingForPlayer.vue';
+import DisconnectVue from '../components/game/Disconnect.vue';
+import WinVue from '../components/game/Win.vue';
+import LooseVue from "@/components/game/Loose.vue";
+import DisconnectGameVue from "@/components/game/DisconnectGame.vue"
+import GameNotFoundVue from '@/components/game/GameNotFound.vue'
+import Spectate from "@/components/game/Spectate.vue";
 
 //Todo faire des fichiers de types
 type Point = {x: number; y: number}
@@ -31,13 +46,27 @@ type Segment = { A: Point; B : Point}
 type PaddlePos = {height : number, width: number, centerPos : {x : number, y : number}, front : Segment}
 type Score =  {p1 : number, p2 : number}
 
+
+//Todo : faire les dto cote front
 export default {
     name : 'TestSocket',
     components : {
+		MenuComp,
+		ConfigurateComp,
+		WaitingForPlayerVue,
+		DisconnectVue,
+		WinVue,
+		LooseVue,
+		DisconnectGameVue,
+		GameNotFoundVue,
+		Spectate,
     },
     data () {
         return {
 			socket : {} as ReturnType<typeof io>,
+
+
+			//Game related objects
 			context : {} as CanvasRenderingContext2D | null,
 			ball :  {} as Ball,
 			paddleLeft : {} as Paddle,
@@ -45,17 +74,43 @@ export default {
 			leftScore : {} as HTMLElement | null,
 			rightScore : {} as HTMLElement | null,
 			canvas : {} as HTMLCanvasElement | null,
+
+			//Drawing informations about canvas position on the window
 			canvasAbsoluteSize : 60/100,
 			canvasAbsoluteStart : 20/100,
-			ownPaddle : "",
+			canvasAbsoluteEnd : 0,
+			canvaspos : {},
+
+
 			gameId : 0,
 			waiting : false as boolean,
 			isPlaying : false as boolean,
 			intervalId : {} as ReturnType<typeof setInterval>,
 			delta : 15,
-			difficulty : 1 as number,
-			inviteId : "" as any,
-			userStore : null
+
+			//Game configuration options
+			ownPaddle : "",
+			difficulty : "default" as string,
+			color : "" as string,
+
+			inviteId : "" as string,
+			
+			userStore : null,
+
+
+			//VUE js Components states
+			menu : true,
+			game : false,
+			configurate : false,
+			waitingPlayer : false,
+			disconnect : false,
+			won : false,
+			lost : false,
+			disconnectGame : false,
+			gameNotFoundState : false,
+			spectate : false,
+			isSpectating : false,
+			initialised : false
         }
     },
     created () {
@@ -64,45 +119,27 @@ export default {
 			
 		)
 
-		//Todo Coder toutes les fonctions des listens
-
 		//Events to connect
 		this.socket.on("onConnection" , data => {
 			console.log(data.id)
 		})
 
 		//Events to join waiting room or games
-		this.socket.on("waitingMessage", data => {
-			//this.launchWaitRoom()
-		})
 		this.socket.on("foundGame", (playerPos, gameId, difficulty, color) => {
-			console.log("Found a game with game id : ", gameId)
-			if (playerPos === "right")
+			this.difficulty = difficulty
+			if (this.canvas)
 			{
-				if (this.canvas)
-				{
-					this.paddleLeft = new Paddle("canvas", "black", 5, true, difficulty)
-					this.paddleRight = new Paddle("canvas", "black", this.canvas.width - 5, false, difficulty)
-				}
+				this.paddleLeft = new Paddle("canvas", "black", 0.01 * this.canvas.width, true, this.difficulty)
+				this.paddleRight = new Paddle("canvas", "black", this.canvas.width - 0.01 * this.canvas.width, false, this.difficulty)
 			}
-			console.log("the color is : " + color)
+			this.menu = false
+			this.game = true
+			this.waitingPlayer = false
 			this.joinGame(playerPos, gameId, difficulty, color)
 		})
 		this.socket.on("configurateGame", (gameId) => {
-			this.configurateGame(gameId)
-			//Todo Coder le configurate game et le front pour que ca affiche le component configurate
+			this.configureGame(gameId)
 		})
-		/*this.socket.on("chooseDifficulty", (gameId) => {
-			console.log("choosing a difficulty")
-			this.chooseDifficulty(gameId)
-		})
-		this.socket.on("chooseColor", (gameId) => {
-			console.log("choosing a color")
-			this.chooseColor(gameId)
-		})*/
-
-
-
 
 		//Game events on updtaing padddle, ball and score
 		this.socket.on("ballUpdate", data => {
@@ -131,7 +168,7 @@ export default {
 		})
 
 		//Event d'invitation
-		this.socket.on("waitinPlayerInvite", data => {
+		this.socket.on("waitingPlayerInvite", data => {
 			console.log("Waiting for the invited player")
 			this.waitPlayer2()
 		}) 
@@ -143,7 +180,24 @@ export default {
 			console.log("Joined a game in wich i was invited")
 			this.joinedGameInvite(data)
 		})
-		//Todo : Coder la recpetion d'event de deconnexion pour stop la game
+		this.socket.on('otherPlayerDisconnectedGame', () => {
+			console.log("Disconnected second player while playing")
+			this.playerDisconnectGame()
+		})
+		this.socket.on('OtherPlayerDisconnected', () => {
+			console.log("Other player disconnected")
+			this.playerDisconnect()
+		})
+
+		//Event de spectate 
+		this.socket.on('endOfSpectate', () => {
+			console.log("End of the spectate")
+			this.endSpectate()
+		})
+		this.socket.on('endOfSpectateDisconnect', () => {
+			console.log("End of spectate because of disconnect")
+			this.spectateDisconnect()
+		})
     },
 
 	mounted() {
@@ -171,22 +225,33 @@ export default {
 		}
 		else if (this.inviteId[0] == 'j')
 		{
+			console.log("Joining a game as invited player")
 			this.inviteId = this.inviteId.slice(1)
+			console.log("the Id is : " + this.inviteId)
 			this.joinGameInvite(this.inviteId)
 		}
 
 
 		document.addEventListener("mousemove", e => {
 			let mouseHeight = 0
+			
 			if (this.isPlaying)
 			{
-				if (e.y <= window.innerHeight * this.canvasAbsoluteStart + this.paddleLeft.getHeight() / 2)
+				if (!this.initialised)
+				{
+					this.canvaspos = this.canvas.getBoundingClientRect()
+					this.canvasAbsoluteStart = this.canvaspos.top / window.innerHeight
+					this.canvasAbsoluteEnd = this.canvaspos.bottom / window.innerHeight
+					console.log("The absolute start is : " + this.canvasAbsoluteStart)
+					console.log("The absolute end : " + this.canvasAbsoluteEnd)
+				}
+				if (e.y <= (window.innerHeight * this.canvasAbsoluteStart) + this.paddleLeft.getHeight() / 2)
 				{
 					mouseHeight = (this.paddleLeft.getHeight() / 2) / this.canvas.height
 					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 					return
 				}
-				else if (e.y >= window.innerHeight - window.innerHeight * this.canvasAbsoluteStart - this.paddleLeft.getHeight() / 2)
+				else if (e.y >= window.innerHeight * this.canvasAbsoluteEnd - this.paddleLeft.getHeight() / 2)
 				{
 					if (this.canvas)
 						mouseHeight = (this.canvas.height - this.paddleLeft.getHeight() / 2) / this.canvas.height
@@ -205,22 +270,37 @@ export default {
 	},
 	methods: {
 		
+
+		disconnectPlayerWaiting()
+		{
+			this.socket.emit('disconnectWaiting')
+			this.waitingPlayer = false
+			this.menu = true
+			this.configurate = false
+		},
 		//Event pour waiting room et game
-		launchWaitRoom() {
-			this.waiting = true
-			//Todo est-ce que c'est toujours utile ?
-			this.intervalId = setInterval(this.waitRoom.bind(this), 1000)
+		waitForPlayer() {
+			this.configurate = false
+			this.waitingPlayer = true
 		},
 		
 		windowresize() {
+			this.canvaspos = this.canvas.getBoundingClientRect()
+			this.canvasAbsoluteStart = this.canvaspos.top / window.innerHeight
+			this.canvasAbsoluteEnd = this.canvaspos.bottom / window.innerHeight
 			this.canvas.height = window.innerHeight * this.canvasAbsoluteSize
 			this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
 			this.ball.mainCanvas.width = this.canvas.width
 			this.ball.mainCanvas.height = this.canvas.height
-			this.paddleLeft.mainCanvas.width = this.canvas.width
-			this.paddleLeft.mainCanvas.height = this.canvas.height
-			this.paddleRight.mainCanvas.width = this.canvas.width
-			this.paddleRight.mainCanvas.height = this.canvas.height
+			if (this.isPlaying == true)
+			{
+				this.paddleLeft.mainCanvas.width = this.canvas.width
+				this.paddleLeft.mainCanvas.height = this.canvas.height
+				this.paddleLeft.setHeightDif()
+				this.paddleRight.mainCanvas.width = this.canvas.width
+				this.paddleRight.mainCanvas.height = this.canvas.height
+				this.paddleRight.setHeightDif()
+			}
 		},
 
 
@@ -230,32 +310,71 @@ export default {
 		},
 
 		searchGame() {
-			this.socket.emit("searchGame", {canvas : {width : this.canvas?.width, height : this.canvas?.height}, window  : { width : window.innerWidth, height : window.innerHeight} })
+			this.menu = false
+			this.waitingPlayer = true
+			this.socket.emit("searchGame")
 		},
 
 		createGame()
 		{
 			console.log("creating a Game")
-			this.socket.emit("createGame", {canvas : {width : this.canvas?.width, height : this.canvas?.height}, window  : { width : window.innerWidth, height : window.innerHeight} })
+			this.socket.emit("createGame")
 		},
 
-		chooseDifficulty(gameId : number)
+
+		//Fonctions de spectate
+		spectateGame()
+		{
+			this.menu = false
+			this.spectate = true
+		},
+
+		startSpectateGame(gameInstance : number, gameDifficulty : string, gameColor : string)
+		{
+			this.difficulty = gameDifficulty
+			this.ownPaddle = "left"
+			this.ball.color = gameColor
+			this.socket.emit("StartSpectating", { gameId : gameInstance })
+			this.paddleLeft = new Paddle("canvas", "black", 0.01 * this.canvas.width, true, this.difficulty)
+			this.paddleRight = new Paddle("canvas", "black", this.canvas.width - 0.01 * this.canvas.width, false, this.difficulty)
+			this.spectate = false
+			this.game = true
+			this.isSpectating = true
+		},
+
+		endSpectate()
+		{
+			this.game = false
+			this.menu = true
+			this.updateScore({p1 : 0, p2 : 0 })
+		},
+
+		spectateDisconnect()
+		{
+			this.game = false
+			this.menu = true
+			this.updateScore({p1 : 0, p2 : 0 })
+		},
+
+
+
+		configureGame(gameId)
 		{
 			this.gameId = gameId
-			//Todo Doit attendre une difficulty du joueur et créer les paddle en fonction
-			//et emit au serveur
-			if (this.canvas)
-			{
-				this.paddleLeft = new Paddle("canvas", "black", 0.01 * this.canvas.width, true, 1)
-				this.paddleRight = new Paddle("canvas", "black", this.canvas.width - 0.01 * this.canvas.width, false, 1)
-			}
-			this.socket.emit("difficultyChoice", {gameId : this.gameId, difficulty : 1})
+			this.menu = false
+			this.configurate = true
+			this.waitingPlayer = false
 		},
 
-		chooseColor(gameId : number)
+		configurateChoice(color : string, difficulty : string)
 		{
-			//Todo : choisir la color en front et l'envoyer au back
-			this.socket.emit("addColor", {gameId : this.gameId, color : "green"})
+			console.log("difficulty is " + difficulty)
+			console.log("color is : " + color)
+			this.color = color
+			this.difficulty = difficulty
+			this.configurate = false
+			this.waitingPlayer = true
+			this.socket.emit('configurate', {gameId : this.gameId, color : this.color, difficulty : this.difficulty})
 		},
 		
 		joinGame(playerPos : string, gameId : number, difficulty : number, color : string) {
@@ -267,13 +386,12 @@ export default {
 			this.isPlaying = true
 			this.difficulty = difficulty
 			this.ball.color = color
-			console.log("useId is : " + this.userStore.user.id)
 			this.socket.emit("userId", {gameId : this.gameId, userId : this.userStore.user.id})
 		},
 
 		//Event pour le déroulement de la partie
 		updateBall( ballCenter : Point ) {
-			if (this.isPlaying)
+			if (this.isPlaying || this.isSpectating)
 			{
 				this.ball.setxpos(ballCenter.x * this.canvas.width)
 				this.ball.setypos(ballCenter.y * this.canvas.height)
@@ -282,7 +400,7 @@ export default {
 
 		updateOwnPadle(ownPaddle : PaddlePos) 
 		{
-			if (this.isPlaying)
+			if (this.isPlaying || this.isSpectating)
 			{
 				if (this.ownPaddle === "left")
 				{
@@ -299,7 +417,7 @@ export default {
 
 		updateOtherPaddle(otherPaddle : PaddlePos)
 		{
-			if (this.isPlaying)
+			if (this.isPlaying || this.isSpectating)
 			{
 				if (this.ownPaddle === "right")
 				{
@@ -323,7 +441,7 @@ export default {
 
 		drawFrame()
 		{
-			if (this.isPlaying)
+			if (this.isPlaying || this.isSpectating)
 			{
 				if (this.canvas)
 					this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -335,7 +453,7 @@ export default {
 
 		drawNextFrame()
 		{
-			if (this.isPlaying)
+			if (this.isPlaying || this.isSpectating)
 			{
 				if (this.canvas)
 					this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -349,8 +467,10 @@ export default {
 
 		handleWin()
 		{
-			//Todo Coder la partie ou la page nous affiche que l'on a gagné
+			this.game = false
+			this.won = true
 			this.isPlaying = false
+			this.updateScore({p1 : 0, p2 : 0})
 			if (this.canvas)
 			{
 				this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -359,40 +479,82 @@ export default {
 
 		handleLoose()
 		{
-			//Todo Coder la partie ou la page nous affiche la défaite
+			this.game = false
+			this.lost = true
 			this.isPlaying = false
+			this.updateScore({p1 : 0, p2 : 0})
 			if (this.canvas)
 			{
 				this.context?.clearRect(0, 0, this.canvas.width, this.canvas.height)
 			}
 		},
 
+		//Event de gestion de deconnection
+
+		playerDisconnect()
+		{
+			this.game = false
+			this.isPlaying = false
+			this.configurate = false
+			this.waitingPlayer = false
+			this.disconnect = true
+		},
+
+		playerDisconnectGame()
+		{
+			this.game = false
+			this.isPlaying = false
+			this.configurate = false
+			this.waitingPlayer = false
+			this.disconnect = false
+			this.disconnectGame = true
+		},
+
+		returnToMenu()
+		{
+			this.disconnect = false
+			this.menu = true
+			this.game = false
+			this.configurate = false
+			this.waitingPlayer = false
+			this.disconnect = false
+			this.won = false
+			this.lost = false
+			this.disconnectGame = false
+			this.gameNotFoundState = false
+			this.spectate = false
+			this.updateScore({p1 : 0, p2 : 0 })
+		},
+
 		//Methode d'invitation
 		creatorGameInvite(gameId : string)
 		{
-			this.socket.emit("startInvite", {instanceId : gameId, canvas : {width : this.canvas?.width, height : this.canvas?.height}, 
-			windonw : {width : window.innerWidth, height : window.innerHeight}})
+			this.socket.emit("startInvite", { gameId : gameId })
 		},
 
 		joinGameInvite(gameId : string)
 		{
-			this.socket.emit("joinInvite", gameId)
+			this.socket.emit("joinInvite", { gameId : gameId })
 		},
 
 		waitPlayer2()
 		{
-			//Todo : coder en front un ecran de waiting
+			this.menu = false
+			this.waitingPlayer = true
 		},
 
 		gameNotFound()
 		{
-			//Todo : coder un game not found pour un instance id de merde
+			this.menu = false
+			this.gameNotFoundState = true
+			this.game = false
 		},
 
 		joinedGameInvite(gameId : number)
 		{
 			this.gameId = gameId
-			//Todo : coder la partie front pour annoncer que l'on attend que le createur de partie finisse de configurer
+			this.menu = false
+			this.waitingPlayer = true
 		}
 	}
 }
@@ -418,66 +580,13 @@ margin: 0;
 background-color: var(--background-color);
 }
 
-.canvas {
+/*.canvas {
 position: absolute;
 border: 5px solid;
 top: 20%;
 left: 20%;
 width: 60%;
 height: 60%;
-}
-
-.leftbar {
-position: absolute;
-left: 0px;
-width: 20%;
-}
-
-.rightbar {
-position: absolute;
-right: 0px;
-width: 20%;
-}
-
-.navbar2 {
-position: absolute;
-top : 0px;
-height: 20%;
-}
-
-.searchGame {
-	position: absolute;
-	top : 0px;
-	height: 20%;
-	left : 20%
-}
-
-.createGame {
-	position: absolute;
-	top : 0px;
-	height: 20%;
-	left : 70%
-}
-
-.score {
-display: flex;
-justify-content: center;
-font-weight: bold;
-font-size: 7vh;
-color: var(--foreground-color);
-}
-
-.score > * {
-flex-grow: 1;
-flex-basis: 0;
-padding: 0 2vh;
-margin: 1vh 0;
-opacity: .5;
-}
-
-.score > :first-child {
-text-align: right;
-border-right: .5vh solid var(--foreground-color);
-}
+}*/
 
 </style>

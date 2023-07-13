@@ -42,7 +42,6 @@ export class UsersService
 
     async createUser (params: CreateUserDto): Promise<UserEntity>
     {
-        console.log(params)
         CreateUserDto.validate (params);
 
         if (!await this.isUsernameAvailable (params.username))
@@ -85,16 +84,7 @@ export class UsersService
     {
         UpdateUserDto.validate (params);
 
-        // All fields of params must have been validated so we don't
-        // check them here. This is kind of the way things are supposed
-        // to be done even though I don't really like it...
-
-        const user = await this.findUserEntity ({id: id},
-            {
-                friends: params.friendsToRemove != undefined,
-                blockedUsers: params.usersToBlock != undefined || params.usersToUnblock != undefined,
-            });
-
+        const user = await this.findUserEntity ({id: id}, {friends: true, blockedUsers: true});
         if (!user)
             throw new Error ("Invalid user id " + id);
 
@@ -124,6 +114,48 @@ export class UsersService
             user.avatarFile = params.avatarFile;
         }
 
+        if (params.usersToBlock != undefined)
+        {
+            for (const otherId of params.usersToBlock)
+            {
+                if (otherId == user.id)
+                    throw new Error ("Cannot block self");
+
+                const other = await this.findUserEntity ({id: otherId}, {friends: true});
+                if (!other)
+                    throw new Error ("User does not exist");
+
+                if (!user.hasBlocked (otherId))
+                    user.blockedUsers.push (other);
+
+                const friendIndex = user.friends.findIndex ((val) => val.id == otherId);
+                if (friendIndex != -1)
+                    user.friends.splice (friendIndex, 1);
+
+                const otherFriendIndex = other.friends.findIndex (val => val.id == user.id);
+                if (otherFriendIndex != -1)
+                    other.friends.splice (otherFriendIndex, 1);
+
+                toSave.push (other);
+            }
+        }
+
+        if (params.usersToUnblock != undefined)
+        {
+            for (const otherId of params.usersToUnblock)
+            {
+                const other = await this.findUserEntity ({id: otherId});
+                if (!other)
+                    throw new Error ("User does not exist");
+
+                const index = user.blockedUsers.findIndex ((val: UserEntity) => val.id == other.id);
+                if (index == -1)
+                    throw new Error ("User is not blocked");
+
+                user.blockedUsers.splice (index, 1);
+            }
+        }
+
         if (params.friendsToRemove != undefined)
         {
             for (const remId of params.friendsToRemove)
@@ -135,44 +167,12 @@ export class UsersService
                 const userIdx = user.friends.findIndex ((val: UserEntity) => val.id == toRemove.id);
                 const toRemoveIdx = toRemove.friends.findIndex ((val: UserEntity) => val.id == user.id);
                 if (userIdx == -1 || toRemoveIdx == -1)
-                    throw new Error ("You are not a friends with this user");
+                    throw new Error ("You are not friends with this user");
 
-                delete user.friends[userIdx];
-                delete toRemove.friends[toRemoveIdx];
+                user.friends.splice (userIdx, 1);
+                toRemove.friends.splice (toRemoveIdx, 1);
 
                 toSave.push (toRemove);
-            }
-        }
-
-        if (params.usersToBlock != undefined)
-        {
-            for (const otherId of params.usersToBlock)
-            {
-                if (otherId == user.id)
-                    throw new Error ("Cannot block self");
-
-                const other = await this.findUserEntity ({id: otherId});
-                if (!other)
-                    throw new Error ("User does not exist");
-
-                if (user.blockedUsers.findIndex ((val: UserEntity) => val.id == other.id) != -1)
-                    user.blockedUsers.push (other);
-            }
-        }
-
-        if (params.usersToUnblock != undefined)
-        {
-            for (const otherId of params.usersToBlock)
-            {
-                const other = await this.findUserEntity ({id: otherId});
-                if (!other)
-                    throw new Error ("User does not exist");
-
-                const index = user.blockedUsers.findIndex ((val: UserEntity) => val.id == other.id);
-                if (index == -1)
-                    throw new Error ("User is not blocked");
-
-                delete user.blockedUsers[index];
             }
         }
 
@@ -187,14 +187,25 @@ export class UsersService
         await this.usersRepository.save (user);
     }
 
-    // Returns the user entity that satisfies the params, null if it does not exist
+    // Returns the entity that satisfies the params, null if it does not exist
     async findFriendRequest (params: any): Promise<FriendRequestEntity>
     {
         return await this.friendRequestsRepository.findOne ({
             where: params,
             relations: {
-                fromUser: {friends: true},
-                toUser:   {friends: true}
+                fromUser: {friends: true, blockedUsers: true},
+                toUser:   {friends: true, blockedUsers: true}
+            }
+        });
+    }
+
+    async findMultipleFriendRequests (params: any): Promise<FriendRequestEntity[]>
+    {
+        return await this.friendRequestsRepository.find ({
+            where: params,
+            relations: {
+                fromUser: {friends: true, blockedUsers: true},
+                toUser:   {friends: true, blockedUsers: true}
             }
         });
     }
@@ -206,19 +217,25 @@ export class UsersService
         if (params.fromUser == params.toUser)
             throw new Error ("Cannot send friend request to self");
 
-        const fromUser = await this.findUserEntity ({id: params.fromUser }, {friends: true});
+        const fromUser = await this.findUserEntity ({id: params.fromUser }, {friends: true, blockedUsers: true});
         if (!fromUser)
             throw new Error ("User does not exist");
 
-        const toUser = await this.findUserEntity ({id: params.toUser }, {friends: true});
+        const toUser = await this.findUserEntity ({id: params.toUser }, {friends: true, blockedUsers: true});
         if (!toUser)
             throw new Error ("User does not exist");
 
-        if (fromUser.friends.findIndex ((val: UserEntity) => val.id == params.toUser) != -1)
+        if (fromUser.isFriendsWith (params.toUser))
             throw new Error ("You are already friends with this user");
 
-        if (toUser.friends.findIndex ((val: UserEntity) => val.id == params.fromUser) != -1)
+        if (toUser.isFriendsWith (params.fromUser))
             throw new Error ("You are already friends with this user");
+
+        if (fromUser.hasBlocked (params.toUser))
+            throw new Error ("You have blocked this user");
+
+        if (toUser.hasBlocked (params.fromUser))
+            throw new Error ("You have been blocked by this user");
 
         const req = this.friendRequestsRepository.create ();
         req.fromUser = fromUser;
@@ -234,6 +251,15 @@ export class UsersService
         const req = await this.findFriendRequest (params);
         if (req == null)
             throw new Error ("Friend request does not exist");
+
+        if (req.fromUser.hasBlocked (req.toUser))
+            throw new Error ("This user has blocked you");
+
+        if (req.fromUser.hasBlocked (req.toUser))
+            throw new Error ("You have been blocked by this user");
+
+        if (req.toUser.hasBlocked (req.fromUser))
+            throw new Error ("You have blocked this user");
 
         req.fromUser.friends.push (req.toUser);
         req.toUser.friends.push (req.fromUser);

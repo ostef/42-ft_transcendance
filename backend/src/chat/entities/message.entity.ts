@@ -5,7 +5,7 @@ import {
 } from "typeorm";
 import { UserEntity } from "src/users/entities/user.entity";
 import { ChannelEntity } from "./channel.entity";
-import { InviteEntity } from "./invite.entity";
+import { ChannelInviteEntity } from "./channel_invite.entity";
 import { PrivateConversationEntity } from "./private_conversation.entity";
 
 @Entity ()
@@ -17,17 +17,18 @@ export class MessageEntity
     @ManyToOne (() => UserEntity)
     fromUser: UserEntity;
 
-    @ManyToOne (() => ChannelEntity, (chan) => chan.messages, {nullable: true})
-    toChannel: ChannelEntity;
+    @ManyToOne (() => ChannelEntity, (chan) => chan.messages, {nullable: true, onDelete: "CASCADE"})
+    toChannel?: ChannelEntity;
 
-    @ManyToOne (() => PrivateConversationEntity, (conv) => conv.messages, {nullable: true})
-    toPrivateConversation: PrivateConversationEntity;
+    @ManyToOne (() => PrivateConversationEntity, (conv) => conv.messages, {nullable: true, onDelete: "CASCADE"})
+    toPrivateConversation?: PrivateConversationEntity;
 
     @Column ({type: "text"})
     content: string;
 
-    @OneToOne (() => InviteEntity, (inv) => inv.message, {nullable: true})
-    invite: InviteEntity;
+    @OneToOne (() => ChannelInviteEntity, {eager: true, nullable: true})
+    @JoinColumn ()
+    invite?: ChannelInviteEntity;
 
     @CreateDateColumn ()
     timestamp: Date;

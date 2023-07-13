@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { FindOptionsRelations, Repository } from "typeorm";
 
 import { ChannelEntity } from "./entities/channel.entity";
-import { InviteEntity } from "./entities/invite.entity";
+import { ChannelInviteEntity } from "./entities/channel_invite.entity";
 import { CreateChannelDto, UpdateChannelDto } from "./entities/channel.dto";
 import { ChannelsService } from "./channels.service";
 
@@ -26,7 +26,25 @@ export class MessageService
         private channelService: ChannelsService,
     ) {}
 
-    async findOrCreatePrivConversation (first: UserEntity, second: UserEntity, relations: FindOptionsRelations<PrivateConversationEntity> = {}): Promise<PrivateConversationEntity>
+    async findPrivConversation (firstId: string, secondId: string, relations: FindOptionsRelations<PrivateConversationEntity> = {}): Promise<PrivateConversationEntity>
+    {
+        if (relations.firstUser == undefined)
+            relations.firstUser = true;
+
+        if (relations.secondUser == undefined)
+            relations.secondUser = true;
+
+        const firstKey = firstId.localeCompare (secondId) < 0 ? firstId : secondId;
+        const secondKey = firstId.localeCompare (secondId) < 0 ? secondId : firstId;
+        let conv = await this.privConvRepository.findOne ({
+            where: {firstUser: {id: firstKey}, secondUser: {id: secondKey}},
+            relations: relations
+        });
+
+        return conv;
+    }
+
+    async findOrCreatePrivConversation (first: UserEntity, second: UserEntity, relations: FindOptionsRelations<PrivateConversationEntity> = {}): Promise<{conv: PrivateConversationEntity, newConv: boolean}>
     {
         if (relations.firstUser == undefined)
             relations.firstUser = true;
@@ -42,30 +60,45 @@ export class MessageService
         });
 
         if (conv)
-            return conv;
+            return {conv: conv, newConv: false};
 
         conv = this.privConvRepository.create ({firstUser: firstKey, secondUser: secondKey});
+        conv.firstUserId = firstKey.id;
+        conv.secondUserId = secondKey.id;
+        conv.firstUser = firstKey;
+        conv.secondUser = secondKey;
+        conv.messages = [];
 
-        return await this.privConvRepository.save (conv);
+        conv = await this.privConvRepository.save (conv);
+
+        return {conv: conv, newConv: true};
     }
 
-    async sendMessageToUser (senderId: string, userId: string, content: string, invite: InviteEntity = null)
+    async findPrivateConversations (userId: string, relations: FindOptionsRelations<PrivateConversationEntity> = {}): Promise<PrivateConversationEntity[]>
+    {
+        const conv1 = await this.privConvRepository.find ({where: {firstUserId: userId}, relations: relations});
+        const conv2 = await this.privConvRepository.find ({where: {secondUserId: userId}, relations: relations});
+
+        return conv1.concat (conv2);
+    }
+
+    async sendMessageToUser (senderId: string, userId: string, content: string, invite: ChannelInviteEntity = null): Promise<{msg: MessageEntity, conv: PrivateConversationEntity, newConv: boolean}>
     {
         const sender = await this.usersService.findUserEntity ({id: senderId}, {blockedUsers: true});
         if (!sender)
-            throw new Error ("User " + senderId + " does not exist");
+            throw new Error ("User does not exist");
 
         const receiver = await this.usersService.findUserEntity ({id: userId}, {blockedUsers: true});
         if (!receiver)
-            throw new Error ("User " + userId + " does not exist");
+            throw new Error ("User  does not exist");
 
         if (receiver.hasBlocked (senderId))
-            throw new Error ("User " + senderId + " is blocked");
+            throw new Error ("User has blocked you");
 
         if (sender.hasBlocked (userId))
-            throw new Error ("User " + userId + " is blocked");
+            throw new Error ("User is blocked");
 
-        const conv = await this.findOrCreatePrivConversation (sender, receiver);
+        const {conv, newConv} = await this.findOrCreatePrivConversation (sender, receiver, {messages: true});
 
         let msg = this.messageRepository.create ();
         msg.fromUser = sender;
@@ -79,23 +112,25 @@ export class MessageService
         conv.messages.push (msg);
 
         await this.privConvRepository.save (conv);
+
+        return {msg: msg, conv: conv, newConv: newConv};
     }
 
-    async sendMessageToChannel (senderId: string, channelId: string, content: string, invite: InviteEntity = null): Promise<MessageEntity>
+    async sendMessageToChannel (senderId: string, channelId: string, content: string, invite: ChannelInviteEntity = null): Promise<MessageEntity>
     {
         const sender = await this.usersService.findUserEntity ({id: senderId});
         if (!sender)
-            throw new Error ("User " + senderId + " does not exist");
+            throw new Error ("User does not exist");
 
         const channel = await this.channelService.findChannelEntity ({id: channelId}, {users: true, mutedUsers: true, messages: true});
         if (!channel)
-            throw new Error ("Channel " + channelId + " does not exist");
+            throw new Error ("Channel does not exist");
 
         if (!channel.hasUser (sender))
-            throw new Error ("User " + senderId + " is not in channel " + channelId);
+            throw new Error ("You are not in this channel");
 
         if (channel.isMuted (sender))
-            throw new Error ("User " + senderId + " is muted");
+            throw new Error ("You are muted");
 
         let msg = this.messageRepository.create ();
         msg.fromUser = sender;

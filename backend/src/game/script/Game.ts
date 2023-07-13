@@ -19,11 +19,15 @@ export default class gameInstance {
 	timerId : ReturnType<typeof setInterval>
 	//Information sur les dimensions du canvas par rapport à la fenetre
 	delta : number
-	difficulty : number
+	difficulty : string
 	gameService : GameService
 	isReady : boolean
 	color : string
 	inviteId : number
+	isConfig : boolean
+	isPlaying : boolean
+	isWinner : number
+	spectators : Socket[] = []
 
 
 
@@ -32,20 +36,21 @@ export default class gameInstance {
 		this.instanceId = instanceId
 		this.player1Socket = player1
 		this.player2Socket = player2
-		this.delta = 15
+		this.delta = 5
 		this.score.p1 = 0
 		this.score.p2 = 0
-		this.difficulty = 1
+		this.difficulty = "default"
 		this.gameService = gameService
 		this.isReady = false
 		this.timerId
 		this.color = "red"
 		this.inviteId = -1
+		this.isConfig = false
 	}
 
 	createGame()
 	{
-		console.log("emitting configurate event")
+		console.log("emitting configurate event for the game " + this.instanceId)
 		this.player1Socket.emit("configurateGame", this.instanceId)
 	}
 
@@ -58,20 +63,26 @@ export default class gameInstance {
 	addColor(color : string)
 	{
 		console.log("Added color")
-		if (color == "default")
+		console.log("the color is : " + color)
+		//Todo : throw erreur en cas de donnes pourries ?
+		if (color != "default" && color != "green" && color != "red" && color != "black")
 		{
 			return ;
 		}
+		if (this.color == "default")
+			return ;
+		console.log("we changed the color")
 		this.color = color
 	}
 
-	addDifficulty(data : number)
+	addDifficulty(data : string)
 	{
 		console.log("Added the difficulty")
-		if (data == 0)
+		if (data != "default" && data != "easy" && data != "medium" && data != "hard")
 		{
 			return ;
 		}
+		//Todo : throw une erreur si on  pas une bonne valeur ?
 		this.difficulty = data
 	}
 	
@@ -82,7 +93,7 @@ export default class gameInstance {
 		{
 			this.handleLose()
 		}
-		if (this.score.p1 >= 10 || this.score.p2 >= 10)
+		if (this.score.p1 >= 100 || this.score.p2 >= 100)
 		{
 			this.handleWin()
 		}
@@ -95,6 +106,12 @@ export default class gameInstance {
 		this.player2Socket.emit('ownPaddle', this.paddleRight.getPaddlePos())
 		this.player2Socket.emit('otherPaddle', this.paddleLeft.getPaddlePos())
 
+		for (let spectator of this.spectators)
+		{
+			spectator.emit('ballUpdate', this.ball.getcenterpos())
+			spectator.emit('ownPaddle', this.paddleRight.getPaddlePos())
+			spectator.emit('otherPaddle', this.paddleLeft.getPaddlePos())
+		}
 	}
 
 	isLose() 
@@ -114,12 +131,20 @@ export default class gameInstance {
 			this.score.p1 += 1
 			this.player2Socket.emit('score', this.score)
 			this.player1Socket.emit('score', this.score)
+			for (let spectator of this.spectators)
+			{
+				spectator.emit('score', this.score)
+			}
 		}
 		else 
 		{
 			this.score.p2 += 1
 			this.player1Socket.emit('score', this.score)
 			this.player2Socket.emit('score', this.score)
+			for (let spectator of this.spectators)
+			{
+				spectator.emit('score', this.score)
+			}
 		}
 		this.ball.reset()
 		this.paddleLeft.reset()
@@ -128,16 +153,26 @@ export default class gameInstance {
 
 	handleWin()
 	{
-		if (this.score.p1 >= 10)
+		if (this.score.p1 >= 100)
 		{
+			this.isWinner = 1
 			this.player1Socket.emit("winGame")
 			this.player2Socket.emit("looseGame")
+			for (let spectator of this.spectators)
+			{
+				spectator.emit('endOfSpectate')
+			}
 			this.stopGame()
 		}
-		if (this.score.p2 >= 10)
+		if (this.score.p2 >= 100)
 		{
+			this.isWinner = 2
 			this.player2Socket.emit("winGame")
 			this.player1Socket.emit("looseGame")
+			for (let spectator of this.spectators)
+			{
+				spectator.emit('endOfSpectate')
+			}
 			this.stopGame()
 		}
 	}
@@ -150,6 +185,7 @@ export default class gameInstance {
 		this.paddleRight = new Paddle("white", 1 - 0.01, false, this.difficulty)
 		this.score.p1 = 0
 		this.score.p2 = 0
+		this.isPlaying = true
 		console.log("starting a game with ")
 		console.log(this.player1Socket.id)
 		console.log(this.player2Socket.id)
@@ -185,18 +221,71 @@ export default class gameInstance {
 		console.log("Disconnect from player 1")
 		if (this.player2Socket)
 		{
-			this.player2Socket.emit("otherPlayerDisconnected")
+			this.player2Socket.emit("otherPlayerDisconnectedGame")
+			for (let spectator of this.spectators)
+			{
+				console.log('We are disconnecting spectators !!!!!!!!!!!!!!!')
+				spectator.emit('endOfSpectateDisconnect')
+			}
 		}
+		this.isWinner = 2
 		this.stopGame()
 	}
-
+	
 	disconnectPlayer2()
 	{
 		console.log("Disconnect from player 2")
 		if (this.player1Socket)
 		{
-			this.player1Socket.emit("otherPlayerDisconnected")
+			this.player1Socket.emit("otherPlayerDisconnectedGame")
+			console.log("The spectators are : " + this.spectators)
+			for (let spectator of this.spectators)
+			{
+				spectator.emit('endOfSpectateDisconnect')
+			}
 		}
+		this.isWinner = 1
 		this.stopGame()
+	}
+
+	stopGameBeforeStart()
+	{
+		this.gameService.stopGameBeforeStart(this.instanceId)
+	}
+
+	disconnectPlayerBeforeStart(playerId : string)
+	{
+		if (this.player1Socket)
+		{
+			if (playerId == this.player1Socket.id)
+			{
+				if (this.player2Socket && this.player2Socket.id != this.player1Socket.id)
+				{
+					this.player2Socket.emit('OtherPlayerDisconnected')
+				}
+			}
+		}
+		if (this.player2Socket)
+		{
+			if (playerId == this.player2Socket.id)
+			{
+				if (this.player1Socket)
+				{
+					this.player1Socket.emit('OtherPlayerDisconnected')
+				}
+			}
+		}
+		this.stopGameBeforeStart()
+	}
+
+	disconnectSpectator(socketId : string)
+	{
+		this.spectators = this.spectators.filter(spectator =>
+			spectator.id !== socketId)
+	}
+
+	addSpectator(client : Socket)
+	{
+		this.spectators.push(client)
 	}
 }

@@ -2,10 +2,10 @@ import { Body, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { find } from 'rxjs';
 import { Server, Socket } from 'socket.io'
-import { GameService } from './game.service';
+import { GameService } from './game.service'
+import { FindGame } from './types/game.types'
+import { UpdatePaddleDto, ConfigurateDto, UserIdDtto, StartInviteDto, JoinInviteDto, SpectateDto } from './dto/game.dto';
 
-
-//Todo Controler si les sockets sont ok avant de faire des actions
 
 @WebSocketGateway({
 	namespace: "/game",
@@ -26,14 +26,12 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
   }
   
   onModuleInit() {
-    
   }
   
   onApplicationBootstrap() {
     this.server.on('connection', (socket) => {
-      console.log(socket.id);
-      this.sockets.push(socket.id);
-      console.log(this.sockets)
+      console.log("A socket is connecting : " + socket.id);      this.sockets.push(socket.id);
+      console.log("The sockets are " + this.sockets)
       this.server.emit ("onConnection", {
         id: socket.id,
 			});
@@ -43,7 +41,7 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
         this.sockets.splice(this.sockets.findIndex(id =>
           id == socket.id
         ), 1)
-        console.log(this.sockets)
+        console.log("The sockets are " + this.sockets)
         this.gameService.disconnectPlayer(socket.id)
       })
     })
@@ -61,54 +59,39 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 
     return false;
   }
-  
-  @SubscribeMessage('msgToServer')
-  handleMessage(client: any, payload: any): string {
-    this.server.emit('onMessage', {
-      msg : "newmessage", 
-    })
-    return 'Hello world!'; 
-  }
 
 
-  //Todo Créer un dto sur la data a transférer pour le search game
+
+  //MatchMaking Events : Used to join the waiting queue or to create a game and wait for players to join
   @SubscribeMessage('searchGame')
-  onSearchGame(@ConnectedSocket() client: Socket, @MessageBody() data: any)
+  onSearchGame(@ConnectedSocket() client: Socket)
   {
     if (this.isSocket(client.id) === false)
     {
       return ;
     }
     console.log("Searching for a game", client.id)
-    let findResult = this.gameService.findGame(client, data)
-    if (findResult.instanceId === -1)
+    let findResult : FindGame = this.gameService.findGame(client)
+    if (findResult.instanceId >= 0)
     {
-      client.emit("waitingMessage")
-    }
-    else if (findResult.instanceId === -2)
-    {
-      //do nothing for now
-    }
-    else
-    {
-      //On previent le front qu'une game est lancé
-      //Et on donne la position de la paddle
       client.emit("foundGame", "right", findResult.instanceId, findResult.difficulty, findResult.color)
       findResult.player1.emit("foundGame", "left", findResult.instanceId, findResult.difficulty, findResult.color)
     }
    }
 
    @SubscribeMessage('createGame')
-   onCreateGame(@ConnectedSocket() client : Socket, @MessageBody() data : any)
+   onCreateGame(@ConnectedSocket() client : Socket)
    {
     if (this.isSocket(client.id) === false)
     {
       return ;
     }
-		let createResult = this.gameService.createGame(client, data)
-
+		let createResult = this.gameService.createGame(client)
    }
 
+
+
+   //Events to leave game queue and player queue  
    @SubscribeMessage('stopWaiting')
    onQuitWaiting(@ConnectedSocket() client: Socket)
    {
@@ -119,9 +102,23 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 		this.gameService.quitWaitRoom(client)
    }
 
-   //Todo créer un dto pour le transfertd e donnée
+
+   @SubscribeMessage('disconnectWaiting')
+   onDisconnectWaiting(@ConnectedSocket() client : Socket)
+   {
+	if (this.isSocket(client.id) === false)
+	{
+	  return ;
+	}
+	this.gameService.disconnectPlayer(client.id)
+   }
+   
+
+
+
+   //Game Events to update paddle position
    @SubscribeMessage('updatePaddle')
-   onUpdatePaddle(@ConnectedSocket() client : Socket, @MessageBody() data : any)
+   onUpdatePaddle(@ConnectedSocket() client : Socket, @MessageBody() data : UpdatePaddleDto)
    {
       if (this.isSocket(client.id) === false)
       {
@@ -130,28 +127,22 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 	    this.gameService.updatePaddlePos(client, data.gameId, data.paddlePos)
    }
 
-   @SubscribeMessage('difficultyChoice')
-   onDifficulty(@ConnectedSocket() client : Socket, @MessageBody() data : any)
+
+
+
+   //Configuration Events to add the difficulty, color and userInfo to the game
+   @SubscribeMessage('configurate')
+   onConfig(@ConnectedSocket() client : Socket, @MessageBody() data : ConfigurateDto)
    {
     if (this.isSocket(client.id) === false)
     {
       return ;
     }
-		this.gameService.addDifficulty(client, data)
-   }
-   
-   @SubscribeMessage('addColor')
-   onColorChoice(@ConnectedSocket() client : Socket, @MessageBody() data : any)
-   {
-    if (this.isSocket(client.id) === false)
-    {
-      return ;
-    }
-    this.gameService.addColor(client, data)
+    this.gameService.configurateGame(client, data)
    }
 
    @SubscribeMessage('userId')
-   onUserId(@ConnectedSocket() client : Socket, @MessageBody() data : any)
+   onUserId(@ConnectedSocket() client : Socket, @MessageBody() data : UserIdDtto)
    {
     if (this.isSocket(client.id) === false)
     {
@@ -159,13 +150,14 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     }
     console.log("userId is : " + data.userId)
     this.gameService.addUserIdToGame(client, data.gameId, data.userId)
+	this.gameService.addUserIdtoInGame(data.userId)
    }
 
 
-   //Invite Event 
 
+   //Invite Event to handle connection from an invite URL
    @SubscribeMessage('startInvite')
-   onStartInvite(@ConnectedSocket() client : Socket, @MessageBody() data : any)
+   onStartInvite(@ConnectedSocket() client : Socket, @MessageBody() data : StartInviteDto)
    {
     if (this.isSocket(client.id) === false)
     {
@@ -175,12 +167,35 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
    }
 
    @SubscribeMessage('joinInvite')
-   onJoinInvite(@ConnectedSocket() client : Socket, @MessageBody() data : any)
+   onJoinInvite(@ConnectedSocket() client : Socket, @MessageBody() data : JoinInviteDto)
    {
     if (this.isSocket(client.id) === false)
     {
       return ;
     }
-    this.gameService.joinInvite(client, data)
+    this.gameService.joinInvite(client, data.gameId)
+   }
+
+
+   //Spectate Events
+   @SubscribeMessage('getSpectateList')
+   onSpectateList(@ConnectedSocket() client : Socket)
+   {
+	  if (this.isSocket(client.id) === false)
+    {
+      return ;
+    }
+	  client.emit('spectateList', this.gameService.getPlayingGames())
+   }
+
+   @SubscribeMessage('StartSpectating')
+   onStartSpectating(@ConnectedSocket() client : Socket, @MessageBody() data : SpectateDto)
+   {
+    if (this.isSocket(client.id) === false)
+    {
+      return ;
+    }
+    console.log(data)
+    this.gameService.addSpectatorToGame(client, data.gameId)
    }
 }

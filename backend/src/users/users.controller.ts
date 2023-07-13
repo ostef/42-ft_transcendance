@@ -7,16 +7,11 @@ import {
     Logger,
     NotFoundException,
     Param,
-    Post,
-    Put,
+    Post, Put,
     Request,
     SetMetadata,
 
-    Injectable,
-    NestInterceptor,
-    ExecutionContext,
-    CallHandler,
-    UseInterceptors,
+    Injectable, NestInterceptor, ExecutionContext, CallHandler, UseInterceptors,
     UploadedFile,
     ParseFilePipe,
     MaxFileSizeValidator, FileTypeValidator,
@@ -30,6 +25,12 @@ import { FriendRequestDto } from "./entities/friend_request.dto";
 import { FilesService } from "../files/files.service";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { concat } from "rxjs";
+import { UserInfo } from "src/chat/channels.controller";
+
+class SensitiveUserInfo extends UserDto
+{
+    receivedFriendRequests: string[];
+}
 
 @Controller ("user")
 export class UsersController
@@ -42,15 +43,20 @@ export class UsersController
     ) {}
 
     @Get ()
-    async findCurrentUser (@Request () req): Promise<UserDto>
+    async findCurrentUser (@Request () req): Promise<SensitiveUserInfo>
     {
         const entity = await this.usersService.findUserEntity ({id: req.user.id});
         if (entity == null)
             throw new NotFoundException ("User with id " + req.user.id + " does not exist");
 
-        const { password, ...result } = entity;
+        const requests = await this.usersService.findMultipleFriendRequests ({toUser: req.user.id});
 
-        return result as unknown as UserDto;
+        const result : SensitiveUserInfo = {
+            ...entity,
+            receivedFriendRequests: requests.map ((val) => val.fromUser.id)
+        };
+
+        return result;
     }
 
     @SetMetadata ("isPublic", true)
@@ -129,30 +135,24 @@ export class UsersController
     }
 
     @Get ("friends")
-    async getFriends (@Request () req)
-    {
-        // const user = await this.usersService.findUserEntity ({id: req.user.id}, {friends: true});
-        // if (!user)
-        //     throw new NotFoundException ("User " + req.user.id + " does not exist");
-        if (!req.user.friends)
-            return undefined;
-        return req.user.friends.map((val: UserEntity) => {
-            return {
-                id: val.id,
-                avatarFile: val.avatarFile,
-                nickname: val.nickname,
-            };
-        });
-    }
-
-    @Get ("friends/:id")
-    async isFriend (@Request () req, @Param ("id") id: string): Promise<boolean>
+    async getFriends (@Request () req): Promise<string[]>
     {
         const user = await this.usersService.findUserEntity ({id: req.user.id}, {friends: true});
         if (!user)
-            throw new NotFoundException ("User " + req.user.id + " does not exist");
+            throw new NotFoundException ("User does not exist");
 
-        return user.friends.some ((val: UserEntity) => val.id === id);
+        const result = [];
+        for (const u of user.friends)
+        {
+            result.push ({
+                id: u.id,
+                username: u.username,
+                nickname: u.nickname,
+                avatarFile: u.avatarFile
+            });
+        }
+
+        return result;
     }
 
     @Post ("friends/add/:id")
@@ -198,15 +198,14 @@ export class UsersController
     }
 
     @Get ("profile/:id")
-    async findUser (@Param ("id") id: string): Promise<UserDto>
+    async getUserInfo (@Request () req, @Param ("id") id: string): Promise<UserInfo>
     {
-        const entity = await this.usersService.findUserEntity ({id: id});
-        if (entity == null)
-            throw new NotFoundException ("User with id " + id + " does not exist");
+        const me = await this.usersService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
+        const user = await this.usersService.findUserEntity ({id: id}, {friends: true, blockedUsers: true});
+        if (!user)
+            throw new BadRequestException ("User does not exist");
 
-        const { password, ...result } = entity;
-
-        return result as unknown as UserDto;
+        return UserInfo.fromUserEntity (me, user)
     }
 
     @Get (":id/matchHistory")

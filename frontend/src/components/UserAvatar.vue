@@ -2,91 +2,194 @@
 
 import axios from "axios";
 import { storeToRefs } from "pinia";
+import { computed, type PropType } from "vue";
 
-import { useUserStore } from "@/stores/user";
+import { useStore, type User } from "@/store";
+import { selectPrivConv, notifyChannelChange, notifyUserKickOrBan } from "@/chat";
 
-const { user } = storeToRefs (useUserStore ());
+import UserPopup from "./UserPopup.vue";
 
-defineProps ({
-    userId: String,
-    username: String,
-    nickname: String,
-    picture: String,
-    online: Boolean,
-    left: Boolean,
-    isBlocked: Boolean,
-    isFriend: Boolean,
+const store = useStore ();
+const { channelsSelected, privateConvs, selectedUserIndex } = storeToRefs (useStore ());
+
+const props = defineProps ({
+    channelId: String,
+    user: Object as PropType<User>,
+    dropdownClass: String,
 });
 
-async function sendFriendRequest (id: string | undefined)
+const clientIsAdmin = computed (() => {
+    if (!props.channelId)
+        return false;
+
+    const channel = store.channels.find ((val) => val.id == props.channelId);
+
+    return store.isAdmin (store.loggedUser?.id, channel);
+});
+
+const clientIsOwner = computed (() => {
+    if (!props.channelId)
+        return false;
+
+    const channel = store.channels.find ((val) => val.id == props.channelId);
+
+    return store.isOwner (store.loggedUser?.id, channel);
+});
+
+const isInChannel = computed (() => {
+    // @Cleanup: we use the users list to check if the user is in the channel,
+    // but it may be possible for this list to not be the same as the one of channelId
+    return props.channelId != undefined && store.users.find (val => val.id == props.user?.id) != null;
+});
+
+const isMuted = computed (() => {
+    if (!props.channelId)
+        return false;
+
+    const channel = store.channels.find ((val) => val.id == props.channelId);
+
+    return store.isMuted (props.user?.id, channel);
+});
+
+const isAdmin = computed (() => {
+    if (!props.channelId)
+        return false;
+
+    const channel = store.channels.find ((val) => val.id == props.channelId);
+
+    return store.isAdmin (props.user?.id, channel);
+});
+
+const isOnline = computed (() => {
+    if (!props.user)
+        return false;
+
+    return store.isOnline (props.user?.id);
+});
+
+async function muteUser ()
 {
-    if (id == undefined)
+    if (!props.channelId || !props.user)
         return;
 
-    await axios.post ("user/friends/add/" + id);
+    await axios.put ("channels/" + props.channelId, {usersToMute: [props.user.id] });
+    notifyChannelChange (props.channelId);
 }
 
-async function removeFriend (id: string | undefined)
+async function unmuteUser ()
 {
-    if (id == undefined)
+    if (!props.channelId || !props.user)
         return;
 
-    await axios.put ("user/", { friendsToRemove: [id] });
+    await axios.put ("channels/" + props.channelId, {usersToUnmute: [props.user.id] });
+    notifyChannelChange (props.channelId);
 }
 
-async function blockUser (id: string | undefined)
+async function kickUser ()
 {
-    if (id == undefined)
+    if (!props.channelId || !props.user)
         return;
 
-    await axios.put ("user/", { usersToBlock: [id] });
+    await axios.put ("channels/" + props.channelId, {usersToKick: [props.user.id] });
+    notifyUserKickOrBan (props.channelId, props.user.id, true, "");
+    notifyChannelChange (props.channelId);
 }
 
-async function unblockUser (id: string | undefined)
+async function banUser ()
 {
-    if (id == undefined)
+    if (!props.channelId || !props.user)
         return;
 
-    await axios.put ("user/", { usersToUnblock: [id] });
+    await axios.put ("channels/" + props.channelId, {usersToBan: [props.user.id] });
+    notifyUserKickOrBan (props.channelId, props.user.id, false, "");
+    notifyChannelChange (props.channelId);
 }
 
-async function checkStatus ()
+async function adminUser ()
 {
-    console.log ("checkStatus");
-    if (this.userId == undefined)
+    if (!props.channelId || !props.user)
         return;
 
-    const res = await axios.get ("user/friends/" + userId);
-    (res.data) ? isFriend.value = res.data : isFriend.value = false;
+    await axios.put ("channels/" + props.channelId, {usersToAdmin: [props.user.id] });
+    notifyChannelChange (props.channelId);
+}
+
+async function unadminUser ()
+{
+    if (!props.channelId || !props.user)
+        return;
+
+    await axios.put ("channels/" + props.channelId, {usersToUnadmin: [props.user.id] });
+    notifyChannelChange (props.channelId);
+}
+
+async function goToPrivateConv ()
+{
+    if (!props.user)
+        return;
+
+    let index = privateConvs.value.findIndex ((val) => val.id == props.user?.id);
+    if (index == -1)
+    {
+        privateConvs.value.push (props.user);
+        index = privateConvs.value.length - 1;
+    }
+
+    selectedUserIndex.value = index;
+    channelsSelected.value = false;
+
+    await selectPrivConv (props.user.id);
 }
 
 </script>
 
 <template>
-    <div class="tooltip dropdown flex" :class="left ? 'dropdown-left' : 'dropdown-right'" :data-tip="username"  @click="checkStatus">
-        <label tabindex="0" class="avatar"
-            :class="(online ? 'online' : 'offline') + (picture == null ? ' placeholder' : '')">
+    <div class="tooltip dropdown flex" :class="dropdownClass ?? ''" :data-tip="user?.username" >
+        <label tabindex="0" class="avatar" :class="(isOnline ? 'online' : 'offline') + (!user?.avatarFile ? ' placeholder' : '')">
             <div class="h-12 w-12 btn btn-circle overflow-hidden grid">
-                <img v-if="picture != null && picture != undefined" :src="picture" />
-                <span v-else class="text-xl align-text-top">{{ nickname?.charAt (0) }}</span>
+                <img v-if="user?.avatarFile" :src="user?.avatarFile" />
+                <span v-else class="text-xl align-text-top">{{ user?.nickname.charAt (0) }}</span>
             </div>
         </label>
-        <ul tabindex="0" class="menu menu-compact dropdown-content w-40 m-2 shadow rounded bg-base-300">
-            <li v-if="user?.id != userId">
-                <a v-if="!isFriend" @click="sendFriendRequest (userId)">Add Friend</a>
-                <a v-else @click="removeFriend (userId)">Remove Friend</a>
+        <ul tabindex="0" class="menu menu-compact dropdown-content w-40 m-2 shadow rounded-md bg-base-300">
+            <li v-if="store.loggedUser?.id != user?.id">
+                <a @click="goToPrivateConv ()">Send Message</a>
             </li>
-            <li v-if="user?.id != userId">
-                <a>Send Message</a>
+
+            <li v-if="isInChannel && store.loggedUser?.id != user?.id && clientIsOwner && !isAdmin">
+                <a @click="adminUser ()">Make Admin</a>
             </li>
-            <li v-if="user?.id != userId">
-                <a :class="isBlocked ? 'btn-disabled' : ''">Invite To Play</a>
+
+            <li v-if="isInChannel && store.loggedUser?.id != user?.id && clientIsOwner && isAdmin">
+                <a @click="unadminUser ()">Unadmin</a>
             </li>
-            <li><a>See User Profile</a></li>
-            <li v-if="user?.id != userId">
-                <a v-if="!isBlocked" class="bg-accent hover:bg-accent-focus" @click="blockUser (userId)">Block User</a>
-                <a v-else class="bg-accent hover:bg-accent-focus" @click="unblockUser (userId)">Unblock User</a>
+
+            <li v-if="isInChannel && store.loggedUser?.id != user?.id && clientIsAdmin">
+                <a v-if="!isMuted" @click="muteUser ()">Mute User</a>
+                <a v-else @click="unmuteUser ()">Unmute User</a>
             </li>
+
+            <li v-if="isInChannel && store.loggedUser?.id != user?.id && clientIsAdmin">
+                <a @click="kickUser ()">Kick User</a>
+            </li>
+
+            <!-- You can ban someone that has left the channel -->
+            <li v-if="channelId && store.loggedUser?.id != user?.id && clientIsAdmin">
+                <a @click="banUser ()">Ban User</a>
+            </li>
+
+            <li v-if="user?.id != store.loggedUser?.id">
+                <label :for="'userModal' + user?.id">
+                    User Profile
+                </label>
+            </li>
+
+            <li v-if="user?.id == store.loggedUser?.id">
+                <label>My Profile</label>
+            </li>
+
         </ul>
     </div>
+
+    <UserPopup :user="user" :isOnline="isOnline" />
 </template>
