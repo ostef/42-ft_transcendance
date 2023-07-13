@@ -20,4 +20,9 @@ export type Spectator = {
 	socket : Socket,
 	gameId : number
 }
+
+export type waitingPlayer = {
+	socket : Socket,
+	userId : string
+}
  

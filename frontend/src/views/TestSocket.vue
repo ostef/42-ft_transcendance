@@ -28,7 +28,7 @@ import { defineComponent } from "vue";
 import Ball from "../script/game/Ball"
 import Paddle from "../script/game/Paddle"
 import App from "../App.vue";
-import { useUserStore } from "@/stores/user";
+import { useStore } from "@/store";
 import { storeToRefs } from 'pinia';
 import MenuComp from "../components/game/Menu.vue"
 import ConfigurateComp from "../components/game/Configurate.vue"
@@ -92,6 +92,7 @@ export default {
 			ownPaddle : "",
 			difficulty : "default" as string,
 			color : "" as string,
+			initialised : false,
 
 			inviteId : "" as string,
 			
@@ -110,7 +111,6 @@ export default {
 			gameNotFoundState : false,
 			spectate : false,
 			isSpectating : false,
-			initialised : false
         }
     },
     created () {
@@ -203,8 +203,8 @@ export default {
 	mounted() {
 		console.log("mounted")
 		this.inviteId = this.$route.params.id
-		this.userStore = useUserStore ();
-		console.log(this.userStore.user.id)
+		this.userStore = useStore();
+		console.log(this.userStore.loggedUser?.id)
 		this.canvas = document.querySelector("canvas")
 		if (this.canvas)
 		{
@@ -242,12 +242,12 @@ export default {
 					this.canvaspos = this.canvas.getBoundingClientRect()
 					this.canvasAbsoluteStart = this.canvaspos.top / window.innerHeight
 					this.canvasAbsoluteEnd = this.canvaspos.bottom / window.innerHeight
-					console.log("The absolute start is : " + this.canvasAbsoluteStart)
-					console.log("The absolute end : " + this.canvasAbsoluteEnd)
+					this.initialised = true
 				}
 				if (e.y <= (window.innerHeight * this.canvasAbsoluteStart) + this.paddleLeft.getHeight() / 2)
 				{
 					mouseHeight = (this.paddleLeft.getHeight() / 2) / this.canvas.height
+					console.log(mouseHeight)
 					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 					return
 				}
@@ -255,19 +255,40 @@ export default {
 				{
 					if (this.canvas)
 						mouseHeight = (this.canvas.height - this.paddleLeft.getHeight() / 2) / this.canvas.height
+					console.log(mouseHeight)
 					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 					return
 				}
 				mouseHeight = (e.y - window.innerHeight * this.canvasAbsoluteStart) / this.canvas.height
+				console.log(mouseHeight)
 				this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 			}
 		})
 		/*window.requestAnimationFrame(this.drawNextFrame)*/
 		window.onresize = this.windowresize
-
-
-
 	},
+
+	unmounted()
+	{
+		//Changer les state de tt ces trucs
+		this.menu = true,
+		this.game = false,
+		this.configurate = false,
+		this.waitingPlayer = false,
+		this.disconnect = false,
+		this.won = false,
+		this.lost = false,
+		this.disconnectGame = false,
+		this.gameNotFoundState = false,
+		this.spectate = false,
+		this.isSpectating = false,
+		this.initialised = false
+
+
+		//Deconnecter la socket ?
+		this.socket.disconnect()
+	},
+
 	methods: {
 		
 
@@ -285,6 +306,7 @@ export default {
 		},
 		
 		windowresize() {
+			//Todo : debug mouse pos on resize hors game
 			this.canvaspos = this.canvas.getBoundingClientRect()
 			this.canvasAbsoluteStart = this.canvaspos.top / window.innerHeight
 			this.canvasAbsoluteEnd = this.canvaspos.bottom / window.innerHeight
@@ -292,6 +314,7 @@ export default {
 			this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
 			this.ball.mainCanvas.width = this.canvas.width
 			this.ball.mainCanvas.height = this.canvas.height
+			this.ball.radius = 0.008 * this.canvas.width
 			if (this.isPlaying == true)
 			{
 				this.paddleLeft.mainCanvas.width = this.canvas.width
@@ -312,13 +335,13 @@ export default {
 		searchGame() {
 			this.menu = false
 			this.waitingPlayer = true
-			this.socket.emit("searchGame")
+			this.socket.emit("searchGame", { userId : this.userStore.loggedUser?.id })
 		},
 
 		createGame()
 		{
 			console.log("creating a Game")
-			this.socket.emit("createGame")
+			this.socket.emit("createGame", { userId : this.userStore.loggedUser?.id })
 		},
 
 
@@ -386,7 +409,6 @@ export default {
 			this.isPlaying = true
 			this.difficulty = difficulty
 			this.ball.color = color
-			this.socket.emit("userId", {gameId : this.gameId, userId : this.userStore.user.id})
 		},
 
 		//Event pour le déroulement de la partie
@@ -524,17 +546,18 @@ export default {
 			this.gameNotFoundState = false
 			this.spectate = false
 			this.updateScore({p1 : 0, p2 : 0 })
+			this.initialised = false
 		},
 
 		//Methode d'invitation
 		creatorGameInvite(gameId : string)
 		{
-			this.socket.emit("startInvite", { gameId : gameId })
+			this.socket.emit("startInvite", { gameId : gameId , userId : this.userStore.loggedUser?.id})
 		},
 
 		joinGameInvite(gameId : string)
 		{
-			this.socket.emit("joinInvite", { gameId : gameId })
+			this.socket.emit("joinInvite", { gameId : gameId , userId : this.userStore.loggedUser?.id})
 		},
 
 		waitPlayer2()

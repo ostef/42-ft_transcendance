@@ -1,10 +1,10 @@
-import { Body, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common';
+import { Body, OnApplicationBootstrap, OnModuleInit, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { find } from 'rxjs';
 import { Server, Socket } from 'socket.io'
 import { GameService } from './game.service'
 import { FindGame } from './types/game.types'
-import { UpdatePaddleDto, ConfigurateDto, UserIdDtto, StartInviteDto, JoinInviteDto, SpectateDto } from './dto/game.dto';
+import { UpdatePaddleDto, ConfigurateDto, UserIdDtto, StartInviteDto, JoinInviteDto, SpectateDto, SearchCreateGameDto } from './dto/game.dto';
 
 
 @WebSocketGateway({
@@ -14,6 +14,7 @@ import { UpdatePaddleDto, ConfigurateDto, UserIdDtto, StartInviteDto, JoinInvite
 		methods: ["GET", "POST"]
 	}
 })
+@UsePipes(new ValidationPipe())
 export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
   
   sockets : string [] = []
@@ -64,14 +65,14 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 
   //MatchMaking Events : Used to join the waiting queue or to create a game and wait for players to join
   @SubscribeMessage('searchGame')
-  onSearchGame(@ConnectedSocket() client: Socket)
+  async onSearchGame(@ConnectedSocket() client: Socket, @MessageBody() data : SearchCreateGameDto)
   {
     if (this.isSocket(client.id) === false)
     {
       return ;
     }
     console.log("Searching for a game", client.id)
-    let findResult : FindGame = this.gameService.findGame(client)
+    let findResult = await this.gameService.findGame(client, data.userId)
     if (findResult.instanceId >= 0)
     {
       client.emit("foundGame", "right", findResult.instanceId, findResult.difficulty, findResult.color)
@@ -80,13 +81,13 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
    }
 
    @SubscribeMessage('createGame')
-   onCreateGame(@ConnectedSocket() client : Socket)
+   onCreateGame(@ConnectedSocket() client : Socket, @MessageBody() data : SearchCreateGameDto)
    {
     if (this.isSocket(client.id) === false)
     {
       return ;
     }
-		let createResult = this.gameService.createGame(client)
+		let createResult = this.gameService.createGame(client, data.userId)
    }
 
 
@@ -141,20 +142,6 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     this.gameService.configurateGame(client, data)
    }
 
-   @SubscribeMessage('userId')
-   onUserId(@ConnectedSocket() client : Socket, @MessageBody() data : UserIdDtto)
-   {
-    if (this.isSocket(client.id) === false)
-    {
-      return ;
-    }
-    console.log("userId is : " + data.userId)
-    this.gameService.addUserIdToGame(client, data.gameId, data.userId)
-	this.gameService.addUserIdtoInGame(data.userId)
-   }
-
-
-
    //Invite Event to handle connection from an invite URL
    @SubscribeMessage('startInvite')
    onStartInvite(@ConnectedSocket() client : Socket, @MessageBody() data : StartInviteDto)
@@ -173,7 +160,7 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     {
       return ;
     }
-    this.gameService.joinInvite(client, data.gameId)
+    this.gameService.joinInvite(client, data)
    }
 
 

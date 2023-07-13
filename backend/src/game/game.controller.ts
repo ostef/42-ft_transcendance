@@ -46,6 +46,7 @@ export class GameController {
     createInvite() : number {
         return (this.gameService.createInvite())
     }
-        
+       
+    
 
 }

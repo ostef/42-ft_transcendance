@@ -93,7 +93,7 @@ export default class gameInstance {
 		{
 			this.handleLose()
 		}
-		if (this.score.p1 >= 100 || this.score.p2 >= 100)
+		if (this.score.p1 >= 3 || this.score.p2 >= 3)
 		{
 			this.handleWin()
 		}
@@ -153,7 +153,7 @@ export default class gameInstance {
 
 	handleWin()
 	{
-		if (this.score.p1 >= 100)
+		if (this.score.p1 >= 3)
 		{
 			this.isWinner = 1
 			this.player1Socket.emit("winGame")
@@ -164,7 +164,7 @@ export default class gameInstance {
 			}
 			this.stopGame()
 		}
-		if (this.score.p2 >= 100)
+		if (this.score.p2 >= 3)
 		{
 			this.isWinner = 2
 			this.player2Socket.emit("winGame")
