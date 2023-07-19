@@ -30,6 +30,8 @@ import { UserInfo } from "src/chat/channels.controller";
 class SensitiveUserInfo extends UserDto
 {
     receivedFriendRequests: string[];
+    password: string;
+    twoFactorSecret: string;
 }
 
 @Controller ("user")
@@ -53,7 +55,9 @@ export class UsersController
 
         const result : SensitiveUserInfo = {
             ...entity,
-            receivedFriendRequests: requests.map ((val) => val.fromUser.id)
+            receivedFriendRequests: requests.map ((val) => val.fromUser.id),
+            password: undefined,
+            twoFactorSecret: undefined,
         };
 
         return result;

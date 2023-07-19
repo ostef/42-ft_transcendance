@@ -69,11 +69,11 @@
 <script setup lang="ts">
 
 import { ref } from "vue";
-import { useUserStore } from "@/stores/user";
+import { useStore } from "@/store";
 import axios from "axios";
 import UserAvatar from "@/components/UserAvatar.vue";
 
-const userStore = useUserStore();
+const userStore = useStore();
 const matchHistory = ref ([]);
 const friendList = ref ([]);
 

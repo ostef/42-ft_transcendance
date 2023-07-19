@@ -3,10 +3,12 @@ import HomeView from "@/views/Home.vue";
 import ChatView from "@/views/Chat.vue";
 import LoginView from "@/views/Login.vue";
 import TestPage from '../views/TestSocket.vue';
+import ProfileView from "@/views/Profile.vue";
 import axios from "axios";
 
-import { useUserStore } from "@/stores/user";
-import { updateUserInfo, logout, isAuthenticated } from "@/authentication";
+import { useStore } from "@/store";
+import {logout, isAuthenticated, fetchUserInfo} from "@/authentication";
+import {connectChatSocket} from "@/chat";
 
 
 const router = createRouter ({

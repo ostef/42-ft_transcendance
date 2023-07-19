@@ -12,6 +12,7 @@ export type User =
     isBlocked: boolean;
     isOnline: boolean;
     hasBlockedYou: boolean;
+    has2FA: boolean;
 }
 
 export type Channel =

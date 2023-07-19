@@ -27,7 +27,7 @@ export class UserEntity
     @Column ()
     has2FA: boolean;
 
-    @Column ({ select: false, nullable: true })
+    @Column ({ nullable: true })
     twoFactorSecret: string;
 
     @Column ({ nullable: true })

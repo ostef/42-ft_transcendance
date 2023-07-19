@@ -4,8 +4,19 @@ import axios from "axios";
 
 import { useStore } from "@/store";
 import { logout } from "@/authentication";
+import {ref} from "vue";
+
+import SettingsModal from "@/components/SettingsModal.vue";
 
 const store = useStore ();
+
+const showSettingsModal = ref (false);
+
+function toggleSettingsModal ()
+{
+    showSettingsModal.value = !showSettingsModal.value;
+}
+
 
 </script>
 
@@ -59,6 +70,7 @@ const store = useStore ();
                         <span class="indicator-item badge badge-sm badge-primary"></span>
                         <li><router-link to="/profile/friends">Friends</router-link></li>
                     </div>
+                  <label class="btn btn-ghost" for="setting_modal">Settings</label>
                     <li><router-link to="/login" @click="logout ()">Logout</router-link></li>
                 </ul>
             </div>
@@ -69,5 +81,15 @@ const store = useStore ();
                 </div>
             </div>
         </div>
+    </div>
+  <input type="checkbox" id="setting_modal" class="modal-toggle" />
+    <div  class="modal">
+
+        <div class="modal-box">
+            <label for="setting_modal" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</label>
+            <h1>Settings</h1>
+                <SettingsModal />
+        </div>
+<!--        <label class="modal-backdrop" for="my_modal_7" >Close</label>-->
     </div>
 </template>

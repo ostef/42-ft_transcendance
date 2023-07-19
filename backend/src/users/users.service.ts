@@ -34,12 +34,6 @@ export class UsersService
         }
     }
 
-    async getUser2FASecret (id: string): Promise<string>
-    {
-        const user = await this.usersRepository.findOne (id);
-        return user.twoFactorSecret;
-    }
-
     async createUser (params: CreateUserDto): Promise<UserEntity>
     {
         CreateUserDto.validate (params);
@@ -177,6 +171,15 @@ export class UsersService
         }
 
         // @Todo: handle 2fa
+        if (params.has2FA != undefined)
+        {
+            user.has2FA = params.has2FA;
+        }
+
+        if (params.twoFactorSecret != undefined)
+        {
+            user.twoFactorSecret = params.twoFactorSecret;
+        }
 
         for (const it of toSave)
             await this.usersRepository.save (it);   // @Speed: use update if possible

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import {Injectable, Logger, UnauthorizedException} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 
 import { UserEntity } from "src/users/entities/user.entity";
@@ -38,7 +38,11 @@ export class AuthService {
         if (user.password != password)
             throw new UnauthorizedException("Invalid password");
 
-        const payload: JwtPayload = { userId: user.id };
+        const payload: JwtPayload = {
+            userId: user.id,
+            has2FA: user.has2FA,
+            is2FAAuthenticated: false
+        };
 
         return {
             access_token: await this.jwtService.signAsync(payload)
@@ -50,21 +54,27 @@ export class AuthService {
         if (!username)
             throw new UnauthorizedException("Invalid username");
         let user = await this.usersService.findUserEntity({ username: username });
-        if (!user)
-           user = await this.usersService.createUser({ username: username, nickname: username, password: undefined });
+        if (!user) {
+            user = await this.usersService.createUser({username: username, nickname: username, password: undefined});
+            Logger.log("User created", user);
+        }
 
-        const payload: JwtPayload = { userId: user.id };
+        const payload: JwtPayload = {
+            userId: user.id,
+            has2FA: user.has2FA,
+            is2FAAuthenticated: false
+        };
 
         return {
             access_token: await this.jwtService.signAsync(payload)
         };
     }
 
-    async login2FA(userWithoutPsw: Partial<UserEntity>)
+    async login2FA(oldpayload: JwtPayload)
     {
         const payload = {
-            userId: userWithoutPsw.id,
-            has2FA: !!userWithoutPsw.has2FA,
+            userId: oldpayload.userId,
+            has2FA: oldpayload.has2FA,
             is2FAAuthenticated: true
         };
         return {
@@ -86,9 +96,11 @@ export class AuthService {
         return toDataURL(otpAuthUrl);
     }
 
-    isTwoFactorCodeValid(twoFactorCode: string, user: UserEntity)
+    async isTwoFactorCodeValid(twoFactorCode: string, id: string)
     {
-        console.log("isTwoFactorCodeValid", twoFactorCode, user.twoFactorSecret);
+        const user = await this.usersService.findUserEntity({ id: id })
+        if (!user)
+            throw new UnauthorizedException("Invalid user");
         return authenticator.check(twoFactorCode, user.twoFactorSecret);
     }
 
