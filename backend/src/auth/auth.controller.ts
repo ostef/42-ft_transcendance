@@ -125,11 +125,22 @@ export class AuthController
     }
 
     @Post('2fa/turn-on')
+    @HttpCode(200)
     async turnOn2fa(@Request() req, @Body() body)
     {
-        const isCodeValid = this.authService.isTwoFactorCodeValid(body.code, req.user.id);
+        const isCodeValid = await this.authService.isTwoFactorCodeValid(body.code, req.user.id);
         if (!isCodeValid)
             throw new UnauthorizedException('Invalid two-factor code');
         await this.usersService.updateUser(req.user.id, {has2FA: true});
+    }
+
+    @Post('2fa/turn-off')
+    @HttpCode(200)
+    async turnoff2fa(@Request() req, @Body() body)
+    {
+        const isCodeValid = await this.authService.isTwoFactorCodeValid(body.code, req.user.id);
+        if (!isCodeValid)
+            throw new UnauthorizedException('Invalid two-factor code');
+        await this.usersService.updateUser(req.user.id, {has2FA: false});
     }
 }

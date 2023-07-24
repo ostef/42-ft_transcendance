@@ -2,9 +2,9 @@
     <div class="flex flex-col space-y-10 justify-center items-center" id="container">
         <div id="information" class="flex flex-row space-x-8  items-center">
             <div class="h-24 w-24 btn  btn-circle overflow-hidden grid">
-                <img v-if="userStore.user.avatarFile!= undefined" :src="userStore.user.avatarFile" />
+                <img v-if="userStore.loggedUser?.avatarFile!= undefined" :src="userStore.loggedUser?.avatarFile" />
             </div>
-            <h2 class="text-3xl">  {{ userStore.user.nickname }}</h2>
+            <h2 class="text-3xl">  {{ userStore.loggedUser?.nickname }}</h2>
         </div>
         <div id="friendList" class="flex flex-col space-y-4">
             <h2 class="text-2xl">Friend List</h2>
