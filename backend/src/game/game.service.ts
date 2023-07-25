@@ -681,9 +681,7 @@ export class GameService {
 		return matchHistory.map((game) => {
 			return {
 				id: game.id,
-				opponentId: game.user1.id == playerId ? game.user2.id : game.user1.id,
-				opponentNickname: game.user1.id == playerId ? game.user2.nickname : game.user1.nickname,
-				opponentAvatarFile: game.user1.id == playerId ? game.user2.avatarFile : game.user1.avatarFile,
+				opponent: game.user1.id == playerId ? game.user2 : game.user1,
 				playerScore: game.user1.id == playerId ? game.scoreP1 : game.scoreP2,
 				opponentScore: game.user1.id == playerId ? game.scoreP2 : game.scoreP1,
 				winner: game.winner.nickname,

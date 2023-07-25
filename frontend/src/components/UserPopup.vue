@@ -8,6 +8,7 @@ import { fetchUserInfo } from "@/authentication";
 import { fetchUsers, notifyFriendshipChange } from "@/chat";
 
 import NonInteractiveAvatar from "./NonInteractiveAvatar.vue";
+import MatchHistory from "@/components/MatchHistory.vue";
 
 const store = useStore ();
 
@@ -119,6 +120,9 @@ async function unblockUser ()
                 This user has blocked you
             </h3>
         </div>
+      <Suspense>
+        <MatchHistory  :user="user as User"/>
+      </Suspense>
 
         <div v-if="!user?.isBlocked && !user?.hasBlockedYou">
             <button v-if="user?.isFriend" class="m-2 btn bg-primary normal-case" @click="removeFriend ()">
@@ -146,6 +150,8 @@ async function unblockUser ()
         <button v-else class="m-2 btn normal-case" @click="blockUser ()">
             Block
         </button>
+
+
     </div>
 </div>
 

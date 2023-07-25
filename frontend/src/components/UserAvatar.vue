@@ -8,6 +8,7 @@ import { useStore, type User } from "@/store";
 import { selectPrivConv, notifyChannelChange, notifyUserKickOrBan } from "@/chat";
 
 import UserPopup from "./UserPopup.vue";
+import router from "@/router";
 
 const store = useStore ();
 const { channelsSelected, privateConvs, selectedUserIndex } = storeToRefs (useStore ());
@@ -123,9 +124,22 @@ async function unadminUser ()
     notifyChannelChange (props.channelId);
 }
 
+async function sendMessage() {
+  if (router.currentRoute.value.name == "chat")
+    await goToPrivateConv();
+  else
+  {
+    window.addEventListener("load", async () => {
+      await goToPrivateConv();
+      window.removeEventListener("load", async () => {});
+    });
+    await router.push ({ name: "Chat" });
+  }
+}
+
 async function goToPrivateConv ()
 {
-    if (!props.user)
+  if (!props.user)
         return;
 
     let index = privateConvs.value.findIndex ((val) => val.id == props.user?.id);
@@ -139,6 +153,7 @@ async function goToPrivateConv ()
     channelsSelected.value = false;
 
     await selectPrivConv (props.user.id);
+
 }
 
 </script>
@@ -153,7 +168,7 @@ async function goToPrivateConv ()
         </label>
         <ul tabindex="0" class="menu menu-compact dropdown-content w-40 m-2 shadow rounded-md bg-base-300">
             <li v-if="store.loggedUser?.id != user?.id">
-                <a @click="goToPrivateConv ()">Send Message</a>
+                <a @click="sendMessage ()">Send Message</a>
             </li>
 
             <li v-if="isInChannel && store.loggedUser?.id != user?.id && clientIsOwner && !isAdmin">
