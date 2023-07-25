@@ -6,7 +6,10 @@ import { AuthService } from "src/auth/auth.service";
 import { ChannelsService } from "./channels.service";
 import { UsersService } from "src/users/users.service";
 import { MessageService } from "./message.service";
-import { ChannelInviteInfo } from "./channels.controller";
+import { ChannelInviteDto } from "./types";
+
+// @Todo: notify connected users when a nickname has changed
+// @Todo: notify connected users when an avatarFile has changed
 
 class JoinChannelParams
 {
@@ -187,7 +190,7 @@ export class ChatGateway
                 content: params.message,
                 date: msg.timestamp,
                 toUser: params.userId,
-                channelInvite: ChannelInviteInfo.fromChannelInviteEntity (invite)
+                channelInvite: ChannelInviteDto.fromChannelInviteEntity (invite)
             });
         }
         catch (err)

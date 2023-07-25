@@ -4,7 +4,6 @@ import { FindOptionsRelations, Repository } from "typeorm";
 
 import { ChannelEntity } from "./entities/channel.entity";
 import { ChannelInviteEntity } from "./entities/channel_invite.entity";
-import { CreateChannelDto, UpdateChannelDto } from "./entities/channel.dto";
 import { ChannelsService } from "./channels.service";
 
 import { UsersService } from "src/users/users.service";

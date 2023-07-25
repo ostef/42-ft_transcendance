@@ -1,14 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { FindOptionsWhere, Repository } from "typeorm";
 import { FindOptionsRelations } from "typeorm/find-options/FindOptionsRelations";
 import { FindOneOptions } from "typeorm/find-options/FindOneOptions";
+import { validate } from "class-validator";
 
 import { UserEntity } from "./entities/user.entity";
-import { CreateUserDto, UpdateUserDto } from "./entities/user.dto";
-
 import { FriendRequestEntity } from "./entities/friend_request.entity";
-import { FriendRequestDto } from "./entities/friend_request.dto";
+import { CreateUserParams, ReceivedFriendRequestParams, SentFriendRequestParams, UpdateUserParams } from "./types";
+
 
 @Injectable ()
 export class UsersService
@@ -34,9 +34,9 @@ export class UsersService
         }
     }
 
-    async createUser (params: CreateUserDto): Promise<UserEntity>
+    async createUser (params: CreateUserParams): Promise<UserEntity>
     {
-        CreateUserDto.validate (params);
+        await validate (params);
 
         if (!await this.isUsernameAvailable (params.username))
             throw new Error ("Username '" + params.username + "' is not available");
@@ -83,9 +83,9 @@ export class UsersService
         this.usersRepository.update (id, {has2FA: false});
     }
 
-    async updateUser (id: string, params: UpdateUserDto)
+    async updateUser (id: string, params: UpdateUserParams)
     {
-        UpdateUserDto.validate (params);
+        await validate (params);
 
         const user = await this.findUserEntity ({id: id}, {friends: true, blockedUsers: true});
         if (!user)
@@ -203,8 +203,14 @@ export class UsersService
     }
 
     // Returns the entity that satisfies the params, null if it does not exist
-    async findFriendRequest (params: any): Promise<FriendRequestEntity>
+    async findFriendRequest (params: FindOptionsWhere<FriendRequestEntity>): Promise<FriendRequestEntity>
     {
+        if (params.toUser != undefined)
+            throw new Error ("Set toUser instead of toUserId");
+
+        if (params.fromUser != undefined)
+            throw new Error ("Set fromUser instead of fromUserId");
+
         return await this.friendRequestsRepository.findOne ({
             where: params,
             relations: {
@@ -214,8 +220,14 @@ export class UsersService
         });
     }
 
-    async findMultipleFriendRequests (params: any): Promise<FriendRequestEntity[]>
+    async findMultipleFriendRequests (params: FindOptionsWhere<FriendRequestEntity>): Promise<FriendRequestEntity[]>
     {
+        if (params.toUser != undefined)
+            throw new Error ("Set toUser instead of toUserId");
+
+        if (params.fromUser != undefined)
+            throw new Error ("Set fromUser instead of fromUserId");
+
         return await this.friendRequestsRepository.find ({
             where: params,
             relations: {
@@ -225,14 +237,14 @@ export class UsersService
         });
     }
 
-    async sendFriendRequest (params: FriendRequestDto)
+    async sendFriendRequest (userId: string, params: SentFriendRequestParams)
     {
-        FriendRequestDto.validate (params);
+        await validate (params);
 
-        if (params.fromUser == params.toUser)
+        if (userId == params.toUser)
             throw new Error ("Cannot send friend request to self");
 
-        const fromUser = await this.findUserEntity ({id: params.fromUser }, {friends: true, blockedUsers: true});
+        const fromUser = await this.findUserEntity ({id: userId }, {friends: true, blockedUsers: true});
         if (!fromUser)
             throw new Error ("User does not exist");
 
@@ -243,13 +255,13 @@ export class UsersService
         if (fromUser.isFriendsWith (params.toUser))
             throw new Error ("You are already friends with this user");
 
-        if (toUser.isFriendsWith (params.fromUser))
+        if (toUser.isFriendsWith (userId))
             throw new Error ("You are already friends with this user");
 
         if (fromUser.hasBlocked (params.toUser))
             throw new Error ("You have blocked this user");
 
-        if (toUser.hasBlocked (params.fromUser))
+        if (toUser.hasBlocked (userId))
             throw new Error ("You have been blocked by this user");
 
         const req = this.friendRequestsRepository.create ();
@@ -259,11 +271,11 @@ export class UsersService
         await this.friendRequestsRepository.save (req);
     }
 
-    async acceptFriendRequest (params: FriendRequestDto)
+    async acceptFriendRequest (userId: string, params: ReceivedFriendRequestParams)
     {
-        FriendRequestDto.validate (params);
+        await validate (params);
 
-        const req = await this.findFriendRequest (params);
+        const req = await this.findFriendRequest ({fromUserId: params.fromUser, toUserId: userId});
         if (req == null)
             throw new Error ("Friend request does not exist");
 
@@ -281,8 +293,9 @@ export class UsersService
         await this.usersRepository.save (req.fromUser);
         await this.usersRepository.save (req.toUser);
 
-        try {
-            const inverse = await this.findFriendRequest ({fromUser: params.toUser, toUser: params.fromUser});
+        try
+        {
+            const inverse = await this.findFriendRequest ({fromUserId: userId, toUserId: params.fromUser});
             await this.friendRequestsRepository.remove (inverse);
         }
         catch (err) {}
@@ -290,19 +303,19 @@ export class UsersService
         await this.friendRequestsRepository.remove (req);
     }
 
-    async cancelFriendRequest (params: FriendRequestDto)
+    async cancelFriendRequest (userId: string, params: ReceivedFriendRequestParams)
     {
-        FriendRequestDto.validate (params);
+        await validate (params);
 
-        const req = await this.findFriendRequest (params);
+        const req = await this.findFriendRequest ({fromUserId: params.fromUser, toUserId: userId});
         if (!req)
             throw new Error ("Friend request does not exist");
 
         await this.friendRequestsRepository.remove (req);
     }
 
-    async declineFriendRequest (params: FriendRequestDto)
+    async declineFriendRequest (userId: string, params: ReceivedFriendRequestParams)
     {
-        await this.cancelFriendRequest (params);
+        await this.cancelFriendRequest (userId, params);
     }
 }
