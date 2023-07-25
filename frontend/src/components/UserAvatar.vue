@@ -146,7 +146,7 @@ async function goToPrivateConv ()
 <template>
     <div class="tooltip dropdown flex" :class="dropdownClass ?? ''" :data-tip="user?.username" >
         <label tabindex="0" class="avatar" :class="(isOnline ? 'online' : 'offline') + (!user?.avatarFile ? ' placeholder' : '')">
-            <div class="h-12 w-12 btn btn-circle overflow-hidden grid">
+            <div class="h-12 w-12 btn normal-case btn-circle overflow-hidden grid">
                 <img v-if="user?.avatarFile" :src="user?.avatarFile" />
                 <span v-else class="text-xl align-text-top">{{ user?.nickname.charAt (0) }}</span>
             </div>
