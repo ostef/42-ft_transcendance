@@ -212,7 +212,6 @@ export class ChatGateway
     {
         try
         {
-            console.log ("A", params);
             const {msg, newConv} = await this.messageService.sendMessageToUser (client.data.userId, params.userId, params.message, null, params.gameId);
 
             const firstKey = client.data.userId.localeCompare (params.userId) < 0 ? client.data.userId : params.userId;
