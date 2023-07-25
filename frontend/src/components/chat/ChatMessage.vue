@@ -115,6 +115,21 @@ async function acceptInvite ()
                 </button>
                 <h3 class="text-sm italic" v-if="!inviteHasExpired">Expires on {{inviteExpirationTimestamp}}</h3>
             </div>
+
+            <div v-if="message?.gameId">
+                <div v-if="!mine" class="select-none text-sm italic">
+                    {{ message?.sender.username }} has invited you to a game of Pong <br>
+                </div>
+                <div v-else class="select-none text-sm italic">
+                    You have invited this person to a game of Pong <br>
+                </div>
+
+                <button v-if="!mine"
+                    class="btn normal-case m-4"
+                >
+                    Join Game
+                </button>
+            </div>
         </div>
 
         <div class="chat-footer select-none">

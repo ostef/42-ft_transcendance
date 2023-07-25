@@ -72,6 +72,7 @@ export class MessageDto
     toUser?: UserDto;
     content: string;
     channelInvite?: ChannelInviteDto;
+    gameId?: string;
     date: Date;
 
     static fromMessageEntity (me: UserEntity, msg: MessageEntity): MessageDto
@@ -91,6 +92,7 @@ export class MessageDto
                 content: msg.fromUser.hasBlocked (me) ? '' : msg.content,
                 date: msg.timestamp,
                 channelInvite: msg.invite ? ChannelInviteDto.fromChannelInviteEntity (msg.invite) : undefined,
+                gameId: msg.gameId,
             };
         }
     }

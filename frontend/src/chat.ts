@@ -72,7 +72,7 @@ export function connectChatSocket ()
         const user = store.users.find ((val) => val.id == msg.sender);
 
         if (user)
-            store.messages.push ({sender: user, content: msg.content, date: new Date (msg.date), channelInvite: msg.channelInvite});
+            store.messages.push ({sender: user, content: msg.content, date: new Date (msg.date), channelInvite: msg.channelInvite, gameId: msg.gameId});
         else
             console.error ("Received new message but sender wasn't found:", msg);
     });

@@ -41,6 +41,7 @@ export type Message =
     content: string;
     date: Date;
     channelInvite?: ChannelInvite;
+    gameId?: string;
 }
 
 export type AlertType = "info" | "success" | "warning" | "error";

@@ -30,6 +30,9 @@ export class MessageEntity
     @JoinColumn ()
     invite?: ChannelInviteEntity;
 
+    @Column ({nullable: true})
+    gameId?: string;
+
     @CreateDateColumn ()
     timestamp: Date;
 }

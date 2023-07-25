@@ -5,7 +5,7 @@ import { storeToRefs } from "pinia";
 import { computed, type PropType } from "vue";
 
 import { useStore, type User } from "@/store";
-import { selectPrivConv, notifyChannelChange, notifyUserKickOrBan } from "@/chat";
+import { selectPrivConv, notifyChannelChange, notifyUserKickOrBan, chatSocket } from "@/chat";
 
 import UserPopup from "./UserPopup.vue";
 
@@ -141,6 +141,22 @@ async function goToPrivateConv ()
     await selectPrivConv (props.user.id);
 }
 
+async function inviteUserToPlay ()
+{
+    if (!props.user)
+        return;
+
+    const res = await axios.post ("game");
+    console.log ("Invited user:", res.data);
+    chatSocket.emit ("gameInvite", {
+        userId: props.user.id,
+        gameId: res.data,
+        message: "Hey, come play a game with me!"
+    });
+
+    store.pushAlert ("success", "Invited " + props.user.username + " to a game of Pong");
+}
+
 </script>
 
 <template>
@@ -154,6 +170,10 @@ async function goToPrivateConv ()
         <ul tabindex="0" class="menu menu-compact dropdown-content w-40 m-2 shadow rounded-md bg-base-300">
             <li v-if="store.loggedUser?.id != user?.id">
                 <a @click="goToPrivateConv ()">Send Message</a>
+            </li>
+
+            <li v-if="store.loggedUser?.id != user?.id">
+                <a @click="inviteUserToPlay ()">Invite To Play</a>
             </li>
 
             <li v-if="isInChannel && store.loggedUser?.id != user?.id && clientIsOwner && !isAdmin">

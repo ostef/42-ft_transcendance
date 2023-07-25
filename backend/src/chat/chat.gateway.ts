@@ -31,6 +31,13 @@ class ChannelInviteParams
     message: string;
 }
 
+class GameInviteParams
+{
+    userId: string;
+    gameId: string;
+    message: string;
+}
+
 class UserKickedOrBanned
 {
     channelId: string;
@@ -200,14 +207,13 @@ export class ChatGateway
         }
     }
 
-/*
     @SubscribeMessage ("gameInvite")
     async handleGameInvite (client: Socket, params: GameInviteParams)
     {
         try
         {
-            const invite = this.gameService.createInvite (client.data.userId, params.userId);
-            const {msg, newConv} = await this.messageService.sendMessageToUser (client.data.userId, params.userId, params.message, invite);
+            console.log ("A", params);
+            const {msg, newConv} = await this.messageService.sendMessageToUser (client.data.userId, params.userId, params.message, null, params.gameId);
 
             const firstKey = client.data.userId.localeCompare (params.userId) < 0 ? client.data.userId : params.userId;
             const secondKey = client.data.userId.localeCompare (params.userId) < 0 ? params.userId : client.data.userId;
@@ -222,7 +228,7 @@ export class ChatGateway
                 content: params.message,
                 date: msg.timestamp,
                 toUser: params.userId,
-                channelInvite: ChannelInviteInfo.fromChannelInviteEntity (invite)
+                gameId: params.gameId
             });
         }
         catch (err)
@@ -231,7 +237,6 @@ export class ChatGateway
             client.emit ("error", err.message);
         }
     }
-*/
 
     @SubscribeMessage ("channelUpdated")
     notifyChannelChange (client: Socket, channelId: string)

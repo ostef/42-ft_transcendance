@@ -81,8 +81,10 @@ export class MessageService
         return conv1.concat (conv2);
     }
 
-    async sendMessageToUser (senderId: string, userId: string, content: string, invite: ChannelInviteEntity = null): Promise<{msg: MessageEntity, conv: PrivateConversationEntity, newConv: boolean}>
+    async sendMessageToUser (senderId: string, userId: string, content: string, invite: ChannelInviteEntity = null, gameId?: string): Promise<{msg: MessageEntity, conv: PrivateConversationEntity, newConv: boolean}>
     {
+        console.log (gameId);
+
         const sender = await this.usersService.findUserEntity ({id: senderId}, {blockedUsers: true});
         if (!sender)
             throw new Error ("User does not exist");
@@ -105,6 +107,7 @@ export class MessageService
         msg.content = content;
         if (invite)
             msg.invite = invite;
+        msg.gameId = gameId;
 
         msg = await this.messageRepository.save (msg);
 
@@ -115,7 +118,7 @@ export class MessageService
         return {msg: msg, conv: conv, newConv: newConv};
     }
 
-    async sendMessageToChannel (senderId: string, channelId: string, content: string, invite: ChannelInviteEntity = null): Promise<MessageEntity>
+    async sendMessageToChannel (senderId: string, channelId: string, content: string): Promise<MessageEntity>
     {
         const sender = await this.usersService.findUserEntity ({id: senderId});
         if (!sender)
@@ -135,9 +138,6 @@ export class MessageService
         msg.fromUser = sender;
         msg.toChannel = channel;
         msg.content = content;
-        if (invite)
-            msg.invite = invite;
-
         msg = await this.messageRepository.save (msg);
 
         channel.messages.push (msg);
