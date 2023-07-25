@@ -1,3 +1,5 @@
+.env
+
 data/
 *.log
 package-lock.json
