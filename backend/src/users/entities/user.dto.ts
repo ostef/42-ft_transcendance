@@ -1,5 +1,4 @@
 import { PartialType, PickType } from "@nestjs/mapped-types";
-import { validateName, validatePassword, validatePngFilename } from "src/validation";
 
 export class UserDto
 {
@@ -12,14 +11,14 @@ export class UserDto
     static validate (value: UserDto)
     {
         console.log(value.username)
-        if (!validateName (value.username))
-            throw new Error ("Invalid username");
+        // if (!validateName (value.username))
+        //     throw new Error ("Invalid username");
 
-        if (!validateName (value.nickname))
-            throw new Error ("Invalid nickname");
+        // if (!validateName (value.nickname))
+        //     throw new Error ("Invalid nickname");
 
-        if (!validatePngFilename (value.avatarFile))
-            throw new Error ("Avatar file must be a PNG file");
+        // if (!validatePngFilename (value.avatarFile))
+        //     throw new Error ("Avatar file must be a PNG file");
     }
 }
 
@@ -31,14 +30,14 @@ export class CreateUserDto
 
     static validate (value: CreateUserDto)
     {
-        if (!validateName (value.username))
-            throw new Error ("Invalid username");
+        // if (!validateName (value.username))
+        //     throw new Error ("Invalid username");
 
-        if (!validateName (value.nickname))
-            throw new Error ("Invalid nickname");
+        // if (!validateName (value.nickname))
+        //     throw new Error ("Invalid nickname");
 
-        if (!validatePassword (value.password))
-            throw new Error ("Password too weak");
+        // if (!validatePassword (value.password))
+        //     throw new Error ("Password too weak");
     }
 }
 
@@ -57,16 +56,16 @@ export class UpdateUserDto
 
     static validate (value: UpdateUserDto)
     {
-        if (value.username != undefined && !validateName (value.username))
-            throw new Error ("Invalid username");
+        // if (value.username != undefined && !validateName (value.username))
+        //     throw new Error ("Invalid username");
 
-        if (value.nickname != undefined && !validateName (value.nickname))
-            throw new Error ("Invalid nickname");
+        // if (value.nickname != undefined && !validateName (value.nickname))
+        //     throw new Error ("Invalid nickname");
 
-        if (value.password != undefined && !validatePassword (value.password))
-            throw new Error ("Password too weak");
+        // if (value.password != undefined && !validatePassword (value.password))
+        //     throw new Error ("Password too weak");
 
-        if (value.avatarFile != undefined && !validatePngFilename (value.avatarFile))
-            throw new Error ("Avatar file must be a PNG file");
+        // if (value.avatarFile != undefined && !validatePngFilename (value.avatarFile))
+        //     throw new Error ("Avatar file must be a PNG file");
     }
 }
