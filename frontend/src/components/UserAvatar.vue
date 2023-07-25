@@ -8,6 +8,7 @@ import { useStore, type User } from "@/store";
 import { selectPrivConv, notifyChannelChange, notifyUserKickOrBan, chatSocket } from "@/chat";
 
 import UserPopup from "./UserPopup.vue";
+import router from "@/router";
 
 const store = useStore ();
 const { channelsSelected, privateConvs, selectedUserIndex } = storeToRefs (useStore ());
@@ -146,15 +147,16 @@ async function inviteUserToPlay ()
     if (!props.user)
         return;
 
-    const res = await axios.post ("game");
-    console.log ("Invited user:", res.data);
+    const gameId = (await axios.post ("game")).data;
     chatSocket.emit ("gameInvite", {
         userId: props.user.id,
-        gameId: res.data,
+        gameId: gameId,
         message: "Hey, come play a game with me!"
     });
 
     store.pushAlert ("success", "Invited " + props.user.username + " to a game of Pong");
+
+    router.replace ("game/c" + gameId);
 }
 
 </script>

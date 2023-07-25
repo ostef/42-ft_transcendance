@@ -7,6 +7,7 @@ import { useStore, type User, type Message } from "@/store";
 import { fetchChannels, notifyChannelChange, selectChannel } from "@/chat";
 
 import UserAvatar from "@/components/UserAvatar.vue";
+import router from "@/router";
 
 const store = useStore ();
 
@@ -64,6 +65,14 @@ async function acceptInvite ()
     props.message.channelInvite.accepted = true;
 
     selectChannel (props.message.channelInvite.channel.id);
+}
+
+async function joinGame ()
+{
+    if (!props.message?.gameId || !store.loggedUser)
+        return;
+
+    router.replace ("game/j" + props.message?.gameId);
 }
 
 </script>
@@ -125,7 +134,7 @@ async function acceptInvite ()
                 </div>
 
                 <button v-if="!mine"
-                    class="btn normal-case m-4"
+                    class="btn normal-case m-4" @click="joinGame ()"
                 >
                     Join Game
                 </button>
