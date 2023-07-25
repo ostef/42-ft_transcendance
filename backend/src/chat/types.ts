@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, IsStrongPassword, Length } from "class-validator";
 
 export class UserDto
 {
@@ -44,20 +44,18 @@ export class MessageDto
 export class CreateChannelParams
 {
     @IsString ()
-    @IsNotEmpty ()
+    @Length (2, 100)
     name: string;
 
     @IsString ()
     @IsNotEmpty ()
     description: string;
 
-    @IsString ()
-    @IsNotEmpty ()
+    @IsBoolean ()
     isPrivate: boolean;
 
     @IsOptional ()
-    @IsString ()
-    // @IsPassword ()
+    @IsStrongPassword ({minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1})
     password?: string;
 }
 
@@ -65,7 +63,7 @@ export class UpdateChannelParams
 {
     @IsOptional ()
     @IsString ()
-    @IsNotEmpty ()
+    @Length (2, 100)
     name?: string;
 
     @IsOptional ()
@@ -74,21 +72,46 @@ export class UpdateChannelParams
     description?: string;
 
     @IsOptional ()
-    @IsString ()
-    @IsNotEmpty ()
+    @IsBoolean ()
     isPrivate?: boolean;
 
     @IsOptional ()
-    @IsString ()
-    // @IsPassword ()
+    @IsStrongPassword ({minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1})
     password?: string;
 
+    @IsOptional ()
+    @IsArray ()
+    @IsString ({each: true})
     usersToAdmin?: string[];
+
+    @IsOptional ()
+    @IsArray ()
+    @IsString ({each: true})
     usersToUnadmin?: string[];
+
+    @IsOptional ()
+    @IsArray ()
+    @IsString ({each: true})
     usersToBan?: string[];
+
+    @IsOptional ()
+    @IsArray ()
+    @IsString ({each: true})
     usersToUnban?: string[];
+
+    @IsOptional ()
+    @IsArray ()
+    @IsString ({each: true})
     usersToMute?: string[];
+
+    @IsOptional ()
+    @IsArray ()
+    @IsString ({each: true})
     usersToUnmute?: string[];
+
+    @IsOptional ()
+    @IsArray ()
+    @IsString ({each: true})
     usersToKick?: string[];
 }
 
@@ -111,6 +134,7 @@ export class MessageParams
     toChannel: string;
 
     @IsString ()
+    @IsNotEmpty ()
     content: string;
 }
 
@@ -121,5 +145,6 @@ export class ChannelInviteParams
     userId: string;
 
     @IsString ()
+    @IsNotEmpty ()
     message: string;
 }

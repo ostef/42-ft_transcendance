@@ -1,48 +1,58 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsAlphanumeric, IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, IsStrongPassword, Length } from "class-validator";
+import { IsName, IsPngFilename } from "src/validation";
 
 export class CreateUserParams
 {
-    @IsString ()
-    // @IsName ()
+    @IsAlphanumeric ()
+    @Length (2, 50)
     username: string;
 
     @IsString ()
-    // @IsName ()
+    @Length (2, 50)
     nickname: string;
 
-    @IsString ()
-    // @IsPassword ()
+    @IsStrongPassword ({minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1})
     password: string;
 }
 
 export class UpdateUserParams
 {
     @IsOptional ()
-    @IsString ()
-    // @IsName ()
+    @IsAlphanumeric ()
+    @Length (2, 50)
     username?: string;
 
     @IsOptional ()
     @IsString ()
-    // @IsName ()
+    @Length (2, 50)
     nickname?: string;
 
     @IsOptional ()
-    @IsString ()
-    // @IsPassword ()
+    @IsStrongPassword ({minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1})
     password?: string;
 
     @IsOptional ()
-    @IsString ()
-    has2FA?: string;
+    @IsBoolean ()
+    has2FA?: boolean;
 
     @IsOptional ()
     @IsString ()
-    @IsNotEmpty ()
+    @IsPngFilename ()
     avatarFile?: string;
 
+    @IsOptional ()
+    @IsArray ()
+    @IsString ({each: true})
     friendsToRemove?: string[];
+
+    @IsOptional ()
+    @IsArray ()
+    @IsString ({each: true})
     usersToBlock?: string[];
+
+    @IsOptional ()
+    @IsArray ()
+    @IsString ({each: true})
     usersToUnblock?: string[];
 }
 
