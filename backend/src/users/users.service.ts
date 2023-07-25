@@ -58,6 +58,22 @@ export class UsersService
         return entity == null;
     }
 
+    async setTwoFactorAuth (id: string, secret: string): Promise<void>
+    {
+        this.usersRepository.update (id, {twoFactorSecret: secret});
+    }
+
+    async turnonTwoFactorAuth (id: string): Promise<void>
+    {
+        this.usersRepository.update (id, {has2FA: true});
+    }
+
+    async turnoffTwoFactorAuth (id: string): Promise<void>
+    {
+        this.usersRepository.update (id, {has2FA: false});
+    }
+
+
     async updateUser (id: string, params: UpdateUserDto)
     {
         UpdateUserDto.validate (params);
@@ -155,6 +171,15 @@ export class UsersService
         }
 
         // @Todo: handle 2fa
+        if (params.has2FA != undefined)
+        {
+            user.has2FA = params.has2FA;
+        }
+
+        if (params.twoFactorSecret != undefined)
+        {
+            user.twoFactorSecret = params.twoFactorSecret;
+        }
 
         for (const it of toSave)
             await this.usersRepository.save (it);   // @Speed: use update if possible

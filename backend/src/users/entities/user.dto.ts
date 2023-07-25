@@ -6,10 +6,12 @@ export class UserDto
     username: string;
     nickname: string;
     has2FA: boolean;
+    twoFactorSecret: string;
     avatarFile: string;
 
     static validate (value: UserDto)
     {
+        console.log(value.username)
         if (!validateName (value.username))
             throw new Error ("Invalid username");
 
@@ -45,6 +47,7 @@ export class UpdateUserDto
     username?: string;
     nickname?: string;
     has2FA?: boolean;
+    twoFactorSecret?: string;
     avatarFile?: string;
     password?: string;
 

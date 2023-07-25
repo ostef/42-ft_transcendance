@@ -25,7 +25,7 @@ export function isName (value: string): boolean
 export function isPassword (value: string): boolean
 {
     if (value == undefined)
-        return false;
+        return true;
 
     if (value.length < 8)
         return false;
@@ -55,9 +55,7 @@ export function isPngFilename (value: string): boolean
     if (value == undefined)
         return false;
 
-    const ext = value.split (".").pop ();
-    if (!ext)
-        return false;
+    const ext = value.split (".").pop ().split("?")[0];
 
     return ext.toLowerCase () == "png";
 }

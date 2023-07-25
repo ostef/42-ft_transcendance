@@ -14,26 +14,26 @@ import { MessageEntity } from "./chat/entities/message.entity";
 import { ChannelInviteEntity } from "./chat/entities/channel_invite.entity";
 import { PrivateConversationEntity } from "./chat/entities/private_conversation.entity";
 
+
+import { GameModule } from './game/game.module';
+import { gameHistoryEntity } from "./game/entities/gameHistory.entity";
+
 @Module({
     imports: [
         AuthModule,
         UsersModule,
         ChatModule,
         TypeOrmModule.forRoot ({
-            type: "postgres",
-            host: "localhost",
+            type: 'postgres',
+            host: 'localhost',
             port: 5432,
-            username: "postgres",
-            password: "postgres",
-            database: "postgres",
-            entities: [
-                UserEntity, FriendRequestEntity,
-                ChannelEntity, ChannelInviteEntity, PrivateConversationEntity, MessageEntity,
-            ],
-            // This will modify the database according to the
-            // definition of the entities
+            username: process.env.POSTGRES_USER,
+            password: process.env.POSTGRES_PASSWORD,
+            database: process.env.POSTGRES_DB,
+            entities: [UserEntity, PrivateConversationEntity, MessageEntity, ChannelEntity, FriendRequestEntity, ChannelInviteEntity, gameHistoryEntity],
             synchronize: true,
         }),
+        GameModule,
     ],
     providers: [
         {

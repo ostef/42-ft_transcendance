@@ -10,6 +10,11 @@ import {
     Post, Put,
     Request,
     SetMetadata,
+
+    Injectable, NestInterceptor, ExecutionContext, CallHandler, UseInterceptors,
+    UploadedFile,
+    ParseFilePipe,
+    MaxFileSizeValidator, FileTypeValidator,
 } from "@nestjs/common";
 
 import { UsersService } from "./users.service";
@@ -17,11 +22,16 @@ import { UsersService } from "./users.service";
 import { CreateUserDto, UpdateUserDto, UserDto } from "./entities/user.dto";
 import { UserEntity } from "./entities/user.entity";
 import { FriendRequestDto } from "./entities/friend_request.dto";
+import { FilesService } from "../files/files.service";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { concat } from "rxjs";
 import { UserInfo } from "src/chat/channels.controller";
 
 class SensitiveUserInfo extends UserDto
 {
     receivedFriendRequests: string[];
+    password: string;
+    twoFactorSecret: string;
 }
 
 @Controller ("user")
@@ -31,6 +41,7 @@ export class UsersController
 
     constructor (
         private usersService: UsersService,
+        private filesService: FilesService,
     ) {}
 
     @Get ()
@@ -44,7 +55,9 @@ export class UsersController
 
         const result : SensitiveUserInfo = {
             ...entity,
-            receivedFriendRequests: requests.map ((val) => val.fromUser.id)
+            receivedFriendRequests: requests.map ((val) => val.fromUser.id),
+            password: undefined,
+            twoFactorSecret: undefined,
         };
 
         return result;
@@ -72,12 +85,56 @@ export class UsersController
     {
         try
         {
-            await this.usersService.updateUser (req.user.id, body);
+            await this.usersService.updateUser(req.user.id, body);
         }
         catch (err)
         {
             this.logger.error (err.stack);
             throw new BadRequestException (err.message);
+        }
+    }
+
+    @Post("nickname")
+    // Fait que le contenu de la requête est une string, pour obliger la modification du nickname uniquement et empecher generalisation
+    async updateNickname(@Request() req, @Body() body)
+    {
+        try
+        {
+            await this.usersService.updateUser(req.user.id, { nickname: body.value});
+        }
+        catch (err)
+        {
+            this.logger.error(err.stack);
+            throw new BadRequestException(err.message);
+        }
+    }
+
+
+    @Post("avatar")
+    @UseInterceptors(FileInterceptor('avatar'))
+    async updateAvatar(@Request() req, @UploadedFile(
+        new ParseFilePipe({
+            validators: [
+                new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
+                new FileTypeValidator({fileType: 'image'})
+            ]
+        })
+    )
+    file: Express.Multer.File)
+    {
+        try
+        {
+            const filename= req.user.id + "." + file.originalname.split(".").pop();
+            this.filesService.changeFile(filename, file.buffer);
+            // TODO: change url to be dynamic
+            const url = "http://localhost:3000/files/" + filename + "?t=" + Date.now();
+            await this.usersService.updateUser(req.user.id, { avatarFile: url});
+            return url;
+        }
+        catch (err)
+        {
+            this.logger.error(err.stack);
+            throw new BadRequestException(err.message);
         }
     }
 
@@ -144,18 +201,6 @@ export class UsersController
         }
     }
 
-    // @Get ("profile/:id")
-    // async findUser (@Param ("id") id: string): Promise<UserDto>
-    // {
-    //     const entity = await this.usersService.findUserEntity ({id: id});
-    //     if (entity == null)
-    //         throw new NotFoundException ("User does not exist");
-
-    //     const { password, ...result } = entity;
-
-    //     return result as unknown as UserDto;
-    // }
-
     @Get ("profile/:id")
     async getUserInfo (@Request () req, @Param ("id") id: string): Promise<UserInfo>
     {
@@ -165,5 +210,19 @@ export class UsersController
             throw new BadRequestException ("User does not exist");
 
         return UserInfo.fromUserEntity (me, user)
+    }
+
+    @Get (":id/matchHistory")
+    async getMatchHistory (@Param ("id") id: string)
+    {
+        const user = await this.usersService.findUserEntity({id: id});
+        if (!user)
+            throw new NotFoundException ("User " + id + " does not exist");
+        const matchHistory =
+        console.log("gameHistory", user.gameHistory);
+        console.log("gameHistory2", user.gameHistory2);
+        if (user.gameHistory && user.gameHistory2)
+            return concat(user.gameHistory, user.gameHistory2);
+        return user.gameHistory ? user.gameHistory : user.gameHistory2;
     }
 }

@@ -7,6 +7,8 @@ import { AuthService } from "./auth.service";
 // This is the data that is associated to a JWT token
 export type JwtPayload = {
     userId: string;
+    has2FA: boolean;
+    is2FAAuthenticated: boolean;
 };
 
 @Injectable ()
@@ -26,7 +28,8 @@ export class JwtStrategy extends PassportStrategy (Strategy, "jwtt")
         const user = await this.authService.validateUser (payload.userId);
         if (!user)
             throw new UnauthorizedException ("Invalid user");
-
+        if (user.has2FA && !payload.is2FAAuthenticated)
+            throw new UnauthorizedException ("Invalid 2FA auth");
         return user;
     }
 }

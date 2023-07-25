@@ -1,13 +1,15 @@
 import { createRouter, createWebHistory } from "vue-router"
-import axios from "axios";
-
-import { useStore } from "@/store";
-import { connectChatSocket } from "@/chat";
-import { fetchUserInfo, logout, isAuthenticated } from "@/authentication";
-
 import HomeView from "@/views/Home.vue";
 import ChatView from "@/views/Chat.vue";
 import LoginView from "@/views/Login.vue";
+import TestPage from '../views/TestSocket.vue';
+import ProfileView from "@/views/Profile.vue";
+import axios from "axios";
+
+import { useStore } from "@/store";
+import {logout, isAuthenticated, fetchUserInfo} from "@/authentication";
+import {connectChatSocket} from "@/chat";
+
 
 const router = createRouter ({
     history: createWebHistory (import.meta.env.BASE_URL),
@@ -27,6 +29,16 @@ const router = createRouter ({
             name: "Chat",
             component: ChatView
         },
+        {
+            path: '/game/:id',
+            name: 'testpage',
+            component: TestPage
+        },
+        {
+            path: "/profile",
+            name: "Profile",
+            component: ProfileView
+        }
     ]
 });
 
