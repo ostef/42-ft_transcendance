@@ -182,7 +182,6 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     {
       return ;
     }
-    console.log(data)
     this.gameService.addSpectatorToGame(client, data.gameId)
    }
 }
