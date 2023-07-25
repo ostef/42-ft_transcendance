@@ -4,6 +4,7 @@ import { RemoteSocket, Server, Socket } from "socket.io";
 
 import { AuthService } from "src/auth/auth.service";
 import { ChannelsService } from "./channels.service";
+import { GameService } from "src/game/game.service";
 import { UsersService } from "src/users/users.service";
 import { MessageService } from "./message.service";
 import { ChannelInviteDto } from "./types";
@@ -71,6 +72,7 @@ export class ChatGateway
         private usersService: UsersService,
         private messageService: MessageService,
         private authService: AuthService,
+        private gameService: GameService,
     ) {}
 
     onModuleInit ()
@@ -332,5 +334,12 @@ export class ChatGateway
             if (room.startsWith ("PrivConv#"))
                 client.leave (room);
         }
+    }
+
+    @SubscribeMessage ("joinOrLeaveGame")
+    handleJoinGame (client: Socket)
+    {
+        const usersInGame = this.gameService.getUsersInGame ();
+        this.server.emit ("usersInGame", usersInGame);
     }
 }

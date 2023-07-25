@@ -87,6 +87,10 @@ export function connectChatSocket ()
         store.onlineUsers = onlineUsers
     });
 
+    chatSocket.on ("usersInGame", async (usersInGame) => {
+        store.usersInGame = usersInGame
+    });
+
     chatSocket.on ("channelUpdated", async (channelId) => {
         await fetchChannelInfo (channelId);
 

@@ -70,6 +70,13 @@ const isOnline = computed (() => {
     return store.isOnline (props.user?.id);
 });
 
+const isInGame = computed (() => {
+    if (!props.user)
+        return false;
+
+    return store.isInGame (props.user?.id);
+});
+
 async function muteUser ()
 {
     if (!props.channelId || !props.user)
@@ -166,7 +173,9 @@ async function inviteUserToPlay ()
 <template>
     <div class="tooltip dropdown flex" :class="dropdownClass ?? ''" :data-tip="user?.username" >
         <label tabindex="0" class="avatar" :class="(isOnline ? 'online' : 'offline') + (!user?.avatarFile ? ' placeholder' : '')">
-            <div class="h-12 w-12 btn normal-case btn-circle overflow-hidden grid">
+            <div class="h-12 w-12 btn normal-case btn-circle overflow-hidden grid"
+                :class="isInGame ? 'ring ring-primary ring-offset-base-100 ring-offset-2' : ''"
+            >
                 <img v-if="user?.avatarFile" :src="user?.avatarFile" />
                 <span v-else class="text-xl align-text-top">{{ user?.nickname.charAt (0) }}</span>
             </div>
