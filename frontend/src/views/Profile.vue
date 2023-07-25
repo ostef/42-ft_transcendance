@@ -51,9 +51,8 @@
                                 <span>{{ match.opponentNickname }}</span>
                             </td>
                             <td>
-                                <span v-if="match.playerScore > match.opponentScore">Victoire</span>
-                                <span v-else-if="match.playerScore < match.opponentScore">Defaite</span>
-                                <span v-else>Match nul</span>
+                                <span v-if="match.winner == match.opponentNickname">Defaite</span>
+                                <span v-else>Victoire</span>
                             </td>
                             <td>{{ match.playerScore }}</td>
                             <td>{{ match.opponentScore}}</td>
@@ -73,18 +72,28 @@ import { useStore } from "@/store";
 import axios from "axios";
 import UserAvatar from "@/components/UserAvatar.vue";
 
+interface MatchHistory
+{
+    opponentId: number;
+    opponentNickname: string;
+    opponentAvatarFile: string;
+    playerScore: number;
+    opponentScore: number;
+    winner: string;
+}
+
 const userStore = useStore();
-const matchHistory = ref ([]);
+const matchHistory = ref ([] as MatchHistory[]);
 const friendList = ref ([]);
 
 async function getMatchHistory ()
 {
     // TODO: get match history from id user
-    const id = userStore.user.id;
+    const id = userStore.loggedUser?.id;
 
     const res = await axios.get ("http://localhost:3000/game/matchHistory/" + id, {
         params: {
-            id: userStore.user.id
+            id: id
         }});
 
     if (res.data)  matchHistory.value = res.data;

@@ -650,7 +650,7 @@ export class GameService {
 				{ user1: { id: playerId } },
 				{ user2: { id: playerId } }
 			],
-			relations: ["user1", "user2"],
+			relations: ["user1", "user2", "winner"],
 			select: {
 				user1: {
 					id: true,
@@ -663,6 +663,13 @@ export class GameService {
 					id: true,
 					nickname: true,
 					avatarFile: true,
+					gameHistory: false,
+					gameHistory2: false,
+				},
+				winner: {
+					id: false,
+					nickname: true,
+					avatarFile: false,
 					gameHistory: false,
 					gameHistory2: false,
 				}
@@ -679,6 +686,7 @@ export class GameService {
 				opponentAvatarFile: game.user1.id == playerId ? game.user2.avatarFile : game.user1.avatarFile,
 				playerScore: game.user1.id == playerId ? game.scoreP1 : game.scoreP2,
 				opponentScore: game.user1.id == playerId ? game.scoreP2 : game.scoreP1,
+				winner: game.winner.nickname,
 			};
 
 		});

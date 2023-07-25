@@ -24,8 +24,10 @@ import { UserEntity } from "./entities/user.entity";
 import { FriendRequestDto } from "./entities/friend_request.dto";
 import { FilesService } from "../files/files.service";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { concat } from "rxjs";
 import { UserInfo } from "src/chat/channels.controller";
+import   { filetypename} from "magic-bytes.js";
+import {concat} from "rxjs";
+
 
 class SensitiveUserInfo extends UserDto
 {
@@ -116,7 +118,7 @@ export class UsersController
         new ParseFilePipe({
             validators: [
                 new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
-                new FileTypeValidator({fileType: 'image'})
+                new FileTypeValidator({fileType: 'image/png'})
             ]
         })
     )
@@ -125,6 +127,9 @@ export class UsersController
         try
         {
             const filename= req.user.id + "." + file.originalname.split(".").pop();
+            const filetype = filetypename(file.buffer.slice(0, 8));
+            if (filetype[0] != "png")
+                throw new Error("Avatar file must be a PNG file");
             this.filesService.changeFile(filename, file.buffer);
             // TODO: change url to be dynamic
             const url = "http://localhost:3000/files/" + filename + "?t=" + Date.now();
