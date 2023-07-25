@@ -41,6 +41,9 @@ export class UsersService
         if (!await this.isUsernameAvailable (params.username))
             throw new Error ("Username '" + params.username + "' is not available");
 
+        if (!await this.isNicknameAvailable (params.nickname))
+            throw new Error ("Nickname '" + params.nickname + "' is not available");
+
         const user = this.usersRepository.create ({
             username: params.username,
             nickname: params.nickname,
@@ -54,6 +57,13 @@ export class UsersService
     async isUsernameAvailable (username: string): Promise<boolean>
     {
         const entity = await this.usersRepository.findOneBy ({username: username});
+
+        return entity == null;
+    }
+
+    async isNicknameAvailable (nickname: string): Promise<boolean>
+    {
+        const entity = await this.usersRepository.findOneBy ({nickname: nickname});
 
         return entity == null;
     }
@@ -73,14 +83,13 @@ export class UsersService
         this.usersRepository.update (id, {has2FA: false});
     }
 
-
     async updateUser (id: string, params: UpdateUserDto)
     {
         UpdateUserDto.validate (params);
 
         const user = await this.findUserEntity ({id: id}, {friends: true, blockedUsers: true});
         if (!user)
-            throw new Error ("Invalid user id " + id);
+            throw new Error ("Invalid user id");
 
         const toSave = [] as UserEntity[];
         toSave.push (user);
@@ -95,6 +104,9 @@ export class UsersService
 
         if (params.nickname != undefined)
         {
+            if (params.nickname != user.nickname && !await this.isNicknameAvailable (params.nickname))
+                throw new Error ("Nickname '" + params.nickname + "' is not available");
+
             user.nickname = params.nickname;
         }
 
