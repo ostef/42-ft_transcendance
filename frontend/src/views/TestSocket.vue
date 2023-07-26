@@ -128,8 +128,8 @@ export default {
 			this.difficulty = difficulty
 			if (this.canvas)
 			{
-				this.paddleLeft = new Paddle("canvas", "black", 0.01 * this.canvas.width, true, this.difficulty)
-				this.paddleRight = new Paddle("canvas", "black", this.canvas.width - 0.01 * this.canvas.width, false, this.difficulty)
+				this.paddleLeft = new Paddle("canvas", "grey", 0.01 * this.canvas.width, true, this.difficulty)
+				this.paddleRight = new Paddle("canvas", "grey", this.canvas.width - 0.01 * this.canvas.width, false, this.difficulty)
 			}
 			this.menu = false
 			this.game = true
@@ -374,8 +374,8 @@ export default {
 				this.ownPaddle = "left"
 				this.ball.color = gameColor
 				this.socket.emit("StartSpectating", { gameId : gameInstance })
-				this.paddleLeft = new Paddle("canvas", "black", 0.01 * this.canvas.width, true, this.difficulty)
-				this.paddleRight = new Paddle("canvas", "black", this.canvas.width - 0.01 * this.canvas.width, false, this.difficulty)
+				this.paddleLeft = new Paddle("canvas", "grey", 0.01 * this.canvas.width, true, this.difficulty)
+				this.paddleRight = new Paddle("canvas", "grey", this.canvas.width - 0.01 * this.canvas.width, false, this.difficulty)
 				this.spectate = false
 				this.game = true
 				this.isSpectating = true
