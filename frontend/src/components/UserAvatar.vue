@@ -10,8 +10,6 @@ import { selectPrivConv, notifyChannelChange, notifyUserKickOrBan, chatSocket } 
 import UserPopup from "./UserPopup.vue";
 import router from "@/router";
 
-// @Todo: handle buttons when we are not on the chat page
-
 const store = useStore ();
 const { channelsSelected, privateConvs, selectedUserIndex } = storeToRefs (useStore ());
 

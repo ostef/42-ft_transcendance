@@ -182,7 +182,6 @@ export class UsersService
             }
         }
 
-        // @Todo: handle 2fa
         if (params.has2FA != undefined)
         {
             user.has2FA = params.has2FA;
