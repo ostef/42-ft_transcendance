@@ -24,6 +24,7 @@ import { UsersService } from "./users.service";
 import { UserEntity } from "./entities/user.entity";
 import { FilesService } from "../files/files.service";
 import { CreateUserParams, LoggedUserDto, UpdateUserParams, UserDto } from "./types";
+import {filetypename} from "magic-bytes.js";
 
 @Controller ("user")
 export class UsersController
