@@ -22,10 +22,7 @@ const store = useStore ();
                 <ul tabindex="0" class="relative z-50 menu menu-compact dropdown-content rounded-md shadow bg-base-100">
                     <li><router-link to="/">Home</router-link></li>
                     <li><router-link to="/game/0">Play</router-link></li>
-                    <div class="indicator">
-                        <span class="indicator-item badge badge-sm badge-primary"></span>
-                        <li><router-link to="/chat">Chat</router-link></li>
-                    </div>
+                    <li><router-link to="/chat">Chat</router-link></li>
                 </ul>
             </div>
 
@@ -40,10 +37,7 @@ const store = useStore ();
             <ul class="menu menu-horizontal">
                 <li><router-link to="/" class="h-[50px]">Home</router-link></li>
                 <li><router-link to="/game/0" class="h-[50px]">Play</router-link></li>
-                <div class="indicator">
-                    <span class="indicator-item badge badge-sm badge-primary"></span>
-                    <li><router-link to="/chat" class="h-[50px]">Chat</router-link></li>
-                </div>
+                <li><router-link to="/chat" class="h-[50px]">Chat</router-link></li>
             </ul>
         </div>
 
