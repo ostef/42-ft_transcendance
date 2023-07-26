@@ -18,9 +18,10 @@ import { ref } from "vue";
 import axios from "axios";
 import QRCodeVue3 from "qrcode-vue3";
 import {logout} from "@/authentication";
+import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
 
 
-const userStore = useStore();
+const store = useStore();
 // const { user } = storeToRefs (userStore);
 
 const isEditing = ref("");
@@ -38,13 +39,13 @@ async function changePicture()
     const fd = new FormData();
     fd.append("avatar", pictureNew.value);
     const res = await axios.put("/user/avatar", fd);
-    userStore.loggedUser.avatarFile = res.data.toString();
+    store.loggedUser.avatarFile = res.data.toString();
     // toggleChangePicture();
 }
 
 async function changeNickname() {
     await axios.put("user", { nickname: nickNameNew.value });
-    userStore.loggedUser.nickname = nickNameNew.value;
+    store.loggedUser.nickname = nickNameNew.value;
     // toggleChangeNickname();
 }
 
@@ -62,7 +63,7 @@ async function turnon2fa() {
     const res = await axios.post("/auth/2fa/turn-on", { code: code2fa.value });
     qrCode2fa.value = ""
   if (res.status == 200)
-    userStore.loggedUser.has2FA = true;
+    store.loggedUser.has2FA = true;
   logout();
 
 
@@ -71,7 +72,7 @@ async function turnon2fa() {
 async function turnoff2fa() {
     const res = await axios.post("/auth/2fa/turn-off", { code: code2fa.value });
     if (res.status == 200)
-      userStore.loggedUser.has2FA = false;
+      store.loggedUser.has2FA = false;
     logout();
 
 }
@@ -99,16 +100,14 @@ function onPictureSelectionChanged($event: Event) {
 
 <template>
     <div class="flex flex-col space-y-10 justify-center items-center" id="container">
-        <div id="information" class="flex flex-row space-x-8  items-center">
-            <div class="h-24 w-24 btn  btn-circle overflow-hidden grid">
-                <img v-if="userStore.loggedUser?.avatarFile!= undefined" :src="userStore.loggedUser?.avatarFile" />
-            </div>
-                <h2 class="text-3xl">  {{ userStore.loggedUser?.nickname }}</h2>
+        <div id="information" class="flex flex-row space-x-8  items-center">\
+          <NonInteractiveAvatar :user="store?.loggedUser" class="w-24 h-24"/>
+          <h2 class="text-3xl"> {{ store.loggedUser?.nickname }}</h2>
         </div>
       <div class="flex space-x-4">
           <input class="btn" type="radio" name="options" v-model="isEditing" value="picture" aria-label="Change Picture">
           <input class="btn" type="radio" name="options" v-model="isEditing" value="username" aria-label="Change Username">
-          <input v-if="!userStore.loggedUser?.has2FA" class="btn btn-success " type="radio" name="options" v-model="isEditing" value="2fa-on" aria-label="Enable 2FA" @click="generate2faQrCode">
+          <input v-if="!store.loggedUser?.has2FA" class="btn btn-success " type="radio" name="options" v-model="isEditing" value="2fa-on" aria-label="Enable 2FA" @click="generate2faQrCode">
           <input v-else class="btn btn-error " type="radio" name="options" v-model="isEditing" value="2fa-off" aria-label="Disable 2FA">
       </div>
       <div>
