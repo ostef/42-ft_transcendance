@@ -1,9 +1,9 @@
 <script setup lang="ts">
 
 import UserAvatar from "@/components/UserAvatar.vue";
-import {User, useStore} from "@/store";
+import {type User, useStore} from "@/store";
 import axios from "axios";
-import {PropType, onMounted, ref} from "vue";
+import {type PropType, onMounted, ref} from "vue";
 import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
 
 const props = defineProps ({
