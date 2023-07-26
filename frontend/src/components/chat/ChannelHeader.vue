@@ -44,7 +44,7 @@ const store = useStore ();
             <label tabindex="0" class="p-3 m-2 hover:bg-gray-400 hover:text-black rounded-full">
                 <iconify-icon icon="simple-line-icons:options-vertical" class="h-5 w-5" />
             </label>
-            <ul tabindex="0" class="menu menu-compact dropdown-content rounded-md shadow bg-base-100">
+            <ul tabindex="0" class="relative z-50 menu menu-compact dropdown-content rounded-md shadow bg-base-100">
                 <li v-if="store.selectedChannel?.isPrivate"><label for="inviteToChannelModal"
                     class="normal-case"
                 >

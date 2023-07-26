@@ -27,7 +27,7 @@ function toggleSettingsModal ()
                 <label tabindex="0" class="p-3 m-2 hover:bg-gray-400 hover:text-black rounded-full">
                     <iconify-icon icon="ri:menu-2-line" class="h-5 w-5" />
                 </label>
-                <ul tabindex="0" class="menu menu-compact dropdown-content rounded-md shadow bg-base-100">
+                <ul tabindex="0" class="relative z-50 menu menu-compact dropdown-content rounded-md shadow bg-base-100">
                     <li><router-link to="/">Home</router-link></li>
                     <li><router-link to="/game/0">Play</router-link></li>
                     <div class="indicator">
@@ -64,7 +64,7 @@ function toggleSettingsModal ()
                 <label tabindex="0" class="p-3 m-2 hover:bg-gray-400 hover:text-black rounded-full">
                     <iconify-icon icon="ri:menu-2-line" class="h-5 w-5" />
                 </label>
-                <ul tabindex="0" class="menu menu-compact dropdown-content rounded-md shadow bg-base-100">
+                <ul tabindex="0" class="relative z-50 menu menu-compact dropdown-content rounded-md shadow bg-base-100">
                     <li><router-link to="/profile">Profile</router-link></li>
                     <div class="indicator">
                         <span class="indicator-item badge badge-sm badge-primary"></span>
