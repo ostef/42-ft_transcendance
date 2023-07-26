@@ -94,7 +94,7 @@ export class GameService {
 
 		quitSpectators(socketId : string)
 		{
-		this.spectators = this.spectators.filter(spectator => 
+		this.spectators = this.spectators.filter(spectator =>
 			spectator.socket.id !== socketId)
 		}
 
@@ -284,7 +284,7 @@ export class GameService {
 
 	addSpectatorToGame(client : Socket, gameId : number)
 	{
-		let index = this.gamesRoom.findIndex(game => 
+		let index = this.gamesRoom.findIndex(game =>
 			game.instanceId == gameId)
 			if (index != -1)
 		{
@@ -306,7 +306,7 @@ export class GameService {
 	{
 		if (currentGame.isReady === false)
 		{
-			let index = this.gamesCreateRoom.findIndex(game => 
+			let index = this.gamesCreateRoom.findIndex(game =>
 				game.instanceId == currentGame.instanceId
 				)
 				if (index != -1)
@@ -333,7 +333,7 @@ export class GameService {
 	}
 
 
-	//Ingame functions 
+	//Ingame functions
 	updatePaddlePos(client : Socket, gameId : number, paddlePos : number)
 	{
 		let currentInstance = null as Game
@@ -362,17 +362,17 @@ export class GameService {
 
 
 
-	//Leave game functions 
+	//Leave game functions
 	stopGame(gameId : number)
 	{
 		this.quitPlayingGame(gameId)
-		let index = this.gamesRoom.findIndex(game => 
+		let index = this.gamesRoom.findIndex(game =>
 			game.instanceId == gameId
 			)
 			if (index != -1)
 			{
 				this.createGameHistory(this.gamesRoom[index].player1DataBaseId,
-				this.gamesRoom[index].player2DataBaseId, 
+				this.gamesRoom[index].player2DataBaseId,
 				this.gamesRoom[index].score.p1, this.gamesRoom[index].score.p2, this.gamesRoom[index].isWinner)
 				this.quitInGame(this.gamesRoom[index].player1DataBaseId)
 				this.quitInGame(this.gamesRoom[index].player2DataBaseId)
@@ -387,7 +387,7 @@ export class GameService {
 
 	stopGameBeforeStart(gameId : number)
 	{
-		let index = this.gamesRoom.findIndex(game => 
+		let index = this.gamesRoom.findIndex(game =>
 			game.instanceId == gameId
 			)
 			if (index != -1)
@@ -470,7 +470,7 @@ export class GameService {
 		index = this.isSpectating(socketId)
 		if (index != -1)
 		{
-			let index2 = this.gamesRoom.findIndex(game => 
+			let index2 = this.gamesRoom.findIndex(game =>
 				game.instanceId == this.spectators[index].gameId)
 			if (index != -1)
 			{
@@ -500,8 +500,8 @@ export class GameService {
 		)
 		if (index == -1)
 		{
-			index = this.gamesRoom.findIndex(game => 
-				game.player2Socket?.id === socketId 
+			index = this.gamesRoom.findIndex(game =>
+				game.player2Socket?.id === socketId
 			)
 		}
 		return (index)
@@ -562,7 +562,7 @@ export class GameService {
 
 	isSpectating(socketId : string) : number
 	{
-		let index = this.spectators.findIndex(spectator => 
+		let index = this.spectators.findIndex(spectator =>
 			spectator.socket.id == socketId)
 		return (index)
 	}
@@ -678,37 +678,27 @@ export class GameService {
 		}).catch(() => {
 			//console.log("Failed to add the game to the history")
 		})
-		
+
 
 	}
 
-	async getMatchHistory(playerId : string)
+	async getMatchHistory(playerId : string): Promise<any[]>
 	{
 		const matchHistory = await this.gameRepository.find({
 			where: [
 				{ user1: { id: playerId } },
 				{ user2: { id: playerId } }
 			],
-			relations: ["user1", "user2", "winner"],
-			select: {
+			relations: {
 				user1: {
-					id: true,
-					nickname: true,
-					avatarFile: true,
 					gameHistory: false,
 					gameHistory2: false,
 				},
 				user2: {
-					id: true,
-					nickname: true,
-					avatarFile: true,
 					gameHistory: false,
 					gameHistory2: false,
 				},
 				winner: {
-					id: false,
-					nickname: true,
-					avatarFile: false,
 					gameHistory: false,
 					gameHistory2: false,
 				}
@@ -717,6 +707,7 @@ export class GameService {
 				id: "DESC"
 			}
 		});
+
 		return matchHistory.map((game) => {
 			return {
 				id: game.id,
