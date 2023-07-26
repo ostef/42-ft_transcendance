@@ -15,11 +15,11 @@ import { WsCatchAllFilter } from './exceptions/ws-catch-all-filter'
 @WebSocketGateway({
 	namespace: "/game",
 	cors: {
-		origin: "http://localhost:8080",
+		origin: "*",
 	}
 })
 export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
-  
+
   sockets : string [] = []
 
   @WebSocketServer()
@@ -30,10 +30,10 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 	private readonly gameService: GameService,
 	private authService: AuthService
 	) {}
-  
+
   onModuleInit() {
   }
-  
+
   onApplicationBootstrap() {
 
 	this.server.use ((socket, next) => {
@@ -118,7 +118,7 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     {
       return ;
     }
-		try 
+		try
 		{
 
 			let createResult = this.gameService.createGame(client, data.userId)
@@ -131,7 +131,7 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 
 
 
-   //Events to leave game queue and player queue  
+   //Events to leave game queue and player queue
    @SubscribeMessage('stopWaiting')
    onQuitWaiting(@ConnectedSocket() client: Socket)
    {
@@ -152,7 +152,7 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 	}
 	this.gameService.disconnectPlayer(client.id)
    }
-   
+
 
 
 
