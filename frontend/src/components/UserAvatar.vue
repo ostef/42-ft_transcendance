@@ -17,7 +17,6 @@ const props = defineProps ({
     channelId: String,
     user: Object as PropType<User>,
     dropdownClass: String,
-    showMoreOptions: Boolean ?? true,
 });
 
 const clientIsAdmin = computed (() => {
