@@ -31,7 +31,7 @@ const winRate = ref (0);
     if (res.data)  matchHistory.value = res.data;
     for (let i = 0; i < matchHistory.value.length; i++)
     {
-        if (matchHistory.value[i].winner == store.loggedUser?.nickname)
+        if (matchHistory.value[i].winner == props.user?.nickname)
             winNumber.value++;
         else
             loseNumber.value++;
