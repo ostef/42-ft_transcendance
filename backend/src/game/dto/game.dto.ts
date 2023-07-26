@@ -43,8 +43,8 @@ export class UserIdDtto {
 export class StartInviteDto {
 
 	@IsNotEmpty()
-	@IsNumber()
-	gameId : number
+	@IsString()
+	gameId : string
 
 	@IsNotEmpty()
 	@IsString()
@@ -54,8 +54,8 @@ export class StartInviteDto {
 export class JoinInviteDto {
 	
 	@IsNotEmpty()
-	@IsNumber()
-	gameId : number
+	@IsString()
+	gameId : string
 
 	@IsNotEmpty()
 	@IsString()

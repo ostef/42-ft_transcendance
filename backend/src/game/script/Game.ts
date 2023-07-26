@@ -23,7 +23,7 @@ export default class gameInstance {
 	gameService : GameService
 	isReady : boolean
 	color : string
-	inviteId : number
+	inviteId : string
 	isConfig : boolean
 	isPlaying : boolean
 	isWinner : number
@@ -44,7 +44,7 @@ export default class gameInstance {
 		this.isReady = false
 		this.timerId
 		this.color = "red"
-		this.inviteId = -1
+		this.inviteId = ""
 		this.isConfig = false
 	}
 
@@ -54,7 +54,7 @@ export default class gameInstance {
 		this.player1Socket.emit("configurateGame", this.instanceId)
 	}
 
-	changeInviteId(Id : number)
+	changeInviteId(Id : string)
 	{
 		console.log("Changed the invite Id to " + Id)
 		this.inviteId = Id

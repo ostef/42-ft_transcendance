@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, BadRequestException, Logger} from '@nestjs/common';
 import { GameService } from './game.service';
 import { get } from 'http';
 import { GameSpectateDto } from './dto/game.dto';
@@ -7,6 +7,7 @@ import { GameSpectateDto } from './dto/game.dto';
 @Controller('game')
 export class GameController {
 
+	private logger: Logger = new Logger ("Game Controller")
     constructor(private gameService : GameService) {
     }
     /*Tests avec des todos pour apprendre
@@ -42,9 +43,18 @@ export class GameController {
 		return (gamesSpectate)
 	}
 
-    @Post()
-    createInvite() : number {
-        return (this.gameService.createInvite())
+    @Post(':userId')
+    createInvite(@Param('userId') userId : string) : Promise<string> {
+		try
+		{
+			let result = this.gameService.createInvite(userId)
+			return (result)
+		}
+		catch(err)
+		{
+			this.logger.error(err)
+			throw new BadRequestException(err.message)
+		}
     }
        
     

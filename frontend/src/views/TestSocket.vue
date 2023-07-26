@@ -39,8 +39,8 @@ import LooseVue from "@/components/game/Loose.vue";
 import DisconnectGameVue from "@/components/game/DisconnectGame.vue"
 import GameNotFoundVue from '@/components/game/GameNotFound.vue'
 import Spectate from "@/components/game/Spectate.vue";
+import { chatSocket } from "@/chat";
 
-//Todo faire des fichiers de types
 
 
 export default {
@@ -110,9 +110,12 @@ export default {
     },
     created () {
         console.log("Starting connection to websocket server")
-        this.socket = io("http://" + window.location.hostname + ":3000/game", 
-			
-		)
+        this.socket = io(
+			"http://" + window.location.hostname + ":3000/game",
+			{
+				auth: { token: localStorage.getItem ("token") }
+			}
+		);
 
 		//Events to connect
 		this.socket.on("onConnection" , data => {
@@ -130,6 +133,7 @@ export default {
 			this.menu = false
 			this.game = true
 			this.waitingPlayer = false
+			chatSocket.emit("leaveOrJoinGame")
 			this.joinGame(playerPos, gameId, difficulty, color)
 		})
 		this.socket.on("configurateGame", (gameId : number) => {
@@ -245,7 +249,6 @@ export default {
 				if (e.y <= (window.innerHeight * this.canvasAbsoluteStart) + this.paddleLeft.getHeight() / 2)
 				{
 					mouseHeight = (this.paddleLeft.getHeight() / 2) / this.canvas.height
-					console.log(mouseHeight)
 					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 					return
 				}
@@ -253,12 +256,10 @@ export default {
 				{
 					if (this.canvas)
 						mouseHeight = (this.canvas.height - this.paddleLeft.getHeight() / 2) / this.canvas.height
-					console.log(mouseHeight)
 					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 					return
 				}
 				mouseHeight = (e.y - window.innerHeight * this.canvasAbsoluteStart) / this.canvas.height
-				console.log(mouseHeight)
 				this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 			}
 		})
@@ -549,13 +550,13 @@ export default {
 		//Methode d'invitation
 		creatorGameInvite(gameId : string)
 		{
-			console.log("the game strig :" + parseInt(gameId))
-			this.socket.emit("startInvite", { gameId : parseInt(gameId) , userId : this.userStore.loggedUser?.id})
+			console.log("the game invite id  :" + gameId)
+			this.socket.emit("startInvite", { gameId : gameId , userId : this.userStore.loggedUser?.id})
 		},
 
 		joinGameInvite(gameId : string)
 		{
-			console.log("the game strig :" + parseInt(gameId))
+			console.log("the game invite id :" + gameId)
 			this.socket.emit("joinInvite", { gameId : parseInt(gameId) , userId : this.userStore.loggedUser?.id})
 		},
 
@@ -584,31 +585,5 @@ export default {
 </script>
 
 <style scoped>
-
-*, *::after, *::before {
-box-sizing: border-box;
-}
-
-:root {
---hue: 200;
---saturation: 50%;
---foreground-color: hsl(var(--hue), var(--saturation), 75%);
---background-color: hsl(var(--hue), var(--saturation), 20%);
-}
-
-body {
-position: relative;
-margin: 0;
-background-color: var(--background-color);
-}
-
-/*.canvas {
-position: absolute;
-border: 5px solid;
-top: 20%;
-left: 20%;
-width: 60%;
-height: 60%;
-}*/
 
 </style>

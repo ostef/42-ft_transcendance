@@ -1,4 +1,4 @@
-import { ArgumentsHost, Catch, HttpException, Logger, OnModuleInit, UseFilters } from "@nestjs/common";
+import { ArgumentsHost, Catch, HttpException, Logger, OnModuleInit} from "@nestjs/common";
 import { BaseWsExceptionFilter, ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { RemoteSocket, Server, Socket } from "socket.io";
 
