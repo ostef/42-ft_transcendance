@@ -56,7 +56,7 @@ class UserFriendshipChanged
 @WebSocketGateway ({
     namespace: "chat",
     cors: {
-        origin: "http://localhost:8080",
+        origin: "*",
     },
 })
 export class ChatGateway
