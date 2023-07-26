@@ -187,6 +187,7 @@ export default {
 		})
 		this.socket.on('otherPlayerDisconnectedGame', () => {
 			console.log("Disconnected second player while playing")
+			chatSocket.emit("joinOrLeaveGame")
 			this.playerDisconnectGame()
 		})
 		this.socket.on('OtherPlayerDisconnected', () => {
