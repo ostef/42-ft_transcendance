@@ -138,8 +138,3 @@ function onPictureSelectionChanged($event: Event) {
 
     </div>
 </template>
-
-
-<style scoped>
-
-</style>

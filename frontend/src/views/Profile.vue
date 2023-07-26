@@ -100,7 +100,3 @@ getMatchHistory ();
 getFriendList ();
 
 </script>
-
-<style scoped>
-
-</style>

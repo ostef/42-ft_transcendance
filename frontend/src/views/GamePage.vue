@@ -11,77 +11,6 @@
 		</div>
 </template>
 
-<style scoped>
-
-
-
-/**, *::after, *::before {
-	box-sizing: border-box;
-}
-
-:root {
-	--hue: 200;
-	--saturation: 50%;
-	--foreground-color: hsl(var(--hue), var(--saturation), 75%);
-	--background-color: hsl(var(--hue), var(--saturation), 20%);
-}
-
-body {
-	position: relative;
-	margin: 0;
-	background-color: var(--background-color);
-}
-
-.canvas {
-	position: absolute;
-	border: 5px solid;
-	top: 20%;
-	left: 20%;
-	width: 60%;
-	height: 60%;
-}
-
-.leftbar {
-	position: absolute;
-	left: 0px;
-	width: 20%;
-}
-
-.rightbar {
-	position: absolute;
-	right: 0px;
-	width: 20%;
-}
-
-/*.navbar {
-	position: absolute;
-	top : 0px;
-	height: 20%;
-}
-
-.score {
-	display: flex;
-	justify-content: center;
-	font-weight: bold;
-	font-size: 7vh;
-	color: var(--foreground-color);
-}
-
-.score > * {
-	flex-grow: 1;
-	flex-basis: 0;
-	padding: 0 2vh;
-	margin: 1vh 0;
-	opacity: .5;
-}
-
-.score > :first-child {
-	text-align: right;
-	border-right: .5vh solid var(--foreground-color);
-}*/
-
-</style>
-
 <script setup>
 
 
@@ -106,7 +35,7 @@ let CanvasAbsoluteStart = 20 / 100
 onMounted(() => {
 
 
-	
+
 
 	canvas = document.querySelector("canvas")
 	ctx = canvas.getContext("2d")
@@ -149,11 +78,11 @@ function windowresize()
 	//Mise à jour de la balle en absolue pour éviter des tricks en window resize
 	ball.setypos(ballPosAbsolute * canvas.height)
 	ball.setxpos(ballXPosAbsolute * canvas.width)
-	
+
 	//Todo Besoin de regler encore des bugs de resize pour la balle ou elle stuck en bas
 }
 
-function update(time) 
+function update(time)
 {
 
 	if (lastTime != null)
@@ -179,7 +108,7 @@ function update(time)
 	window.requestAnimationFrame(update)
 }
 
-function isLose() 
+function isLose()
 {
 	if (ball.getcenterpos().x + ball.radius >= canvas.width)
 		return (1)
@@ -190,7 +119,7 @@ function isLose()
 }
 
 
-function handleLose() 
+function handleLose()
 {
 
 	if (ball.getcenterpos().x + ball.radius >= canvas.width)
@@ -198,7 +127,7 @@ function handleLose()
 		if (playerScoreElem?.textContent)
 			playerScoreElem.textContent = (parseInt(playerScoreElem.textContent) + 1).toString()
 	}
-	else 
+	else
 	{
 		if (computerScoreElem?.textContent)
 			computerScoreElem.textContent = (parseInt(computerScoreElem.textContent) + 1).toString()
