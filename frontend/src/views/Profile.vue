@@ -1,10 +1,7 @@
 <template>
     <div class="flex flex-col space-y-10 justify-center items-center" id="container">
         <div id="information" class="flex flex-row space-x-8  items-center">
-            <div class="h-24 w-24 btn  btn-circle overflow-hidden grid">
-                <img v-if="store.loggedUser?.avatarFile!= undefined" :src="store.loggedUser?.avatarFile" />
-            </div>
-            <h2 class="text-3xl"> {{ store.loggedUser?.nickname }}</h2>
+            <NonInteractiveAvatar class="h-24 w-24" :user="store.loggedUser ?? undefined" />
         </div>
         <div id="friendList" class="flex flex-col space-y-4">
             <h2 class="text-2xl">Friend List</h2>
@@ -47,9 +44,10 @@
 <script setup lang="ts">
 
 import {ref, toRef, watch} from "vue";
-import {User, useStore} from "@/store";
+import {type User, useStore} from "@/store";
 import axios from "axios";
 import UserAvatar from "@/components/UserAvatar.vue";
+import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
 import MatchHistory from "@/components/MatchHistory.vue";
 
 
@@ -78,7 +76,7 @@ async function getWaitingFriendList ()
 getFriendList ();
 getWaitingFriendList()
 
-watch(store.loggedUser?.receivedFriendRequests, async () => {
+watch (store.loggedUser?.receivedFriendRequests, async () => {
     await getFriendList ();
     await getWaitingFriendList()
 });
