@@ -20,6 +20,7 @@ import { ChannelInviteEntity } from 'src/chat/entities/channel_invite.entity';
     ]),
 ],
   controllers: [GameController],
-  providers: [GameService, GameGateway, UsersService, ChannelsService]
+  providers: [GameService, GameGateway, UsersService, ChannelsService],
+  exports: [GameService]
 })
 export class GameModule {}

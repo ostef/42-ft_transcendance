@@ -12,6 +12,7 @@ import { MessageService } from "./message.service";
 import { UsersModule } from "src/users/users.module";
 import { AuthModule } from "src/auth/auth.module";
 import { GameModule } from "src/game/game.module";
+import {GameService} from "../game/game.service";
 
 @Module ({
     imports: [
@@ -20,7 +21,7 @@ import { GameModule } from "src/game/game.module";
         AuthModule,
         TypeOrmModule.forFeature ([
             ChannelEntity, PrivateConversationEntity,
-            MessageEntity, ChannelInviteEntity,
+            MessageEntity, ChannelInviteEntity
         ]),
     ],
     controllers: [ChannelsController],
