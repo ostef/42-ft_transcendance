@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, BadRequestException, Logger} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, BadRequestException, Logger, Request} from '@nestjs/common';
 import { GameService } from './game.service';
 import { get } from 'http';
 import { GameSpectateDto } from './dto/game.dto';
@@ -47,11 +47,11 @@ export class GameController {
 		return (gamesSpectate)
 	}
 
-    @Post(':userId')
-    createInvite(@Param('userId') userId : string) : Promise<string> {
+    @Post()
+    createInvite(@Request() req) : Promise<string> {
 		try
 		{
-			let result = this.gameService.createInvite(userId)
+			let result = this.gameService.createInvite(req.user.id)
 			return (result)
 		}
 		catch(err)
