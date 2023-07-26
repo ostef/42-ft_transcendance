@@ -9,11 +9,10 @@
         <div id="friendList" class="flex flex-col space-y-4">
             <h2 class="text-2xl">Friend List</h2>
             <div id="waitingList">
-              <table class="table table-zebra">
-                <tbody>
-                <tr></tr>
-                </tbody>
-              </table>
+             <h3> Waiting</h3>
+              <div class="flex flex-row space-x-4">
+                <UserAvatar v-for="friend in waitingFriendList" :user="friend" />
+              </div>
             </div>
             <span v-if="friendList.length == 0">You have no friends yet</span>
             <div v-else class="overflow-x-auto">
@@ -59,6 +58,7 @@ import MatchHistory from "@/components/MatchHistory.vue";
 
 
 const friendList = ref ([] as User[]);
+const waitingFriendList = ref ([] as User[]);
 const store = useStore();
 
 
@@ -68,7 +68,18 @@ async function getFriendList ()
     if (res.data)  friendList.value = res.data;
 }
 
+async function getWaitingFriendList ()
+{
+    for (const userId of store.loggedUser?.receivedFriendRequests ?? [])
+    {
+        const res = await axios.get ("http://localhost:3000/user/profile/" + userId);
+        if (res.data)  waitingFriendList.value.push(res.data);
+    }
+
+}
+
 getFriendList ();
+getWaitingFriendList()
 
 </script>
 

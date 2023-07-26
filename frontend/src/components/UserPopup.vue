@@ -134,17 +134,17 @@ async function unblockUser ()
             </button>
 
             <div v-else>
-                <button class="m-2 btn bg-primary normal-case" @click="acceptFriendRequest ()">
+                <button class="m-2 btn-success btn  normal-case" @click="acceptFriendRequest ()">
                     Accept Friend Request
                 </button>
 
-                <button class="m-2 btn bg-primary normal-case" @click="declineFriendRequest ()">
+                <button class="m-2 btn btn-error normal-case" @click="declineFriendRequest ()">
                     Decline Friend Request
                 </button>
             </div>
         </div>
 
-        <button v-if="user?.isBlocked" class="m-2 btn normal-case" @click="unblockUser ()">
+        <button v-if="user?.isBlocked" class="m-2 btn btn-error normal-case" @click="unblockUser ()">
             Unblock
         </button>
         <button v-else class="m-2 btn normal-case" @click="blockUser ()">
