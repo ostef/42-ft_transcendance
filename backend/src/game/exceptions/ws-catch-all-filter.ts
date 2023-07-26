@@ -12,7 +12,7 @@ export class WsCatchAllFilter implements ExceptionFilter
 			let exceptionData = exception.getResponse()
 			let exceptionMessage = exceptionData['message'] ?? exceptionData ?? exception.name
 			const wsException = new WsBadRequestException(exceptionMessage)
-			socket.emit('error', wsException.getError())
+			socket.emit('exception', wsException.getError())
 			return
 		}
 
@@ -21,7 +21,7 @@ export class WsCatchAllFilter implements ExceptionFilter
 			let exceptionData = exception.getResponse()
 			let exceptionMessage = exceptionData['message'] ?? exceptionData ?? exception.name
 			const wsException = new WsUnauthaurizedException(exceptionMessage)
-			socket.emit('error', wsException.getError())
+			socket.emit('exception', wsException.getError())
 			return
 		}
 		
