@@ -49,8 +49,6 @@ function sendMessage ()
 
 </script>
 
-// @Todo: rework smartphone sized screens
-
 <template>
     <div class="flex w-full top-[6rem] bottom-[10vh] absolute min-h-0 min-w-0 px-1">
         <!-- Discussion list -->

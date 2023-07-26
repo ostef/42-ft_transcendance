@@ -53,19 +53,20 @@ export class AuthService {
     {
         if (!username)
             throw new UnauthorizedException("Invalid username");
+
         let user = await this.usersService.findUserEntity({ username: username });
 
         if (!user) {
             let nickname = username;
             let nicknameSuffix = 1;
-            while (!this.usersService.isNicknameAvailable (nickname))
+            while (!await this.usersService.isNicknameAvailable (nickname))
             {
                 nickname = username + nicknameSuffix.toString ();
                 nicknameSuffix += 1;
             }
 
             user = await this.usersService.createUser({username: username, nickname: nickname, password: undefined});
-            Logger.log ("User created", user);
+            console.log ("Created new user from 42 login:", user);
         }
 
         const payload: JwtPayload = {

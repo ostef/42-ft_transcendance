@@ -55,6 +55,10 @@ import MatchHistory from "@/components/MatchHistory.vue";
 
 
 
+    const res = await axios.get ("http://" + window.location.hostname + ":3000/game/matchHistory/" + id, {
+        params: {
+            id: userStore.user.id
+        }});
 
 
 const friendList = ref ([] as User[]);

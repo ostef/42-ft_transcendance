@@ -40,7 +40,7 @@ export async function login (username: string, password: string)
 
 export async function login42 () {
     const loginpopup = window.open(
-        "http://localhost:3000/auth/42",
+        "http://" + window.location.hostname + ":3000/auth/42",
         "Login",
         "width=600,height=600"
     );
