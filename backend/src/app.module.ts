@@ -25,7 +25,7 @@ import { gameHistoryEntity } from "./game/entities/gameHistory.entity";
         ChatModule,
         TypeOrmModule.forRoot ({
             type: 'postgres',
-            host: 'database',
+            host: process.env.POSTGRES_HOST,
             port: 5432,
             username: process.env.POSTGRES_USER,
             password: process.env.POSTGRES_PASSWORD,
