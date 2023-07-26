@@ -16,25 +16,14 @@ import {
     ParseFilePipe,
     MaxFileSizeValidator, FileTypeValidator,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { concat } from "rxjs";
 
 import { UsersService } from "./users.service";
 
-import { CreateUserDto, UpdateUserDto, UserDto } from "./entities/user.dto";
 import { UserEntity } from "./entities/user.entity";
-import { FriendRequestDto } from "./entities/friend_request.dto";
 import { FilesService } from "../files/files.service";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { UserInfo } from "src/chat/channels.controller";
-import   { filetypename} from "magic-bytes.js";
-import {concat} from "rxjs";
-
-
-class SensitiveUserInfo extends UserDto
-{
-    receivedFriendRequests: string[];
-    password: string;
-    twoFactorSecret: string;
-}
+import { CreateUserParams, LoggedUserDto, UpdateUserParams, UserDto } from "./types";
 
 @Controller ("user")
 export class UsersController
@@ -47,27 +36,20 @@ export class UsersController
     ) {}
 
     @Get ()
-    async findCurrentUser (@Request () req): Promise<SensitiveUserInfo>
+    async findCurrentUser (@Request () req): Promise<LoggedUserDto>
     {
         const entity = await this.usersService.findUserEntity ({id: req.user.id});
         if (entity == null)
             throw new NotFoundException ("User with id " + req.user.id + " does not exist");
 
-        const requests = await this.usersService.findMultipleFriendRequests ({toUser: req.user.id});
+        const requests = await this.usersService.findMultipleFriendRequests ({toUserId: req.user.id});
 
-        const result : SensitiveUserInfo = {
-            ...entity,
-            receivedFriendRequests: requests.map ((val) => val.fromUser.id),
-            password: undefined,
-            twoFactorSecret: undefined,
-        };
-
-        return result;
+        return LoggedUserDto.fromUserEntityAndFriendRequests (entity, requests);
     }
 
     @SetMetadata ("isPublic", true)
     @Post ()
-    async createUser (@Body () body: CreateUserDto): Promise<string>
+    async createUser (@Body () body: CreateUserParams): Promise<string>
     {
         try
         {
@@ -83,7 +65,7 @@ export class UsersController
     }
 
     @Put ()
-    async updateUser (@Request () req, @Body () body: UpdateUserDto)
+    async updateUser (@Request () req, @Body () body: UpdateUserParams)
     {
         try
         {
@@ -96,6 +78,7 @@ export class UsersController
         }
     }
 
+    // @Todo: remove in favor of an update PUT
     @Post("nickname")
     // Fait que le contenu de la requête est une string, pour obliger la modification du nickname uniquement et empecher generalisation
     async updateNickname(@Request() req, @Body() body)
@@ -114,15 +97,19 @@ export class UsersController
 
     @Post("avatar")
     @UseInterceptors(FileInterceptor('avatar'))
-    async updateAvatar(@Request() req, @UploadedFile(
-        new ParseFilePipe({
-            validators: [
-                new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
-                new FileTypeValidator({fileType: 'image/png'})
-            ]
-        })
+    async updateAvatar(
+        @Request() req,
+
+        @UploadedFile (
+            new ParseFilePipe ({
+                validators: [
+                    new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
+                    new FileTypeValidator({fileType: 'image'})
+                ]
+            })
+        )
+        file: Express.Multer.File
     )
-    file: Express.Multer.File)
     {
         try
         {
@@ -133,7 +120,7 @@ export class UsersController
             this.filesService.changeFile(filename, file.buffer);
             // TODO: change url to be dynamic
             const url = "http://localhost:3000/files/" + filename + "?t=" + Date.now();
-            await this.usersService.updateUser(req.user.id, { avatarFile: url});
+            await this.usersService.updateUser(req.user.id, {avatarFile: url});
             return url;
         }
         catch (err)
@@ -144,21 +131,16 @@ export class UsersController
     }
 
     @Get ("friends")
-    async getFriends (@Request () req): Promise<string[]>
+    async getFriends (@Request () req): Promise<UserDto[]>
     {
-        const user = await this.usersService.findUserEntity ({id: req.user.id}, {friends: true});
+        const user = await this.usersService.findUserEntity ({id: req.user.id}, {friends: {blockedUsers: true}, blockedUsers: true});
         if (!user)
             throw new NotFoundException ("User does not exist");
 
-        const result = [];
+        const result = [] as UserDto[];
         for (const u of user.friends)
         {
-            result.push ({
-                id: u.id,
-                username: u.username,
-                nickname: u.nickname,
-                avatarFile: u.avatarFile
-            });
+            result.push (UserDto.fromUserEntity (user, u));
         }
 
         return result;
@@ -169,7 +151,7 @@ export class UsersController
     {
         try
         {
-            await this.usersService.sendFriendRequest ({fromUser: req.user.id, toUser: id} as FriendRequestDto);
+            await this.usersService.sendFriendRequest (req.user.id, {toUser: id});
         }
         catch (err)
         {
@@ -183,7 +165,7 @@ export class UsersController
     {
         try
         {
-            await this.usersService.acceptFriendRequest ({fromUser: id, toUser: req.user.id} as FriendRequestDto);
+            await this.usersService.acceptFriendRequest (req.user.id, {fromUser: id});
         }
         catch (err)
         {
@@ -197,7 +179,7 @@ export class UsersController
     {
         try
         {
-            await this.usersService.declineFriendRequest ({fromUser: id, toUser: req.user.id} as FriendRequestDto);
+            await this.usersService.declineFriendRequest (req.user.id, {fromUser: id});
         }
         catch (err)
         {
@@ -207,14 +189,14 @@ export class UsersController
     }
 
     @Get ("profile/:id")
-    async getUserInfo (@Request () req, @Param ("id") id: string): Promise<UserInfo>
+    async getUserInfo (@Request () req, @Param ("id") id: string): Promise<UserDto>
     {
         const me = await this.usersService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
         const user = await this.usersService.findUserEntity ({id: id}, {friends: true, blockedUsers: true});
         if (!user)
             throw new BadRequestException ("User does not exist");
 
-        return UserInfo.fromUserEntity (me, user)
+        return UserDto.fromUserEntity (me, user)
     }
 
     @Get (":id/matchHistory")

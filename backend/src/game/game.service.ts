@@ -34,9 +34,6 @@ export class GameService {
 		private usersService: UsersService,
 	) {}
 
-
-	//Todo : faire des checks plus severe pour les dto et les infos que l'on recoit
-	// Et changer la logique pour le user Id et le checker des le debut
 	//Leave Room Fonctions, called on disconnect or on leave
 	quitWaitRoom(client : Socket)
 	{
@@ -110,15 +107,13 @@ export class GameService {
 			let user1 = await this.usersService.findUserEntity({ id : gamesPlaying.player1DataBaseId })
 			if (user1 == null)
 			{
-				//Todo : throw error
-				console.log("Error from user 1 user entity")
+				return null
 			}
 			gameSpec.user1 = user1.nickname
 			let user2 = await this.usersService.findUserEntity({ id : gamesPlaying.player2DataBaseId })
 			if (user2 == null)
 			{
-				//Todo : throw error
-				console.log("Error from user 2 user entity")
+				return null
 			}
 			gameSpec.user2 = user2.nickname
 			gamesSpectate.games.push(gameSpec)
@@ -171,7 +166,6 @@ export class GameService {
 
 	async findGame(client : Socket, userId : string) : Promise<{ player1: Socket | null; instanceId: number; difficulty: string; color: string; }>
 	{
-		//Todo : check si le user est dans la database + mettre le userid dans la game
 		let userControl = await this.usersService.findUserEntity({id : userId})
 		if (userControl == null)
 		{
@@ -281,7 +275,7 @@ export class GameService {
 		this.usersInGame.push(userId)
 	}
 
-	addSpectatorToGame(client :Socket, gameId : number)
+	addSpectatorToGame(client : Socket, gameId : number)
 	{
 		let index = this.gamesRoom.findIndex(game => 
 			game.instanceId == gameId)
@@ -569,8 +563,13 @@ export class GameService {
 		return (newGame.inviteId)
 	}
 
-	startInvite(client : Socket, data : StartInviteDto)
+	async startInvite(client : Socket, data : StartInviteDto)
 	{
+		let userControl = await this.usersService.findUserEntity({id : data.userId})
+		if (userControl == null)
+		{
+			return
+		}
 		let index = this.gamesInvite.findIndex(game => game.inviteId == data.gameId)
 		if (index != -1)
 		{
@@ -584,8 +583,13 @@ export class GameService {
 		}
 	}
 
-	joinInvite(client : Socket, data : JoinInviteDto)
+	async joinInvite(client : Socket, data : JoinInviteDto)
 	{
+		let userControl = await this.usersService.findUserEntity({id : data.userId})
+		if (userControl == null)
+		{
+			return
+		}
 		let index = this.gamesInvite.findIndex(game => game.inviteId == data.gameId)
 		if (index != -1)
 		{
@@ -604,7 +608,6 @@ export class GameService {
 	}
 
 	//Game history functions to add the history to the database
-	//Todo : faire des throw et gerer les erreurs mieux
 	async createGameHistory(player1Id : string, player2Id : string, scoreP1 : number, scoreP2 : number, winnerId : number)
 	{
 		let gameHistory = this.gameRepository.create()
@@ -612,7 +615,6 @@ export class GameService {
 		if (user1 == null)
 		{
 			console.log("Can't find user1 for gameHistory")
-			// throw new HttpException("can't find user", HttpStatus.BAD_REQUEST);
 			return null
 		}
 		console.log(user1.id)

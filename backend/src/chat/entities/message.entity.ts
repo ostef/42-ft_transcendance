@@ -1,7 +1,7 @@
 import {
     Entity,
-    PrimaryGeneratedColumn, Column, JoinColumn, JoinTable,
-    OneToOne, OneToMany, ManyToOne, ManyToMany, CreateDateColumn,
+    PrimaryGeneratedColumn, Column, JoinColumn,
+    OneToOne, ManyToOne, CreateDateColumn,
 } from "typeorm";
 import { UserEntity } from "src/users/entities/user.entity";
 import { ChannelEntity } from "./channel.entity";
@@ -29,6 +29,9 @@ export class MessageEntity
     @OneToOne (() => ChannelInviteEntity, {eager: true, nullable: true})
     @JoinColumn ()
     invite?: ChannelInviteEntity;
+
+    @Column ({nullable: true})
+    gameId?: string;
 
     @CreateDateColumn ()
     timestamp: Date;

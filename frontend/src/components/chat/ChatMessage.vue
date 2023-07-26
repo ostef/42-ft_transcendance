@@ -7,6 +7,7 @@ import { useStore, type User, type Message } from "@/store";
 import { fetchChannels, notifyChannelChange, selectChannel } from "@/chat";
 
 import UserAvatar from "@/components/UserAvatar.vue";
+import router from "@/router";
 
 const store = useStore ();
 
@@ -66,6 +67,14 @@ async function acceptInvite ()
     selectChannel (props.message.channelInvite.channel.id);
 }
 
+async function joinGame ()
+{
+    if (!props.message?.gameId || !store.loggedUser)
+        return;
+
+    router.replace ("game/j" + props.message?.gameId);
+}
+
 </script>
 
 <template>
@@ -114,6 +123,21 @@ async function acceptInvite ()
                     Accepted
                 </button>
                 <h3 class="text-sm italic" v-if="!inviteHasExpired">Expires on {{inviteExpirationTimestamp}}</h3>
+            </div>
+
+            <div v-if="message?.gameId">
+                <div v-if="!mine" class="select-none text-sm italic">
+                    {{ message?.sender.username }} has invited you to a game of Pong <br>
+                </div>
+                <div v-else class="select-none text-sm italic">
+                    You have invited this person to a game of Pong <br>
+                </div>
+
+                <button v-if="!mine"
+                    class="btn normal-case m-4" @click="joinGame ()"
+                >
+                    Join Game
+                </button>
             </div>
         </div>
 

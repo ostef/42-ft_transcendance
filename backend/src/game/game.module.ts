@@ -15,6 +15,7 @@ import { FriendRequestEntity } from 'src/users/entities/friend_request.entity';
     ]),
 ],
   controllers: [GameController],
-  providers: [GameService, GameGateway, UsersService]
+  providers: [GameService, GameGateway, UsersService],
+  exports: [GameService]
 })
 export class GameModule {}

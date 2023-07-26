@@ -1,8 +1,7 @@
 import {
     Entity,
-    PrimaryGeneratedColumn, PrimaryColumn, Column, CreateDateColumn,
-    OneToOne, OneToMany, ManyToOne, ManyToMany,
-    JoinColumn, JoinTable,
+    PrimaryGeneratedColumn, Column, CreateDateColumn,
+    ManyToOne,
 } from "typeorm";
 import { UserEntity } from "src/users/entities/user.entity";
 import { ChannelEntity } from "./channel.entity";

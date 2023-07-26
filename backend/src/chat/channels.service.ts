@@ -4,35 +4,12 @@ import { FindOptionsRelations, Repository } from "typeorm";
 
 import { ChannelEntity } from "./entities/channel.entity";
 import { ChannelInviteEntity } from "./entities/channel_invite.entity";
-import { CreateChannelDto, UpdateChannelDto } from "./entities/channel.dto";
 import { UsersService } from "src/users/users.service";
 import { UserEntity } from "src/users/entities/user.entity";
 
 import { createHash } from "crypto";
-
-export class MinimalChannelInfo
-{
-    id: string;
-    name: string;
-    description: string;
-    isPrivate: boolean;
-    isPasswordProtected: boolean;
-
-    static fromChannelEntity (channel: ChannelEntity): MinimalChannelInfo
-    {
-        return {
-            ...channel,
-            isPasswordProtected: channel.hashedPassword != null
-        };
-    }
-}
-
-export class ChannelInfo extends MinimalChannelInfo
-{
-    ownerId: string;
-    adminIds: string[];
-    mutedUserIds: string[];
-}
+import { ChannelDto, CreateChannelParams, UpdateChannelParams } from "./types";
+import { validate } from "class-validator";
 
 @Injectable ()
 export class ChannelsService
@@ -65,7 +42,7 @@ export class ChannelsService
         }
     }
 
-    async getChannelInfo (userId: string, id: string): Promise<ChannelInfo>
+    async getChannelInfo (userId: string, id: string): Promise<ChannelDto>
     {
         const chan = await this.findChannelEntity ({id: id}, {owner: true, users: true, administrators: true, mutedUsers: true});
         if (!chan)
@@ -74,16 +51,7 @@ export class ChannelsService
         if (!chan.hasUser (userId))
             throw new Error ("User is not in channel");
 
-        return {
-            id: chan.id,
-            name: chan.name,
-            description: chan.description,
-            isPrivate: chan.isPrivate,
-            isPasswordProtected: chan.hashedPassword != null,
-            ownerId: chan.owner.id,
-            adminIds: chan.administrators.map ((val) => val.id),
-            mutedUserIds: chan.mutedUsers.map ((val) => val.id),
-        };
+        return ChannelDto.fromChannelEntity (chan);
     }
 
     hashPassword (password: string): string
@@ -91,8 +59,10 @@ export class ChannelsService
         return createHash ("sha256").update (password).digest ("hex");
     }
 
-    async createChannel (userId: string, params: CreateChannelDto): Promise<ChannelEntity>
+    async createChannel (userId: string, params: CreateChannelParams): Promise<ChannelEntity>
     {
+        await validate (params);
+
         if (params.isPrivate && params.password != undefined)
             throw new Error ("Cannot create a private password protected channel");
 
@@ -152,8 +122,10 @@ export class ChannelsService
         await this.channelRepository.remove (channel);
     }
 
-    async updateChannel (userId: string, channelId: string, params: UpdateChannelDto)
+    async updateChannel (userId: string, channelId: string, params: UpdateChannelParams)
     {
+        await validate (params);
+
         const channelAndAdmin = await this.findChannelAndAdminUser (
             channelId, userId,
             {

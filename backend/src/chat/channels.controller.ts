@@ -6,85 +6,16 @@ import {
 } from "@nestjs/common";
 
 import { ChannelsService } from "./channels.service";
-import { CreateChannelDto, InviteToChannelDto, LeaveChannelDto, MessageDto, UpdateChannelDto } from "./entities/channel.dto";
 import { MessageService } from "./message.service";
 import { UsersService } from "src/users/users.service";
 import { UserEntity } from "src/users/entities/user.entity";
 
-import { MinimalChannelInfo, ChannelInfo } from "./channels.service";
-import { ChannelInviteEntity } from "./entities/channel_invite.entity";
-import { MessageEntity } from "./entities/message.entity";
+import {
+    MinimalChannelDto, ChannelDto, MessageDto,
+    CreateChannelParams, UpdateChannelParams, LeaveChannelParams, ChannelInviteParams
+} from "./types";
 
-export class UserInfo
-{
-    id: string;
-    username: string;
-    nickname: string;
-    avatarFile: string;
-    isFriend: boolean;
-    isBlocked: boolean;
-    hasBlockedYou: boolean;
-
-    static fromUserEntity (me: UserEntity, entity: UserEntity): UserInfo
-    {
-        return {
-            id: entity.id,
-            avatarFile: entity.avatarFile,
-            username: entity.username,
-            nickname: entity.nickname,
-            isFriend: me.isFriendsWith (entity),
-            isBlocked: me.hasBlocked (entity),
-            hasBlockedYou: entity.hasBlocked (me)
-        };
-    }
-}
-
-export class ChannelInviteInfo
-{
-    id: string;
-    channel?: MinimalChannelInfo;
-    accepted: boolean;
-    expirationDate: Date;
-
-    static fromChannelInviteEntity (invite: ChannelInviteEntity): ChannelInviteInfo
-    {
-        return {
-            id: invite.id,
-            channel: invite.channel ? MinimalChannelInfo.fromChannelEntity (invite.channel) : undefined,
-            accepted: invite.accepted,
-            expirationDate: invite.expirationDate,
-        };
-    }
-}
-
-export class MessageInfo
-{
-    sender: UserInfo;
-    content: string;
-    date: Date;
-    channelInvite?: ChannelInviteInfo;
-
-    static fromMessageEntity (me: UserEntity, msg: MessageEntity): MessageInfo
-    {
-        if (msg.fromUser.hasBlocked (me))
-        {
-            return {
-                sender: UserInfo.fromUserEntity (me, msg.fromUser),
-                content: "You cannot see this message because this user has blocked you",
-                date: msg.timestamp,
-            };
-        }
-        else
-        {
-            return {
-                sender: UserInfo.fromUserEntity (me, msg.fromUser),
-                content: msg.fromUser.hasBlocked (me) ? '' : msg.content,
-                date: msg.timestamp,
-                channelInvite: msg.invite ? ChannelInviteInfo.fromChannelInviteEntity (msg.invite) : undefined,
-            };
-        }
-    }
-}
+import { UserDto } from "src/users/types";
 
 @Controller ("channels")
 export class ChannelsController
@@ -98,55 +29,38 @@ export class ChannelsController
     ) {}
 
     @Get ("public")
-    async getAllPublicChannels (): Promise<MinimalChannelInfo[]>
+    async getAllPublicChannels (): Promise<MinimalChannelDto[]>
     {
         const channels = await this.channelService.findMultipleChannels ({isPrivate: false});
 
-        const result = [] as MinimalChannelInfo[];
+        const result = [] as MinimalChannelDto[];
         for (const chan of channels)
         {
-            const info: MinimalChannelInfo = {
-                id: chan.id,
-                name: chan.name,
-                description: chan.description,
-                isPasswordProtected: chan.hashedPassword != null,
-                isPrivate: false,
-            };
-
-            result.push (info);
+            result.push (MinimalChannelDto.fromChannelEntity (chan));
         }
 
         return result;
     }
 
     @Get ("joined")
-    async getJoinedChannels (@Request () req): Promise<ChannelInfo[]>
+    async getJoinedChannels (@Request () req): Promise<ChannelDto[]>
     {
         const user = await this.userService.findUserEntity (
             {id: req.user.id},
             {joinedChannels: {owner: true, administrators: true, mutedUsers: true }}
         );
 
-        const result = [] as ChannelInfo[];
+        const result = [] as ChannelDto[];
         for (const chan of user.joinedChannels)
         {
-            result.push ({
-                id: chan.id,
-                name: chan.name,
-                description: chan.description,
-                isPrivate: chan.isPrivate,
-                isPasswordProtected: chan.hashedPassword != null,
-                ownerId: chan.owner.id,
-                adminIds: chan.administrators.map ((val) => val.id),
-                mutedUserIds: chan.mutedUsers.map ((val) => val.id),
-            });
+            result.push (ChannelDto.fromChannelEntity (chan));
         }
 
         return result;
     }
 
     @Get (":id/users")
-    async getChannelUsers (@Request () req, @Param ("id") id: string): Promise<any[]>
+    async getChannelUsers (@Request () req, @Param ("id") id: string): Promise<UserDto[]>
     {
         const me = await this.userService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
 
@@ -157,10 +71,10 @@ export class ChannelsController
         if (!channel.hasUser (req.user.id))
             throw new BadRequestException ("You are not in this channel");
 
-        const result = [] as UserInfo[];
+        const result = [] as UserDto[];
         for (const user of channel.users)
         {
-            result.push (UserInfo.fromUserEntity (me, user));
+            result.push (UserDto.fromUserEntity (me, user));
         }
 
         result.sort ((a, b) => a.nickname.localeCompare (b.nickname));
@@ -169,7 +83,7 @@ export class ChannelsController
     }
 
     @Get (":id/messages")
-    async getChannelMessages (@Request () req, @Param ("id") id: string): Promise<MessageInfo[]>
+    async getChannelMessages (@Request () req, @Param ("id") id: string): Promise<MessageDto[]>
     {
         const me = await this.userService.findUserEntity ({id: req.user.id}, {friends: true, blockedUsers: true});
 
@@ -180,11 +94,11 @@ export class ChannelsController
         if (!channel.hasUser (req.user.id))
             throw new BadRequestException ("You are not in this channel");
 
-        const result = [] as MessageInfo[];
+        const result = [] as MessageDto[];
         for (const msg of channel.messages)
         {
             if (!msg.fromUser.hasBlocked (me))
-                result.push (MessageInfo.fromMessageEntity (me, msg));
+                result.push (MessageDto.fromMessageEntity (me, msg));
         }
 
         result.sort ((a, b) => a.date.getTime () - b.date.getTime ());
@@ -194,7 +108,7 @@ export class ChannelsController
 
     // @Todo: move this route to its own controller?
     @Get ("discussions")
-    async getPrivateConversations (@Request () req)
+    async getPrivateConversations (@Request () req): Promise<UserDto[]>
     {
         try
         {
@@ -203,13 +117,13 @@ export class ChannelsController
             const convs = await this.msgService.findPrivateConversations (req.user.id,
                 {firstUser: {blockedUsers: true}, secondUser: {blockedUsers: true}});
 
-            const result = [] as UserInfo[];
+            const result = [] as UserDto[];
             for (const conv of convs)
             {
                 if (conv.firstUser.id == me.id)
-                    result.push (UserInfo.fromUserEntity (me, conv.secondUser));
+                    result.push (UserDto.fromUserEntity (me, conv.secondUser));
                 else
-                    result.push (UserInfo.fromUserEntity (me, conv.firstUser));
+                    result.push (UserDto.fromUserEntity (me, conv.firstUser));
             }
 
             return result;
@@ -236,7 +150,7 @@ export class ChannelsController
     }
 
     @Get ("discussions/:id")
-    async getPrivateMessages (@Request () req, @Param ("id") otherId: string)
+    async getPrivateMessages (@Request () req, @Param ("id") otherId: string): Promise<MessageDto[]>
     {
         try
         {
@@ -251,9 +165,9 @@ export class ChannelsController
             if (!conv)
                 return [];
 
-            const result = [] as MessageInfo[];
+            const result = [] as MessageDto[];
             for (const msg of conv.messages)
-                result.push (MessageInfo.fromMessageEntity (me, msg));
+                result.push (MessageDto.fromMessageEntity (me, msg));
 
             result.sort ((a, b) => a.date.getTime () - b.date.getTime ());
 
@@ -267,7 +181,7 @@ export class ChannelsController
     }
 
     @Post ()
-    async createChannel (@Request () req, @Body () body: CreateChannelDto): Promise<string>
+    async createChannel (@Request () req, @Body () body: CreateChannelParams): Promise<string>
     {
         try
         {
@@ -311,7 +225,7 @@ export class ChannelsController
     }
 
     @Get (":id")
-    async getChannelInfo (@Request () req, @Param ("id") id: string, @Body () body: UpdateChannelDto)
+    async getChannelInfo (@Request () req, @Param ("id") id: string, @Body () body: UpdateChannelParams): Promise<ChannelDto>
     {
         try
         {
@@ -327,7 +241,7 @@ export class ChannelsController
     }
 
     @Put (":id")
-    async updateChannel (@Request () req, @Param ("id") id: string, @Body () body: UpdateChannelDto)
+    async updateChannel (@Request () req, @Param ("id") id: string, @Body () body: UpdateChannelParams)
     {
         try
         {
@@ -355,7 +269,7 @@ export class ChannelsController
     }
 
     @Post (":id/leave")
-    async leaveChannel (@Request () req, @Param ("id") id: string, @Body () body: LeaveChannelDto)
+    async leaveChannel (@Request () req, @Param ("id") id: string, @Body () body: LeaveChannelParams)
     {
         try
         {
@@ -369,7 +283,7 @@ export class ChannelsController
     }
 
     @Post (":id/invite")
-    async inviteToChannel (@Request () req, @Param ("id") id: string, @Body () body: InviteToChannelDto)
+    async inviteToChannel (@Request () req, @Param ("id") id: string, @Body () body: ChannelInviteParams)
     {
         try
         {

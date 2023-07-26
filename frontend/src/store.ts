@@ -11,6 +11,7 @@ export type User =
     isFriend: boolean;
     isBlocked: boolean;
     isOnline: boolean;
+    isInGame: boolean;
     hasBlockedYou: boolean;
     has2FA: boolean;
 }
@@ -41,6 +42,7 @@ export type Message =
     content: string;
     date: Date;
     channelInvite?: ChannelInvite;
+    gameId?: string;
 }
 
 export type AlertType = "info" | "success" | "warning" | "error";
@@ -62,6 +64,7 @@ export const useStore = defineStore ("global", () =>
     const privateConvs = ref ([] as User[]);
     const channelsSelected = ref (true);
     const onlineUsers = ref ([] as string[]); // These are all user ids
+    const usersInGame = ref ([] as string[]); // These are all user ids
     const alerts = ref ([] as Alert[]);
 
     const selectedChannel = computed ((): Channel | null =>
@@ -86,6 +89,14 @@ export const useStore = defineStore ("global", () =>
             return false;
 
         return onlineUsers.value.findIndex ((val) => val == userId) != -1;
+    }
+
+    function isInGame (userId?: string): boolean
+    {
+        if (!userId)
+            return false;
+
+        return usersInGame.value.findIndex ((val) => val == userId) != -1;
     }
 
     function isMuted (userId?: string, channel: Channel | null = null): boolean
@@ -158,14 +169,15 @@ export const useStore = defineStore ("global", () =>
         selectedUserIndex.value = -1;
         channelsSelected.value = true;
         onlineUsers.value.length = 0;
+        usersInGame.value.length = 0;
     }
 
     return {
         loggedUser,
         users, messages, channels, privateConvs,
         selectedChannelIndex, selectedChannel, selectedUserIndex, selectedUser,
-        channelsSelected, onlineUsers,
-        isOnline, isMuted, isAdmin, isOwner, hasPrivConv,
+        channelsSelected, onlineUsers, usersInGame,
+        isOnline, isMuted, isAdmin, isOwner, hasPrivConv, isInGame,
         resetChat,
         alerts, pushAlert
     };

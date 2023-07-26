@@ -4,11 +4,15 @@ import { UserEntity } from "./user.entity";
 @Entity ()
 export class FriendRequestEntity
 {
-    @PrimaryColumn ({type: "uuid", name: "fromUserId"})
+    @PrimaryColumn ({type: "uuid"})
+    fromUserId: string;
+
+    @PrimaryColumn ({type: "uuid"})
+    toUserId: string;
+
     @ManyToOne (() => UserEntity, (user) => user.id, {eager: true})
     fromUser: UserEntity;
 
-    @PrimaryColumn ({type: "uuid", name: "toUserId"})
     @ManyToOne (() => UserEntity, (user) => user.id, {eager: true})
     toUser: UserEntity;
 

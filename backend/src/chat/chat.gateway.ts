@@ -4,9 +4,13 @@ import { RemoteSocket, Server, Socket } from "socket.io";
 
 import { AuthService } from "src/auth/auth.service";
 import { ChannelsService } from "./channels.service";
+import { GameService } from "src/game/game.service";
 import { UsersService } from "src/users/users.service";
 import { MessageService } from "./message.service";
-import { ChannelInviteInfo } from "./channels.controller";
+import { ChannelInviteDto } from "./types";
+
+// @Todo: notify connected users when a nickname has changed
+// @Todo: notify connected users when an avatarFile has changed
 
 class JoinChannelParams
 {
@@ -25,6 +29,13 @@ class ChannelInviteParams
 {
     userId: string;
     channelId: string;
+    message: string;
+}
+
+class GameInviteParams
+{
+    userId: string;
+    gameId: string;
     message: string;
 }
 
@@ -61,6 +72,7 @@ export class ChatGateway
         private usersService: UsersService,
         private messageService: MessageService,
         private authService: AuthService,
+        private gameService: GameService,
     ) {}
 
     onModuleInit ()
@@ -187,7 +199,7 @@ export class ChatGateway
                 content: params.message,
                 date: msg.timestamp,
                 toUser: params.userId,
-                channelInvite: ChannelInviteInfo.fromChannelInviteEntity (invite)
+                channelInvite: ChannelInviteDto.fromChannelInviteEntity (invite)
             });
         }
         catch (err)
@@ -197,14 +209,12 @@ export class ChatGateway
         }
     }
 
-/*
     @SubscribeMessage ("gameInvite")
     async handleGameInvite (client: Socket, params: GameInviteParams)
     {
         try
         {
-            const invite = this.gameService.createInvite (client.data.userId, params.userId);
-            const {msg, newConv} = await this.messageService.sendMessageToUser (client.data.userId, params.userId, params.message, invite);
+            const {msg, newConv} = await this.messageService.sendMessageToUser (client.data.userId, params.userId, params.message, null, params.gameId);
 
             const firstKey = client.data.userId.localeCompare (params.userId) < 0 ? client.data.userId : params.userId;
             const secondKey = client.data.userId.localeCompare (params.userId) < 0 ? params.userId : client.data.userId;
@@ -219,7 +229,7 @@ export class ChatGateway
                 content: params.message,
                 date: msg.timestamp,
                 toUser: params.userId,
-                channelInvite: ChannelInviteInfo.fromChannelInviteEntity (invite)
+                gameId: params.gameId
             });
         }
         catch (err)
@@ -228,7 +238,6 @@ export class ChatGateway
             client.emit ("error", err.message);
         }
     }
-*/
 
     @SubscribeMessage ("channelUpdated")
     notifyChannelChange (client: Socket, channelId: string)
@@ -325,5 +334,12 @@ export class ChatGateway
             if (room.startsWith ("PrivConv#"))
                 client.leave (room);
         }
+    }
+
+    @SubscribeMessage ("joinOrLeaveGame")
+    handleJoinGame (client: Socket)
+    {
+        const usersInGame = this.gameService.getUsersInGame ();
+        this.server.emit ("usersInGame", usersInGame);
     }
 }

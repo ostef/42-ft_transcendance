@@ -2,13 +2,10 @@ import axios from "axios";
 import { useStore } from "@/store";
 import { connectChatSocket, disconnectChatSocket } from "@/chat";
 
-
-
 export async function fetchUserInfo ()
 {
     const store = useStore ();
     store.loggedUser = (await axios.get ("user/")).data;
-    console.log("store.loggedUser", store.loggedUser);
 }
 
 export async function isAuthenticated (): Promise<boolean>

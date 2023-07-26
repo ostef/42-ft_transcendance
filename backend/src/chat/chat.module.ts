@@ -11,10 +11,12 @@ import { ChannelsController } from "./channels.controller";
 import { MessageService } from "./message.service";
 import { UsersModule } from "src/users/users.module";
 import { AuthModule } from "src/auth/auth.module";
+import { GameModule } from "src/game/game.module";
 
 @Module ({
     imports: [
         UsersModule,
+        GameModule,
         AuthModule,
         TypeOrmModule.forFeature ([
             ChannelEntity, PrivateConversationEntity,
