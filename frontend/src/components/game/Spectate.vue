@@ -21,7 +21,7 @@ export default {
 		if (getResult == null)
 		{
 			this.$emit('spectateEnd')
-			return 
+			return
 		}
 		spectateGame = getResult.data
 		this.gameSpectateList = spectateGame.games
@@ -46,6 +46,6 @@ export default {
 			Game {{ game.gameId }} : {{ game.user1 }} - {{ game.user2 }}
 			<button class="btn normal-case bg-green-400 ml-4" @click="startSpectate(game.gameId, game.difficulty, game.color)">Spectate</button>
 		</li>
-        <router-link to="/game/0" class="btn normal-case bg-gray-600" @click="$emit('spectateEnd')">Return to Menu</router-link>
+        <router-link to="/game/0" class="btn normal-case bg-base-600" @click="$emit('spectateEnd')">Return to Menu</router-link>
     </div>
 </template>
