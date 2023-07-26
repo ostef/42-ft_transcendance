@@ -37,7 +37,7 @@ export function connectChatSocket ()
     chatSocket.on ("connect_error", handleError);
     chatSocket.on ("connection_error", handleError);
     chatSocket.on ("connect", () => store.pushAlert ("info", "Connected to chat"));
-    chatSocket.on ("disconnect", () => store.pushAlert ("error", "Disconnected from server"));
+    chatSocket.on ("disconnect", () => store.pushAlert ("info", "Disconnected from chat"));
     chatSocket.on ("exception", handleError);
     chatSocket.on ("error", err => store.pushAlert ("error", err));
 
@@ -77,7 +77,7 @@ export function connectChatSocket ()
                 content: msg.content,
                 date: new Date (msg.date),
                 channelInvite: msg.channelInvite,
-                gameId: msg.gameId.toString ()
+                gameId: msg.gameId?.toString () ?? undefined
             });
         else
             console.error ("Received new message but sender wasn't found:", msg);

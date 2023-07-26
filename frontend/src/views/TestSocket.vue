@@ -90,7 +90,7 @@ export default {
 			initialised : false,
 
 			inviteId : "" as string,
-			
+
 			userStore : null,
 
 
@@ -110,8 +110,8 @@ export default {
     },
     created () {
         console.log("Starting connection to websocket server")
-        this.socket = io("http://" + window.location.hostname + ":3000/game", 
-			
+        this.socket = io("http://" + window.location.hostname + ":3000/game",
+
 		)
 
 		//Events to connect
@@ -153,7 +153,7 @@ export default {
 		this.socket.on("score", (data : Score) => {
 			this.updateScore(data)
 		})
-        
+
 
 		//Game events for the end of the game
 		this.socket.on("winGame", () => {
@@ -169,7 +169,7 @@ export default {
 		this.socket.on("waitingPlayerInvite", () => {
 			console.log("Waiting for the invited player")
 			this.waitPlayer2()
-		}) 
+		})
 		this.socket.on("gameNotFound", () => {
 			console.log("GameNotFound")
 			this.gameNotFound()
@@ -187,7 +187,7 @@ export default {
 			this.playerDisconnect()
 		})
 
-		//Event de spectate 
+		//Event de spectate
 		this.socket.on('endOfSpectate', () => {
 			console.log("End of the spectate")
 			this.endSpectate()
@@ -232,7 +232,7 @@ export default {
 
 		document.addEventListener("mousemove", e => {
 			let mouseHeight = 0
-			
+
 			if (this.isPlaying)
 			{
 				if (!this.initialised)
@@ -288,7 +288,7 @@ export default {
 	},
 
 	methods: {
-		
+
 
 		disconnectPlayerWaiting()
 		{
@@ -302,7 +302,7 @@ export default {
 			this.configurate = false
 			this.waitingPlayer = true
 		},
-		
+
 		windowresize() {
 			this.canvaspos = this.canvas.getBoundingClientRect()
 			this.canvasAbsoluteStart = this.canvaspos.top / window.innerHeight
@@ -396,7 +396,7 @@ export default {
 			this.waitingPlayer = true
 			this.socket.emit('configurate', {gameId : this.gameId, color : this.color, difficulty : this.difficulty})
 		},
-		
+
 		joinGame(playerPos : string, gameId : number, difficulty : number, color : string) {
 			console.log("joined a game")
 			this.ownPaddle = playerPos
@@ -417,7 +417,7 @@ export default {
 			}
 		},
 
-		updateOwnPadle(ownPaddle : PaddlePos) 
+		updateOwnPadle(ownPaddle : PaddlePos)
 		{
 			if (this.isPlaying || this.isSpectating)
 			{
@@ -431,7 +431,7 @@ export default {
 					this.paddleRight.setXpos(ownPaddle.centerPos.x * this.canvas.width)
 					this.paddleRight.setYpos(ownPaddle.centerPos.y * this.canvas.height)
 				}
-			}	
+			}
 		},
 
 		updateOtherPaddle(otherPaddle : PaddlePos)

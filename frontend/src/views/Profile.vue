@@ -82,7 +82,3 @@ getFriendList ();
 getWaitingFriendList()
 
 </script>
-
-<style scoped>
-
-</style>

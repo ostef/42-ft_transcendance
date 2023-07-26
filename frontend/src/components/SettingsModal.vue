@@ -32,17 +32,18 @@ const nickNameNew = ref("");
 const pictureNew = ref<File | null>(null);
 const qrCode2fa = ref("");
 const code2fa = ref("");
+
 async function changePicture()
 {
     const fd = new FormData();
     fd.append("avatar", pictureNew.value);
-    const res = await axios.post("/user/avatar", fd);
+    const res = await axios.put("/user/avatar", fd);
     userStore.loggedUser.avatarFile = res.data.toString();
     // toggleChangePicture();
 }
 
 async function changeNickname() {
-    await axios.post("/user/nickname", { value: nickNameNew.value });
+    await axios.put("user", { nickname: nickNameNew.value });
     userStore.loggedUser.nickname = nickNameNew.value;
     // toggleChangeNickname();
 }
@@ -142,8 +143,3 @@ function onPictureSelectionChanged($event: Event) {
 
     </div>
 </template>
-
-
-<style scoped>
-
-</style>
