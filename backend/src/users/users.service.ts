@@ -94,13 +94,13 @@ export class UsersService
         const toSave = [] as UserEntity[];
         toSave.push (user);
 
-        if (params.username != undefined && params.username != user.username)
-        {
-            if (!await this.isUsernameAvailable (params.username))
-                throw new Error ("Username '" + params.username + "' is not available");
+        // if (params.username != undefined && params.username != user.username)
+        // {
+        //     if (!await this.isUsernameAvailable (params.username))
+        //         throw new Error ("Username '" + params.username + "' is not available");
 
-            user.username = params.username;
-        }
+        //     user.username = params.username;
+        // }
 
         if (params.nickname != undefined)
         {
