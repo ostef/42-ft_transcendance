@@ -133,7 +133,7 @@ export default {
 			this.menu = false
 			this.game = true
 			this.waitingPlayer = false
-			chatSocket.emit("leaveOrJoinGame")
+			chatSocket.emit("joinOrLeaveGame")
 			this.joinGame(playerPos, gameId, difficulty, color)
 		})
 		this.socket.on("configurateGame", (gameId : number) => {
@@ -162,10 +162,12 @@ export default {
 		//Game events for the end of the game
 		this.socket.on("winGame", () => {
 			console.log("Won the game")
+			chatSocket.emit("joinOrLeaveGame")
 			this.handleWin()
 		})
 		this.socket.on("looseGame", () => {
 			console.log("Lost the game")
+			chatSocket.emit("joinOrLeaveGame")
 			this.handleLoose()
 		})
 
