@@ -8,7 +8,7 @@
         </div>
         <div id="friendList" class="flex flex-col space-y-4">
             <h2 class="text-2xl">Friend List</h2>
-            <div id="waitingList">
+            <div id="waitingList" v-if="store.loggedUser?.receivedFriendRequests.length > 0">
              <h3> Waiting</h3>
               <div class="flex flex-row space-x-4">
                 <UserAvatar v-for="friend in waitingFriendList" :user="friend" />

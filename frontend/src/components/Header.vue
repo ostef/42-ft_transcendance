@@ -10,19 +10,11 @@ import SettingsModal from "@/components/SettingsModal.vue";
 
 const store = useStore ();
 
-const showSettingsModal = ref (false);
-
-function toggleSettingsModal ()
-{
-    showSettingsModal.value = !showSettingsModal.value;
-}
-
-
 </script>
 
 <template>
     <div class="navbar bg-primary-100">
-        <div class="navbar-start p-[6px] bg-secondary-100 flex-grow md:hidden">
+        <div  class="navbar-start p-[6px] bg-secondary-100 flex-grow md:hidden">
             <div class="dropdown dropdown-right flex">
                 <label tabindex="0" class="p-3 m-2 hover:bg-gray-400 hover:text-black rounded-full">
                     <iconify-icon icon="ri:menu-2-line" class="h-5 w-5" />
