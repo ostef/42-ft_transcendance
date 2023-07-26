@@ -54,9 +54,18 @@ export class AuthService {
         if (!username)
             throw new UnauthorizedException("Invalid username");
         let user = await this.usersService.findUserEntity({ username: username });
+
         if (!user) {
-            user = await this.usersService.createUser({username: username, nickname: username, password: undefined});
-            Logger.log("User created", user);
+            let nickname = username;
+            let nicknameSuffix = 1;
+            while (!this.usersService.isNicknameAvailable (nickname))
+            {
+                nickname = username + nicknameSuffix.toString ();
+                nicknameSuffix += 1;
+            }
+
+            user = await this.usersService.createUser({username: username, nickname: nickname, password: undefined});
+            Logger.log ("User created", user);
         }
 
         const payload: JwtPayload = {
