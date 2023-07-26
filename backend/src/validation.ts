@@ -1,4 +1,6 @@
-export function validateName (value: string): boolean
+import { ValidationArguments, ValidationOptions, registerDecorator } from "class-validator";
+
+export function isName (value: string): boolean
 {
     if (value == undefined)
         return false;
@@ -20,7 +22,7 @@ export function validateName (value: string): boolean
     return true;
 }
 
-export function validatePassword (value: string): boolean
+export function isPassword (value: string): boolean
 {
     if (value == undefined)
         return true;
@@ -48,7 +50,7 @@ export function validatePassword (value: string): boolean
     return numbers > 0 && lowercaseLetters > 0 && uppercaseLetters > 0 && symbols > 0;
 }
 
-export function validatePngFilename (value: string): boolean
+export function isPngFilename (value: string): boolean
 {
     if (value == undefined)
         return false;
@@ -56,4 +58,50 @@ export function validatePngFilename (value: string): boolean
     const ext = value.split (".").pop ().split("?")[0];
 
     return ext.toLowerCase () == "png";
+}
+
+export function IsName (opts?: ValidationOptions)
+{
+    return function (obj: Object, propName: string)
+    {
+        registerDecorator ({
+            name: "isName",
+            target: obj.constructor,
+            propertyName: propName,
+            constraints: [],
+            options: opts,
+            validator: {
+                validate (value: any, args: ValidationArguments): boolean
+                {
+                    if (typeof value !== "string")
+                        return false;
+
+                    return isName (value as string);
+                }
+            },
+        });
+    };
+}
+
+export function IsPngFilename (opts?: ValidationOptions)
+{
+    return function (obj: Object, propName: string)
+    {
+        registerDecorator ({
+            name: "isPngFilename",
+            target: obj.constructor,
+            propertyName: propName,
+            constraints: [],
+            options: opts,
+            validator: {
+                validate (value: any, args: ValidationArguments): boolean
+                {
+                    if (typeof value !== "string")
+                        return false;
+
+                    return isPngFilename (value as string);
+                }
+            },
+        });
+    };
 }
