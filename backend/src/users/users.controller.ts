@@ -47,6 +47,25 @@ export class UsersController
         return LoggedUserDto.fromUserEntityAndFriendRequests (entity, requests);
     }
 
+    @Get ("all")
+    async getAllUsers (@Request () req): Promise<UserDto[]>
+    {
+        const me = await this.usersService.findUserEntity ({id: req.user.id}, {friends: {blockedUsers: true}, blockedUsers: true});
+        if (me == null)
+            throw new NotFoundException ("User with id " + req.user.id + " does not exist");
+
+        const entities = await this.usersService.findMultipleUsers ({}, {friends: {blockedUsers: true}, blockedUsers: true});
+
+        const result = [] as UserDto[];
+        for (const e of entities)
+        {
+            if (e.id != me.id)
+                result.push (UserDto.fromUserEntity (me, e));
+        }
+
+        return result;
+    }
+
     @SetMetadata ("isPublic", true)
     @Post ()
     async createUser (@Body () body: CreateUserParams): Promise<string>
