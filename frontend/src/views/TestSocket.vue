@@ -40,6 +40,7 @@ import DisconnectGameVue from "@/components/game/DisconnectGame.vue"
 import GameNotFoundVue from '@/components/game/GameNotFound.vue'
 import Spectate from "@/components/game/Spectate.vue";
 import { chatSocket } from "@/chat";
+import type { Point, PaddlePos, Score } from "@/types/games.types";
 
 
 
@@ -74,7 +75,7 @@ export default {
 			canvasAbsoluteSize : 60/100,
 			canvasAbsoluteStart : 20/100,
 			canvasAbsoluteEnd : 0,
-			canvaspos : {},
+			canvaspos : {} as DOMRect,
 
 
 			gameId : 0,
@@ -123,7 +124,7 @@ export default {
 		})
 
 		//Events to join waiting room or games
-		this.socket.on("foundGame", (playerPos : number, gameId : number , difficulty : string, color : string) => {
+		this.socket.on("foundGame", (playerPos : string, gameId : number , difficulty : string, color : string) => {
 			this.difficulty = difficulty
 			if (this.canvas)
 			{
@@ -243,15 +244,21 @@ export default {
 			{
 				if (!this.initialised)
 				{
-					this.canvaspos = this.canvas.getBoundingClientRect()
-					this.canvasAbsoluteStart = this.canvaspos.top / window.innerHeight
-					this.canvasAbsoluteEnd = this.canvaspos.bottom / window.innerHeight
-					this.initialised = true
+					if (this.canvas)
+					{
+						this.canvaspos = this.canvas.getBoundingClientRect()
+						this.canvasAbsoluteStart = this.canvaspos.top / window.innerHeight
+						this.canvasAbsoluteEnd = this.canvaspos.bottom / window.innerHeight
+						this.initialised = true
+					}
 				}
 				if (e.y <= (window.innerHeight * this.canvasAbsoluteStart) + this.paddleLeft.getHeight() / 2)
 				{
-					mouseHeight = (this.paddleLeft.getHeight() / 2) / this.canvas.height
-					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
+					if (this.canvas)
+					{
+						mouseHeight = (this.paddleLeft.getHeight() / 2) / this.canvas.height
+						this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
+					}
 					return
 				}
 				else if (e.y >= window.innerHeight * this.canvasAbsoluteEnd - this.paddleLeft.getHeight() / 2)
@@ -261,8 +268,11 @@ export default {
 					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
 					return
 				}
-				mouseHeight = (e.y - window.innerHeight * this.canvasAbsoluteStart) / this.canvas.height
-				this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
+				if (this.canvas)
+				{
+					mouseHeight = (e.y - window.innerHeight * this.canvasAbsoluteStart) / this.canvas.height
+					this.socket.emit("updatePaddle", { gameId : this.gameId, paddlePos : mouseHeight})
+				}
 			}
 		})
 		/*window.requestAnimationFrame(this.drawNextFrame)*/
@@ -307,22 +317,25 @@ export default {
 		},
 		
 		windowresize() {
-			this.canvaspos = this.canvas.getBoundingClientRect()
-			this.canvasAbsoluteStart = this.canvaspos.top / window.innerHeight
-			this.canvasAbsoluteEnd = this.canvaspos.bottom / window.innerHeight
-			this.canvas.height = window.innerHeight * this.canvasAbsoluteSize
-			this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
-			this.ball.mainCanvas.width = this.canvas.width
-			this.ball.mainCanvas.height = this.canvas.height
-			this.ball.radius = 0.008 * this.canvas.width
-			if (this.isPlaying == true)
+			if (this.canvas)
 			{
-				this.paddleLeft.mainCanvas.width = this.canvas.width
-				this.paddleLeft.mainCanvas.height = this.canvas.height
-				this.paddleLeft.setHeightDif()
-				this.paddleRight.mainCanvas.width = this.canvas.width
-				this.paddleRight.mainCanvas.height = this.canvas.height
-				this.paddleRight.setHeightDif()
+				this.canvaspos = this.canvas.getBoundingClientRect()
+				this.canvasAbsoluteStart = this.canvaspos.top / window.innerHeight
+				this.canvasAbsoluteEnd = this.canvaspos.bottom / window.innerHeight
+				this.canvas.height = window.innerHeight * this.canvasAbsoluteSize
+				this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
+				this.ball.mainCanvas.width = this.canvas.width
+				this.ball.mainCanvas.height = this.canvas.height
+				this.ball.radius = 0.008 * this.canvas.width
+				if (this.isPlaying == true)
+				{
+					this.paddleLeft.mainCanvas.width = this.canvas.width
+					this.paddleLeft.mainCanvas.height = this.canvas.height
+					this.paddleLeft.setHeightDif()
+					this.paddleRight.mainCanvas.width = this.canvas.width
+					this.paddleRight.mainCanvas.height = this.canvas.height
+					this.paddleRight.setHeightDif()
+				}
 			}
 		},
 
@@ -354,15 +367,18 @@ export default {
 
 		startSpectateGame(gameInstance : number, gameDifficulty : string, gameColor : string)
 		{
-			this.difficulty = gameDifficulty
-			this.ownPaddle = "left"
-			this.ball.color = gameColor
-			this.socket.emit("StartSpectating", { gameId : gameInstance })
-			this.paddleLeft = new Paddle("canvas", "black", 0.01 * this.canvas.width, true, this.difficulty)
-			this.paddleRight = new Paddle("canvas", "black", this.canvas.width - 0.01 * this.canvas.width, false, this.difficulty)
-			this.spectate = false
-			this.game = true
-			this.isSpectating = true
+			if (this.canvas)
+			{
+				this.difficulty = gameDifficulty
+				this.ownPaddle = "left"
+				this.ball.color = gameColor
+				this.socket.emit("StartSpectating", { gameId : gameInstance })
+				this.paddleLeft = new Paddle("canvas", "black", 0.01 * this.canvas.width, true, this.difficulty)
+				this.paddleRight = new Paddle("canvas", "black", this.canvas.width - 0.01 * this.canvas.width, false, this.difficulty)
+				this.spectate = false
+				this.game = true
+				this.isSpectating = true
+			}
 		},
 
 		endSpectate()
@@ -400,7 +416,7 @@ export default {
 			this.socket.emit('configurate', {gameId : this.gameId, color : this.color, difficulty : this.difficulty})
 		},
 		
-		joinGame(playerPos : string, gameId : number, difficulty : number, color : string) {
+		joinGame(playerPos : string, gameId : number, difficulty : string, color : string) {
 			console.log("joined a game")
 			this.ownPaddle = playerPos
 			this.gameId = gameId
@@ -415,8 +431,11 @@ export default {
 		updateBall( ballCenter : Point ) {
 			if (this.isPlaying || this.isSpectating)
 			{
-				this.ball.setxpos(ballCenter.x * this.canvas.width)
-				this.ball.setypos(ballCenter.y * this.canvas.height)
+				if (this.canvas)
+				{
+					this.ball.setxpos(ballCenter.x * this.canvas.width)
+					this.ball.setypos(ballCenter.y * this.canvas.height)
+				}
 			}
 		},
 
@@ -424,32 +443,38 @@ export default {
 		{
 			if (this.isPlaying || this.isSpectating)
 			{
-				if (this.ownPaddle === "left")
+				if (this.canvas)
 				{
-					this.paddleLeft.setXpos(ownPaddle.centerPos.x * this.canvas.width)
-					this.paddleLeft.setYpos(ownPaddle.centerPos.y * this.canvas.height)
-				}
-				else if (this.ownPaddle === "right")
-				{
-					this.paddleRight.setXpos(ownPaddle.centerPos.x * this.canvas.width)
-					this.paddleRight.setYpos(ownPaddle.centerPos.y * this.canvas.height)
-				}
-			}	
+					if (this.ownPaddle === "left")
+					{
+						this.paddleLeft.setXpos(ownPaddle.centerPos.x * this.canvas.width)
+						this.paddleLeft.setYpos(ownPaddle.centerPos.y * this.canvas.height)
+					}
+					else if (this.ownPaddle === "right")
+					{
+						this.paddleRight.setXpos(ownPaddle.centerPos.x * this.canvas.width)
+						this.paddleRight.setYpos(ownPaddle.centerPos.y * this.canvas.height)
+					}
+				}	
+			}
 		},
 
 		updateOtherPaddle(otherPaddle : PaddlePos)
 		{
 			if (this.isPlaying || this.isSpectating)
 			{
-				if (this.ownPaddle === "right")
+				if (this.canvas)
 				{
-					this.paddleLeft.setXpos(otherPaddle.centerPos.x * this.canvas.width)
-					this.paddleLeft.setYpos(otherPaddle.centerPos.y * this.canvas.height)
-				}
-				else if (this.ownPaddle === "left")
-				{
-					this.paddleRight.setXpos(otherPaddle.centerPos.x * this.canvas.width)
-					this.paddleRight.setYpos(otherPaddle.centerPos.y * this.canvas.height)
+					if (this.ownPaddle === "right")
+					{
+						this.paddleLeft.setXpos(otherPaddle.centerPos.x * this.canvas.width)
+						this.paddleLeft.setYpos(otherPaddle.centerPos.y * this.canvas.height)
+					}
+					else if (this.ownPaddle === "left")
+					{
+						this.paddleRight.setXpos(otherPaddle.centerPos.x * this.canvas.width)
+						this.paddleRight.setYpos(otherPaddle.centerPos.y * this.canvas.height)
+					}
 				}
 			}
 		},
