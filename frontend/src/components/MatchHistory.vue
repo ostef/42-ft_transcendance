@@ -26,7 +26,7 @@ const loseNumber = ref (0);
 const winRate = ref (0);
 
 
-    const res = await axios.get ("http://localhost:3000/game/matchHistory/" + props.user?.id);
+    const res = await axios.get ("http://" + window.location.hostname + ":3000/game/matchHistory/" + props.user?.id);
 
     if (res.data)  matchHistory.value = res.data;
     for (let i = 0; i < matchHistory.value.length; i++)

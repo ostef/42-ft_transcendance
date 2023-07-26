@@ -105,7 +105,7 @@ export class UsersController
                 throw new Error("Avatar file must be a PNG file");
             this.filesService.changeFile(filename, file.buffer);
             // TODO: change url to be dynamic
-            const url = "http://localhost:3000/files/" + filename + "?t=" + Date.now();
+            const url = "http://" + window.location.hostname + ":3000/files/" + filename + "?t=" + Date.now();
             await this.usersService.updateUser(req.user.id, {avatarFile: url});
             return url;
         }
