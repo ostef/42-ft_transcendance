@@ -163,7 +163,7 @@ async function inviteUserToPlay ()
 
     store.pushAlert ("success", "Invited " + props.user.username + " to a game of Pong");
 
-    router.replace ("game/c" + gameId);
+    router.replace ("/game/c" + gameId);
 }
 
 </script>

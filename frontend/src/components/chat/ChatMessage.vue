@@ -72,7 +72,7 @@ async function joinGame ()
     if (!props.message?.gameId || !store.loggedUser)
         return;
 
-    router.replace ("game/j" + props.message?.gameId);
+    router.replace ("/game/j" + props.message?.gameId);
 }
 
 </script>
