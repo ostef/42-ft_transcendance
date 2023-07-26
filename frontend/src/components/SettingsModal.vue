@@ -17,7 +17,7 @@ import { useStore } from "@/store";
 import { ref } from "vue";
 import axios from "axios";
 import QRCodeVue3 from "qrcode-vue3";
-import {logout} from "@/authentication";
+import {login2FA, logout} from "@/authentication";
 import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
 
 
@@ -64,7 +64,8 @@ async function turnon2fa() {
     qrCode2fa.value = ""
   if (res.status == 200)
     store.loggedUser.has2FA = true;
-  logout();
+  login2FA(code2fa.value)
+
 
 
 }
@@ -73,7 +74,7 @@ async function turnoff2fa() {
     const res = await axios.post("/auth/2fa/turn-off", { code: code2fa.value });
     if (res.status == 200)
       store.loggedUser.has2FA = false;
-    logout();
+    // logout();
 
 }
 
