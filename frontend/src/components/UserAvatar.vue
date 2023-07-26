@@ -17,6 +17,7 @@ const props = defineProps ({
     channelId: String,
     user: Object as PropType<User>,
     dropdownClass: String,
+    showMoreOptions: Boolean ?? true,
 });
 
 const clientIsAdmin = computed (() => {
@@ -179,11 +180,11 @@ async function inviteUserToPlay ()
             </div>
         </label>
         <ul tabindex="0" class="relative z-50 menu menu-compact dropdown-content w-40 m-2 shadow rounded-md bg-base-300">
-            <li v-if="store.loggedUser?.id != user?.id">
+            <li  v-if="props.showMoreOptions && store.loggedUser?.id != user?.id">
                 <a @click="goToPrivateConv ()">Send Message</a>
             </li>
 
-            <li v-if="store.loggedUser?.id != user?.id">
+            <li v-if="props.showMoreOptions &&  store.loggedUser?.id != user?.id">
                 <a @click="inviteUserToPlay ()">Invite To Play</a>
             </li>
 
@@ -213,10 +214,6 @@ async function inviteUserToPlay ()
                 <label :for="'userModal' + user?.id">
                     User Profile
                 </label>
-            </li>
-
-            <li v-if="user?.id == store.loggedUser?.id">
-                <label>My Profile</label>
             </li>
 
         </ul>
