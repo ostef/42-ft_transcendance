@@ -121,7 +121,7 @@ async function unblockUser ()
             </h3>
         </div>
       <Suspense>
-        <MatchHistory  :user="user as User"/>
+        <MatchHistory  :user="user as User" :show-full="true"/>
       </Suspense>
 
         <div v-if="!user?.isBlocked && !user?.hasBlockedYou">

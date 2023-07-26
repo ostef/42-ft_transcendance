@@ -65,11 +65,6 @@ function toggleSettingsModal ()
                     <iconify-icon icon="ri:menu-2-line" class="h-5 w-5" />
                 </label>
                 <ul tabindex="0" class="relative z-50 menu menu-compact dropdown-content rounded-md shadow bg-base-100">
-                    <li><router-link to="/profile">Profile</router-link></li>
-                    <div class="indicator">
-                        <span class="indicator-item badge badge-sm badge-primary"></span>
-                        <li><router-link to="/profile/friends">Friends</router-link></li>
-                    </div>
                     <li>
                       <label class="btn-ghost " for="setting_modal">Settings</label>
                     </li>

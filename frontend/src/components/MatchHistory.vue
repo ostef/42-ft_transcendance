@@ -62,7 +62,7 @@ const winRate = ref (0);
                     <div class="stat-value text-info">{{ winRate }}%</div>
                   </div>
                 </div>
-                <table v-if="props.showFull" class="table table-zebra table-pin-cols text-center">
+                <table v-if="props.showFull" class="table table-zebra table-pin-cols text-center overflow-y-scroll">
                     <tbody>
                         <tr>
                             <th>Adversaire</th>

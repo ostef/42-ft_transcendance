@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 
-import {ref, toRef} from "vue";
+import {ref, toRef, watch} from "vue";
 import {User, useStore} from "@/store";
 import axios from "axios";
 import UserAvatar from "@/components/UserAvatar.vue";
@@ -64,15 +64,16 @@ const store = useStore();
 
 async function getFriendList ()
 {
-    const res = await axios.get ("http://localhost:3000/user/friends/");
+    const res = await axios.get ("http://" + window.location.hostname + ":3000/user/friends/");
     if (res.data)  friendList.value = res.data;
 }
 
 async function getWaitingFriendList ()
 {
+    waitingFriendList.value = [];
     for (const userId of store.loggedUser?.receivedFriendRequests ?? [])
     {
-        const res = await axios.get ("http://localhost:3000/user/profile/" + userId);
+        const res = await axios.get ("http://" + window.location.hostname + ":3000/user/profile/" + userId);
         if (res.data)  waitingFriendList.value.push(res.data);
     }
 
@@ -80,5 +81,12 @@ async function getWaitingFriendList ()
 
 getFriendList ();
 getWaitingFriendList()
+
+watch(store.loggedUser?.receivedFriendRequests, () => {
+    getFriendList ();
+    getWaitingFriendList()
+});
+
+
 
 </script>
