@@ -22,7 +22,7 @@ export function connectChatSocket ()
         return;
 
     chatSocket = io (
-        "http://localhost:3000/chat",
+        "http://" + window.location.hostname + ":3000/chat",
         {
             auth: { token: localStorage.getItem ("token") },
         }

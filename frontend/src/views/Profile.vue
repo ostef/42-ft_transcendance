@@ -82,7 +82,7 @@ async function getMatchHistory ()
     // TODO: get match history from id user
     const id = userStore.user.id;
 
-    const res = await axios.get ("http://localhost:3000/game/matchHistory/" + id, {
+    const res = await axios.get ("http://" + window.location.hostname + ":3000/game/matchHistory/" + id, {
         params: {
             id: userStore.user.id
         }});
@@ -92,7 +92,7 @@ async function getMatchHistory ()
 
 async function getFriendList ()
 {
-    const res = await axios.get ("http://localhost:3000/user/friends/");
+    const res = await axios.get ("http://" + window.location.hostname + ":3000/user/friends/");
     if (res.data)  friendList.value = res.data;
 }
 
