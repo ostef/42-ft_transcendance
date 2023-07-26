@@ -189,6 +189,7 @@ export class UsersService
 
         if (params.twoFactorSecret != undefined)
         {
+            console.log ("Setting 2FA secret to", params.twoFactorSecret);
             user.twoFactorSecret = params.twoFactorSecret;
         }
 
