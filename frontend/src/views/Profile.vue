@@ -53,14 +53,6 @@ import UserAvatar from "@/components/UserAvatar.vue";
 import MatchHistory from "@/components/MatchHistory.vue";
 
 
-
-
-    const res = await axios.get ("http://" + window.location.hostname + ":3000/game/matchHistory/" + id, {
-        params: {
-            id: userStore.user.id
-        }});
-
-
 const friendList = ref ([] as User[]);
 const waitingFriendList = ref ([] as User[]);
 const store = useStore();
@@ -86,9 +78,9 @@ async function getWaitingFriendList ()
 getFriendList ();
 getWaitingFriendList()
 
-watch(store.loggedUser?.receivedFriendRequests, () => {
-    getFriendList ();
-    getWaitingFriendList()
+watch(store.loggedUser?.receivedFriendRequests, async () => {
+    await getFriendList ();
+    await getWaitingFriendList()
 });
 
 
