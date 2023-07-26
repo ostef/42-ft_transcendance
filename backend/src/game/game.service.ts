@@ -43,27 +43,27 @@ export class GameService {
 
 	quitWaitRoom(client : Socket)
 	{
-		console.log("Quitting the wait room for ", client.id)
+		//console.log("Quitting the wait room for ", client.id)
 		this.waitRoom = this.waitRoom.filter( player => player.socket.id !== client.id)
 	}
 
 	quitGameWaitingRoom(socketId : string, gameIndex : number)
 	{
-		console.log("Quitting the gamewaiting room for " + socketId)
+		//console.log("Quitting the gamewaiting room for " + socketId)
 		this.gamesWaitingRoom = this.gamesWaitingRoom.filter(game => game.player1Socket.id !== socketId)
 		this.gamesWaitingRoom = this.gamesWaitingRoom.filter(game => game.player2Socket.id !== socketId)
 	}
 
 	quitGameCreateRoom(socketId : string, gameIndex : number)
 	{
-		console.log("Quitting the gamecreateroom room for " + socketId)
+		//console.log("Quitting the gamecreateroom room for " + socketId)
 		this.gamesCreateRoom = this.gamesCreateRoom.filter(game => game.player1Socket.id !== socketId)
 		this.gamesCreateRoom = this.gamesCreateRoom.filter(game => game.player2Socket.id !== socketId)
 	}
 
 	quitGameInvite(socketId : string)
 	{
-		console.log("Quitting the Game Invite room room for " + socketId)
+		//console.log("Quitting the Game Invite room room for " + socketId)
 		this.gamesInvite = this.gamesInvite.filter(game => {
 			if (game.player1Socket)
 			{
@@ -81,13 +81,13 @@ export class GameService {
 
 	quitInGame(userId : string)
 	{
-		console.log("Quitting the IngameRoom for " + userId)
+		//console.log("Quitting the IngameRoom for " + userId)
 		this.usersInGame = this.usersInGame.filter(Id => userId == Id)
 	}
 
 	quitPlayingGame(gameIndex : number)
 	{
-		console.log("Quitting the playing game room for game " + gameIndex)
+		//console.log("Quitting the playing game room for game " + gameIndex)
 		this.gamesPlayingRoom = this.gamesPlayingRoom.filter(game =>
 			game.instanceId !== gameIndex)
 		}
@@ -132,7 +132,7 @@ export class GameService {
 	//Matchmaking functions to join Queue or create game and wait for player
 	addPlayerToWaitRoom(client : Socket, userId : string)
 	{
-		console.log("adding client to wait room", client.id)
+		//console.log("adding client to wait room", client.id)
 		this.waitRoom.push({socket :client, userId : userId })
 	}
 
@@ -149,7 +149,7 @@ export class GameService {
 			let newGame : Game = new Game(this.gameIds, client, otherUser.socket, this)
 			this.incrementGameids()
 			this.gamesRoom.push(newGame)
-			console.log("new game id : ", newGame.instanceId)
+			//console.log("new game id : ", newGame.instanceId)
 			newGame.createGame()
 			newGame.isReady = true
 			newGame.player1DataBaseId = userId
@@ -159,11 +159,11 @@ export class GameService {
 		}
 		else
 		{
-			console.log("empty newgame")
+			//console.log("empty newgame")
 			let newGame : Game = new Game(this.gameIds, client, client, this)
 			this.gamesRoom.push(newGame)
 			this.incrementGameids()
-			console.log("new game id : ", newGame.instanceId)
+			//console.log("new game id : ", newGame.instanceId)
 			newGame.createGame()
 			newGame.isReady = false
 			newGame.player1DataBaseId = userId
@@ -179,7 +179,7 @@ export class GameService {
 		{
 			throw new UnauthorizedException("Player not on database")
 		}
-		console.log("trying to find a game for ", client.id)
+		//console.log("trying to find a game for ", client.id)
 		//One game is waiting for player
 		if (this.gamesWaitingRoom.length >= 1)
 		{
@@ -227,7 +227,7 @@ export class GameService {
 		this.gamesRoom.push(newGame)
 		newGame.player2DataBaseId = client2.userId
 		newGame.player1DataBaseId = user1Id
-		console.log("new game id : ", newGame.instanceId)
+		//console.log("new game id : ", newGame.instanceId)
 		if (ready === true)
 		{
 			newGame.isReady = true
@@ -238,7 +238,7 @@ export class GameService {
 
 	addPlayingGame(game : Game)
 	{
-		console.log("adding a game to the playing Game room")
+		//console.log("adding a game to the playing Game room")
 		this.gamesPlayingRoom.push(game)
 	}
 
@@ -429,7 +429,7 @@ export class GameService {
 		index = this.isWaiting(socketId)
 		if (index != -1)
 		{
-			console.log("Disconnecting a waiting player")
+			//console.log("Disconnecting a waiting player")
 			this.quitWaitRoom(this.waitRoom[index].socket)
 		}
 
@@ -437,7 +437,7 @@ export class GameService {
 		index = this.isGameCreating(socketId)
 		if (index != -1)
 		{
-			console.log("Disconnecting a game getting created")
+			//console.log("Disconnecting a game getting created")
 			if (this.gamesCreateRoom[index].isReady == false)
 			{
 				this.gamesCreateRoom[index].stopGameBeforeStart()
@@ -453,7 +453,7 @@ export class GameService {
 		index = this.isGameWaiting(socketId)
 		if (index != -1)
 		{
-			console.log("Disconnecting a waiting game")
+			//console.log("Disconnecting a waiting game")
 			this.gamesWaitingRoom[index].stopGameBeforeStart()
 			this.quitGameWaitingRoom(socketId, index)
 		}
@@ -462,7 +462,7 @@ export class GameService {
 		index = this.isGameInvite(socketId)
 		if (index != -1)
 		{
-			console.log("Disconnecting an Invite game")
+			//console.log("Disconnecting an Invite game")
 			this.gamesInvite[index].disconnectPlayerBeforeStart(socketId)
 			this.quitGameInvite(socketId)
 		}
@@ -478,12 +478,12 @@ export class GameService {
 			}
 			this.quitSpectators(socketId)
 		}
-		console.log("The game room : " + this.gamesRoom)
-		console.log("The Game waiting room : " + this.gamesWaitingRoom)
-		console.log("The game Create room : " + this.gamesCreateRoom)
-		console.log("The playing games are : " + this.gamesPlayingRoom)
-		console.log("The playing players are : " + this.usersInGame)
-		console.log("The spectators are : " + this.spectators)
+		//console.log("The game room : " + this.gamesRoom)
+		//console.log("The Game waiting room : " + this.gamesWaitingRoom)
+		//console.log("The game Create room : " + this.gamesCreateRoom)
+		//console.log("The playing games are : " + this.gamesPlayingRoom)
+		//console.log("The playing players are : " + this.usersInGame)
+		//console.log("The spectators are : " + this.spectators)
 	}
 
 
@@ -651,14 +651,14 @@ export class GameService {
 		let user1 = await this.usersService.findUserEntity({id : player1Id})
 		if (user1 == null)
 		{
-			console.log("Can't find user1 for gameHistory")
+			//console.log("Can't find user1 for gameHistory")
 			return null
 		}
-		console.log(user1.id)
+		//console.log(user1.id)
 		let user2 = await this.usersService.findUserEntity({id : player2Id})
 		if (user2 == null)
 		{
-			console.log("Can't find user2 for gameHistory")
+			//console.log("Can't find user2 for gameHistory")
 			return null
 		}
 		gameHistory.user1 = user1
@@ -674,9 +674,9 @@ export class GameService {
 			gameHistory.winner = user2
 		}
 		this.gameRepository.save(gameHistory).then(() => {
-			console.log("Added a game history for " + player1Id + "and " + player2Id)
+			//console.log("Added a game history for " + player1Id + "and " + player2Id)
 		}).catch(() => {
-			console.log("Failed to add the game to the history")
+			//console.log("Failed to add the game to the history")
 		})
 		
 

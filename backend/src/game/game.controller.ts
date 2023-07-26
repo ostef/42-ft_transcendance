@@ -60,7 +60,4 @@ export class GameController {
 			throw new BadRequestException(err.message)
 		}
     }
-       
-    
-
 }

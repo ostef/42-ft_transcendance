@@ -63,10 +63,12 @@ export class CreateUserParams
 
 export class UpdateUserParams
 {
+/*
     @IsOptional ()
     @IsAlphanumeric ()
     @Length (2, 50)
     username?: string;
+*/
 
     @IsOptional ()
     @IsString ()
