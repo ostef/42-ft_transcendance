@@ -12,6 +12,7 @@ import { ConfigurateDto, GameSpectateDto, JoinInviteDto, StartInviteDto } from '
 import { stringify } from 'querystring';
 import { SpectateGame, Spectator, waitingPlayer } from './types/game.types';
 import { validateColor, validateDifficulty } from './script/validators';
+import { ChannelsService } from 'src/chat/channels.service';
 
 @Injectable()
 export class GameService {
@@ -26,15 +27,20 @@ export class GameService {
 	gamesInvite : Game[] = []
 	usersInGame : string[] = []
 	spectators : Spectator[] = []
+	gameIds : number = 0
 
 	constructor(
 		@InjectRepository (gameHistoryEntity)
         private gameRepository: Repository<gameHistoryEntity>,
 
 		private usersService: UsersService,
+
+		private channelService : ChannelsService
 	) {}
 
 	//Leave Room Fonctions, called on disconnect or on leave
+
+
 	quitWaitRoom(client : Socket)
 	{
 		console.log("Quitting the wait room for ", client.id)
@@ -84,19 +90,19 @@ export class GameService {
 		console.log("Quitting the playing game room for game " + gameIndex)
 		this.gamesPlayingRoom = this.gamesPlayingRoom.filter(game =>
 			game.instanceId !== gameIndex)
-	}
+		}
 
-	quitSpectators(socketId : string)
-	{
+		quitSpectators(socketId : string)
+		{
 		this.spectators = this.spectators.filter(spectator => 
 			spectator.socket.id !== socketId)
-	}
+		}
 
 
-	//Getters for Game rooms
-	async getPlayingGames() : Promise<GameSpectateDto>
-	{
-		let gamesSpectate = {} as GameSpectateDto
+		//Getters for Game rooms
+		async getPlayingGames() : Promise<GameSpectateDto>
+		{
+			let gamesSpectate = {} as GameSpectateDto
 		gamesSpectate.games = []
 		for (let gamesPlaying of this.gamesPlayingRoom)
 		{
@@ -140,7 +146,8 @@ export class GameService {
 		if (this.waitRoom.length >= 1)
 		{
 			let otherUser = this.waitRoom.pop()
-			let newGame : Game = new Game(this.gamesRoom.length, client, otherUser.socket, this)
+			let newGame : Game = new Game(this.gameIds, client, otherUser.socket, this)
+			this.incrementGameids()
 			this.gamesRoom.push(newGame)
 			console.log("new game id : ", newGame.instanceId)
 			newGame.createGame()
@@ -153,8 +160,9 @@ export class GameService {
 		else
 		{
 			console.log("empty newgame")
-			let newGame : Game = new Game(this.gamesRoom.length, client, client, this)
+			let newGame : Game = new Game(this.gameIds, client, client, this)
 			this.gamesRoom.push(newGame)
+			this.incrementGameids()
 			console.log("new game id : ", newGame.instanceId)
 			newGame.createGame()
 			newGame.isReady = false
@@ -214,7 +222,8 @@ export class GameService {
 	addWaitingGame(client : Socket, client2 : waitingPlayer, user1Id : string, ready : boolean)
 	{
 		//Creating a game with 2 players and waiting for player 1 to configurate it
-		let newGame : Game = new Game(this.gamesRoom.length, client, client2.socket , this)
+		let newGame : Game = new Game(this.gameIds, client, client2.socket , this)
+		this.incrementGameids()
 		this.gamesRoom.push(newGame)
 		newGame.player2DataBaseId = client2.userId
 		newGame.player1DataBaseId = user1Id
@@ -248,8 +257,6 @@ export class GameService {
 		}
 		if (currentInstance == null)
 		{
-			//Todo : creer une exception specifique pour la ctach dans le front et ne rien afficher quand c
-			//une erreur du a un event qui est quand meme parti
 			throw new NotFoundException("Game Not Found")
 		}
 		if (currentInstance.player1Socket.id != client.id && currentInstance.player2Socket.id != client.id)
@@ -279,7 +286,7 @@ export class GameService {
 	{
 		let index = this.gamesRoom.findIndex(game => 
 			game.instanceId == gameId)
-		if (index != -1)
+			if (index != -1)
 		{
 			this.gamesRoom[index].addSpectator(client)
 			let newSpectate = {} as Spectator
@@ -301,18 +308,18 @@ export class GameService {
 		{
 			let index = this.gamesCreateRoom.findIndex(game => 
 				game.instanceId == currentGame.instanceId
-			)
-			if (index != -1)
-			{
-				this.gamesCreateRoom.splice(index, 1)
+				)
+				if (index != -1)
+				{
+					this.gamesCreateRoom.splice(index, 1)
+				}
 			}
-		}
-		else
-		{
-			let index = this.gamesCreateRoom.findIndex(game => 
-				game.instanceId == currentGame.instanceId
-			)
-			if (index != -1)
+			else
+			{
+				let index = this.gamesCreateRoom.findIndex(game =>
+					game.instanceId == currentGame.instanceId
+					)
+					if (index != -1)
 			{
 				this.gamesCreateRoom.splice(index, 1)
 				currentGame.startGame()
@@ -361,17 +368,17 @@ export class GameService {
 		this.quitPlayingGame(gameId)
 		let index = this.gamesRoom.findIndex(game => 
 			game.instanceId == gameId
-		)
-		if (index != -1)
-		{
-			this.createGameHistory(this.gamesRoom[index].player1DataBaseId, 
+			)
+			if (index != -1)
+			{
+				this.createGameHistory(this.gamesRoom[index].player1DataBaseId,
 				this.gamesRoom[index].player2DataBaseId, 
 				this.gamesRoom[index].score.p1, this.gamesRoom[index].score.p2, this.gamesRoom[index].isWinner)
-			this.quitInGame(this.gamesRoom[index].player1DataBaseId)
-			this.quitInGame(this.gamesRoom[index].player2DataBaseId)
-			for ( let spectator of this.gamesRoom[index].spectators )
-			{	
-				this.quitSpectators(spectator.id)
+				this.quitInGame(this.gamesRoom[index].player1DataBaseId)
+				this.quitInGame(this.gamesRoom[index].player2DataBaseId)
+				for ( let spectator of this.gamesRoom[index].spectators )
+				{
+					this.quitSpectators(spectator.id)
 			}
 			this.gamesRoom.splice(index, 1)
 		}
@@ -382,12 +389,23 @@ export class GameService {
 	{
 		let index = this.gamesRoom.findIndex(game => 
 			game.instanceId == gameId
-		)
-		if (index != -1)
+			)
+			if (index != -1)
 		{
 			this.gamesRoom.splice(index, 1)
 		}
 	}
+
+	incrementGameids()
+	{
+		if (this.gameIds == 9007199254740991)
+		{
+			this.gameIds = 0
+			return
+		}
+		this.gameIds += 1
+	}
+
 
 	//Global disconnect function, leave all rooms and treat the game regarding it's current state
 	disconnectPlayer(socketId : string)
@@ -552,15 +570,34 @@ export class GameService {
 
 
 	//Invite functions to redirect players who followed and invite link
-	createInvite()
+	async createInvite(userId : string)
 	{
+		let result : string = ""
+		const date = new Date()
+
+
+		let userControl = await this.usersService.findUserEntity({id : userId})
+		if (userControl == null)
+		{
+			throw new BadRequestException("User is not on database")
+		}
+
+		result = result + userId + date.getTime().toString()
+		console.log(result)
+		result = this.channelService.hashPassword(result)
+		console.log(result)
+
+		//Todo changer les id de game pour qu'ils soient uniques et ajouter un id a cette game la
 		let newGame : Game = new Game(this.gamesRoom.length, null, null , this)
 		this.gamesRoom.push(newGame)
+
 		newGame.isReady = false
-		newGame.changeInviteId(this.gamesInvite.length)
+		newGame.changeInviteId(result)
 		this.gamesInvite.push(newGame)
-		//Todo mettre un timeout si le createur arrive pas sur la page, on detruit la game		
-		return (newGame.inviteId)
+
+
+		//Todo mettre un timeout si le createur arrive pas sur la page, on detruit la game
+		return (result)
 	}
 
 	async startInvite(client : Socket, data : StartInviteDto)
@@ -641,7 +678,7 @@ export class GameService {
 		}).catch(() => {
 			console.log("Failed to add the game to the history")
 		})
-
+		
 
 	}
 

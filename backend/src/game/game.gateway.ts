@@ -1,35 +1,58 @@
-import { Body, OnApplicationBootstrap, OnModuleInit, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { Body, OnApplicationBootstrap, OnModuleInit, UseFilters, UsePipes, ValidationPipe, WsExceptionFilter } from '@nestjs/common';
+import { BaseWsExceptionFilter, ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
 import { find } from 'rxjs';
 import { Server, Socket } from 'socket.io'
 import { GameService } from './game.service'
 import { FindGame } from './types/game.types'
 import { UpdatePaddleDto, ConfigurateDto, UserIdDtto, StartInviteDto, JoinInviteDto, SpectateDto, SearchCreateGameDto } from './dto/game.dto';
+import { AuthService } from 'src/auth/auth.service';
+import { WsCatchAllFilter } from './exceptions/ws-catch-all-filter'
 
 
+
+@UsePipes(new ValidationPipe())
+@UseFilters(new WsCatchAllFilter())
 @WebSocketGateway({
 	namespace: "/game",
 	cors: {
-		origin: "*",
-		methods: ["GET", "POST"]
+		origin: "http://localhost:8080",
 	}
 })
-@UsePipes(new ValidationPipe())
 export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
   
   sockets : string [] = []
 
   @WebSocketServer()
-  server : Server;
+	server : Server;
 
 
-  constructor(private readonly gameService: GameService) {
-  }
+  constructor(
+	private readonly gameService: GameService,
+	private authService: AuthService
+	) {}
   
   onModuleInit() {
   }
   
   onApplicationBootstrap() {
+
+	this.server.use ((socket, next) => {
+		const payload = this.authService.getPayloadFromToken (socket.handshake.auth.token);
+
+		if (!payload || !this.authService.validateUser (payload.userId))
+		{
+			next (new WsException ("Unauthorized"));
+		}
+		else
+		{
+		   socket.data.userId = payload.userId;
+		   next ();
+		}
+	 });
+
+
+
+
     this.server.on('connection', (socket) => {
       console.log("A socket is connecting : " + socket.id);      this.sockets.push(socket.id);
       console.log("The sockets are " + this.sockets)
@@ -72,12 +95,19 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
       return ;
     }
     console.log("Searching for a game", client.id)
-    let findResult = await this.gameService.findGame(client, data.userId)
-    if (findResult.instanceId >= 0)
-    {
-      client.emit("foundGame", "right", findResult.instanceId, findResult.difficulty, findResult.color)
-      findResult.player1.emit("foundGame", "left", findResult.instanceId, findResult.difficulty, findResult.color)
-    }
+	try {
+
+		let findResult = await this.gameService.findGame(client, data.userId)
+		if (findResult.instanceId >= 0)
+		{
+		  client.emit("foundGame", "right", findResult.instanceId, findResult.difficulty, findResult.color)
+		  findResult.player1.emit("foundGame", "left", findResult.instanceId, findResult.difficulty, findResult.color)
+		}
+	}
+	catch(err)
+	{
+		console.log(err.message)
+	}
    }
 
    @SubscribeMessage('createGame')
@@ -87,7 +117,15 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     {
       return ;
     }
-		let createResult = this.gameService.createGame(client, data.userId)
+		try 
+		{
+
+			let createResult = this.gameService.createGame(client, data.userId)
+		}
+		catch(err)
+		{
+			console.log(err.message)
+		}
    }
 
 
@@ -125,7 +163,14 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
       {
         return ;
       }
-	    this.gameService.updatePaddlePos(client, data.gameId, data.paddlePos)
+	  try {
+
+		  this.gameService.updatePaddlePos(client, data.gameId, data.paddlePos)
+	  }
+	  catch(err)
+	  {
+		console.log(err.message);
+	  }
    }
 
 
@@ -139,7 +184,14 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     {
       return ;
     }
-    this.gameService.configurateGame(client, data)
+	try {
+
+		this.gameService.configurateGame(client, data)
+	}
+	catch(err)
+	{
+		console.log(err.message);
+	}
    }
 
    //Invite Event to handle connection from an invite URL
@@ -150,6 +202,7 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     {
       return ;
     }
+	console.log("Trying to join an invite game")
     this.gameService.startInvite(client, data)
    }
 
