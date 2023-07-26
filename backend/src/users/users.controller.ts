@@ -78,24 +78,7 @@ export class UsersController
         }
     }
 
-    // @Todo: remove in favor of an update PUT
-    @Post("nickname")
-    // Fait que le contenu de la requête est une string, pour obliger la modification du nickname uniquement et empecher generalisation
-    async updateNickname(@Request() req, @Body() body)
-    {
-        try
-        {
-            await this.usersService.updateUser(req.user.id, { nickname: body.value});
-        }
-        catch (err)
-        {
-            this.logger.error(err.stack);
-            throw new BadRequestException(err.message);
-        }
-    }
-
-
-    @Post("avatar")
+    @Put("avatar")
     @UseInterceptors(FileInterceptor('avatar'))
     async updateAvatar(
         @Request() req,
