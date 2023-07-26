@@ -214,6 +214,9 @@ async function inviteUserToPlay ()
                     User Profile
                 </label>
             </li>
+          <li v-if="user?.id == store.loggedUser?.id">
+            <router-link to="/">My profile </router-link>
+          </li>
 
         </ul>
     </div>
