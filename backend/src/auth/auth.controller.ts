@@ -120,7 +120,7 @@ export class AuthController
     @Get('2fa/generate')
     async generate2fa(@Request() req)
     {
-       const otpauth = await this.authService.generate2FASecret(req.user.id);
+       const otpauth = await this.authService.generate2FASecret(req.user);
        return this.authService.generate2FAQrCode(otpauth) ;
     }
 
