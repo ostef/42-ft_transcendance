@@ -121,11 +121,15 @@ function onPictureSelectionChanged($event: Event) {
                     <button class="btn btn-success input-group-btn" :disabled="nickNameNew.length == 0" @click="changeNickname">Validate</button>
                     <button class="btn btn-error input-group-btn" @click="isEditing = ''">Cancel</button>
          </div>
-        <div v-else-if="isEditing == '2fa-on'" class="join">
+        <div v-else-if="isEditing == '2fa-on'" class="flex items-center space-x-8">
                     <img class="join-item" v-if="qrCode2fa != ''" :src="qrCode2fa" />
-                    <input type="text" v-model="code2fa" placeholder="Enter 2fa code" class="input input-bordered join-item" />
-                    <button class="btn btn-success join-item" :disabled="code2fa.length == 0" @click="turnon2fa">Validate</button>
-                    <button class="btn btn-error join-item" @click="isEditing = ''">Cancel</button>
+                    <div class="flex flex-col ">
+                        <input type="text" v-model="code2fa" placeholder="Enter 2fa code" class="input input-bordered join-item" />
+                        <div class="join">
+                          <button class="btn btn-success join-item" :disabled="code2fa.length == 0" @click="turnon2fa">Validate</button>
+                          <button class="btn btn-error join-item" @click="isEditing = ''">Cancel</button>
+                        </div>
+                    </div>
         </div>
         <div v-else-if="isEditing == '2fa-off'" class="input-group">
                     <input type="text" v-model="code2fa" placeholder="Enter 2fa code" class="input input-bordered" />

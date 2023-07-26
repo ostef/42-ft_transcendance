@@ -8,10 +8,16 @@
         </div>
         <div id="friendList" class="flex flex-col space-y-4">
             <h2 class="text-2xl">Friend List</h2>
+            <div id="waitingList">
+              <table class="table table-zebra">
+                <tbody>
+                <tr></tr>
+                </tbody>
+              </table>
+            </div>
             <span v-if="friendList.length == 0">You have no friends yet</span>
             <div v-else class="overflow-x-auto">
                 <table class="table table-zebra table-pin-cols">
-
                     <tbody>
                         <tr>
                             <th>Nickname</th>

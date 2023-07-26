@@ -65,12 +65,13 @@ function toggleSettingsModal ()
                     <iconify-icon icon="ri:menu-2-line" class="h-5 w-5" />
                 </label>
                 <ul tabindex="0" class="menu menu-compact dropdown-content rounded-md shadow bg-base-100">
-                    <li><router-link to="/profile">Profile</router-link></li>
                     <div class="indicator">
                         <span class="indicator-item badge badge-sm badge-primary"></span>
                         <li><router-link to="/profile/friends">Friends</router-link></li>
                     </div>
-                  <label class="btn btn-ghost" for="setting_modal">Settings</label>
+                    <li>
+                      <label class="btn-ghost " for="setting_modal">Settings</label>
+                    </li>
                     <li><router-link to="/login" @click="logout ()">Logout</router-link></li>
                 </ul>
             </div>
@@ -84,10 +85,8 @@ function toggleSettingsModal ()
     </div>
   <input type="checkbox" id="setting_modal" class="modal-toggle" />
     <div  class="modal">
-
-        <div class="modal-box">
+        <div class="modal-box w-6/12 max-w-5xl">
             <label for="setting_modal" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</label>
-            <h1>Settings</h1>
                 <SettingsModal />
         </div>
 <!--        <label class="modal-backdrop" for="my_modal_7" >Close</label>-->

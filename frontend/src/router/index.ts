@@ -17,7 +17,7 @@ const router = createRouter ({
         {
             path: "/",
             name: "Home",
-            component: HomeView
+            component: ProfileView
         },
         {
             path: "/login",
@@ -33,11 +33,6 @@ const router = createRouter ({
             path: '/game/:id',
             name: 'testpage',
             component: TestPage
-        },
-        {
-            path: "/profile",
-            name: "Profile",
-            component: ProfileView
         }
     ]
 });
