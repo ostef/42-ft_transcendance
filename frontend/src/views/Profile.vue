@@ -11,7 +11,7 @@
             <div id="waitingList" v-if="store.loggedUser?.receivedFriendRequests.length > 0">
              <h3> Waiting</h3>
               <div class="flex flex-row space-x-4">
-                <UserAvatar v-for="friend in waitingFriendList" :user="friend" />
+                <UserAvatar v-for="friend in waitingFriendList" :user="friend" :show-more-options="true"/>
               </div>
             </div>
             <span v-if="friendList.length == 0">You have no friends yet</span>
@@ -24,7 +24,7 @@
                         </tr>
                         <tr v-for="friend in friendList">
                             <td class="flex flex-row space-x-4 items-center">
-                                <UserAvatar :user="friend"/>
+                                <UserAvatar :user="friend" :show-more-options="true"/>
                                 <span>{{ friend.nickname }}</span>
                             </td>
                             <td>
