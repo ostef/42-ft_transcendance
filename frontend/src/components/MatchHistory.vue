@@ -3,7 +3,7 @@
 import UserAvatar from "@/components/UserAvatar.vue";
 import {User, useStore} from "@/store";
 import axios from "axios";
-import {PropType, ref} from "vue";
+import {PropType, onMounted, ref} from "vue";
 import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
 
 const props = defineProps ({
@@ -25,8 +25,8 @@ const winNumber = ref (0);
 const loseNumber = ref (0);
 const winRate = ref (0);
 
-
-    const res = await axios.get ("http://" + window.location.hostname + ":3000/game/matchHistory/" + props.user?.id);
+onMounted (async () => {
+    const res = await axios.get ("game/matchHistory/" + props.user?.id);
 
     if (res.data)  matchHistory.value = res.data;
     for (let i = 0; i < matchHistory.value.length; i++)
@@ -37,6 +37,8 @@ const winRate = ref (0);
             loseNumber.value++;
     }
     winRate.value = Math.round((winNumber.value / matchHistory.value.length) * 100);
+});
+
 </script>
 
 <template>
