@@ -1,4 +1,4 @@
-import { Body, OnApplicationBootstrap, OnModuleInit, UseFilters, UsePipes, ValidationPipe, WsExceptionFilter } from '@nestjs/common';
+import { Body, OnApplicationBootstrap, OnModuleInit, UnauthorizedException, UseFilters, UsePipes, ValidationPipe, WsExceptionFilter } from '@nestjs/common';
 import { BaseWsExceptionFilter, ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
 import { find } from 'rxjs';
 import { Server, Socket } from 'socket.io'
@@ -107,6 +107,7 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 	catch(err)
 	{
 		console.log(err.message)
+		throw new UnauthorizedException("Player not on database")
 	}
    }
 
