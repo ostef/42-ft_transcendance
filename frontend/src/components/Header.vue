@@ -23,7 +23,7 @@ function toggleSettingsModal ()
 <template>
     <div class="navbar bg-primary-100">
         <div class="navbar-start p-[6px] bg-secondary-100 flex-grow md:hidden">
-            <div class="dropdown dropdown-right flex">
+            <div v-if="store.loggedUser" class="dropdown dropdown-right flex">
                 <label tabindex="0" class="p-3 m-2 hover:bg-gray-400 hover:text-black rounded-full">
                     <iconify-icon icon="ri:menu-2-line" class="h-5 w-5" />
                 </label>
@@ -44,7 +44,7 @@ function toggleSettingsModal ()
             <a class="p-4 font-bold text-xl select-none">Transcendance</a>
         </div>
 
-        <div class="navbar-center p-[6px] bg-secondary-200 flex-grow hidden md:flex">
+        <div v-if="store.loggedUser" class="navbar-center p-[6px] bg-secondary-200 flex-grow hidden md:flex">
             <ul class="menu menu-horizontal">
                 <li><router-link to="/" class="h-[50px]">Home</router-link></li>
                 <li><router-link to="/game/0" class="h-[50px]">Play</router-link></li>
