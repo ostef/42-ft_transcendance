@@ -34,6 +34,7 @@ export class LoggedUserDto
     nickname: string;
     avatarFile: string;
     receivedFriendRequests: string[];
+    has2FA: boolean;
 
     static fromUserEntityAndFriendRequests (entity: UserEntity, requests: FriendRequestEntity[]): LoggedUserDto
     {
@@ -43,6 +44,7 @@ export class LoggedUserDto
             nickname: entity.nickname,
             avatarFile: entity.avatarFile,
             receivedFriendRequests: requests.map ((val) => val.fromUser.id),
+            has2FA: entity.has2FA
         };
     }
 }

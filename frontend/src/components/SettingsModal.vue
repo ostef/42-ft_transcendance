@@ -40,13 +40,14 @@ async function changePicture()
     fd.append("avatar", pictureNew.value);
     const res = await axios.put("/user/avatar", fd);
     store.loggedUser.avatarFile = res.data.toString();
+    isEditing.value = "";
     // toggleChangePicture();
 }
 
 async function changeNickname() {
     await axios.put("user", { nickname: nickNameNew.value });
     store.loggedUser.nickname = nickNameNew.value;
-    // toggleChangeNickname();
+    isEditing.value = "";
 }
 
 async function generate2faQrCode() {
@@ -64,7 +65,8 @@ async function turnon2fa() {
     qrCode2fa.value = ""
   if (res.status == 200)
     store.loggedUser.has2FA = true;
-  login2FA(code2fa.value)
+  await login2FA(code2fa.value);
+  isEditing.value = "";
 
 
 
@@ -74,7 +76,7 @@ async function turnoff2fa() {
     const res = await axios.post("/auth/2fa/turn-off", { code: code2fa.value });
     if (res.status == 200)
       store.loggedUser.has2FA = false;
-    // logout();
+    isEditing.value = "";
 
 }
 
