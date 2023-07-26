@@ -557,7 +557,7 @@ export default {
 		joinGameInvite(gameId : string)
 		{
 			console.log("the game invite id :" + gameId)
-			this.socket.emit("joinInvite", { gameId : parseInt(gameId) , userId : this.userStore.loggedUser?.id})
+			this.socket.emit("joinInvite", { gameId : gameId , userId : this.userStore.loggedUser?.id})
 		},
 
 		waitPlayer2()
@@ -583,7 +583,3 @@ export default {
 }
 
 </script>
-
-<style scoped>
-
-</style>
