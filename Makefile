@@ -1,4 +1,7 @@
-all: backend frontend
+DOCKER = docker
+COMPOSE = sudo $(DOCKER) compose -p ft_transcendance -f docker-compose.yml
+DATA_VOLUME = ./data
+DEPENDENCIES = $(DATA_VOLUME)
 
 frontend:
 	@echo "Building frontend..."
