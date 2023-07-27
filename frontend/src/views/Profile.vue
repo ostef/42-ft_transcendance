@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col space-y-10 justify-center items-center" id="container">
+    <div class="flex flex-col space-y-10 justify-center items-center">
         <div id="information" class="flex flex-row space-x-8  items-center">
             <NonInteractiveAvatar class="h-24 w-24" :user="store.loggedUser ?? undefined" />
         </div>
@@ -33,9 +33,9 @@
                 </table>
             </div>
         </div>
-      <Suspense>
-        <MatchHistory :showFull="true" :user="store.loggedUser as User"/>
-      </Suspense>
+        <Suspense>
+          <MatchHistory :showFull="true" :user="store.loggedUser as User"/>
+        </Suspense>
 
     </div>
 

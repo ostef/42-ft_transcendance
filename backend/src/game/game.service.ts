@@ -1,18 +1,36 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
 
 import Game from "./script/Game"
-import { read } from 'fs';
 import { gameHistoryEntity } from './entities/gameHistory.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
-import cluster from 'cluster';
 import { ConfigurateDto, GameSpectateDto, JoinInviteDto, StartInviteDto } from './dto/game.dto';
-import { stringify } from 'querystring';
 import { SpectateGame, Spectator, waitingPlayer } from './types/game.types';
 import { validateColor, validateDifficulty } from './script/validators';
 import { ChannelsService } from 'src/chat/channels.service';
+import { UserDto } from "src/users/types";
+
+class MatchHistoryDto
+{
+	id: number;
+	opponent: UserDto;
+	playerScore: number;
+	opponentScore: number;
+	winner: string;
+
+	static fromMatchHistoryEntity (myUserId: string, game: gameHistoryEntity): MatchHistoryDto
+	{
+		return {
+			id: game.id,
+			opponent: UserDto.fromUserEntity (game.user1.id == myUserId ? game.user1 : game.user2, game.user1.id == myUserId ? game.user2 : game.user1),
+			playerScore: game.user1.id == myUserId ? game.scoreP1 : game.scoreP2,
+			opponentScore: game.user1.id == myUserId ? game.scoreP2 : game.scoreP1,
+			winner: game.winner.id,
+		};
+	}
+}
 
 @Injectable()
 export class GameService {
@@ -571,7 +589,7 @@ export class GameService {
 		}
 		return (index)
 	}
-	
+
 	isGameInviteGameId(gameId : number)
 	{
 		let index = this.gamesInvite.findIndex(game => {
@@ -581,7 +599,7 @@ export class GameService {
 			}
 			return (false)
 		})
-		return (index)	
+		return (index)
 	}
 
 	isInGame(userId : string) : number
@@ -626,7 +644,7 @@ export class GameService {
 		this.gamesInvite.push(newGame)
 
 
-		let clearMethod = function (inviteId : string) 
+		let clearMethod = function (inviteId : string)
 		{
 			this.clearInvite(inviteId);
 		}.bind(this)
@@ -757,40 +775,32 @@ export class GameService {
 
 	async getMatchHistory(playerId : string): Promise<any[]>
 	{
-		const matchHistory = await this.gameRepository.find({
+		const matchHistory = await this.gameRepository.find ({
 			where: [
 				{ user1: { id: playerId } },
 				{ user2: { id: playerId } }
 			],
 			relations: {
 				user1: {
-					gameHistory: false,
-					gameHistory2: false,
+					friends: true,
+					blockedUsers: true,
 				},
 				user2: {
-					gameHistory: false,
-					gameHistory2: false,
+					friends: true,
+					blockedUsers: true,
 				},
-				winner: {
-					gameHistory: false,
-					gameHistory2: false,
-				}
+				winner: true,
 			},
 			order: {
 				id: "DESC"
 			}
 		});
 
-		return matchHistory.map((game) => {
-			return {
-				id: game.id,
-				opponent: game.user1.id == playerId ? game.user2 : game.user1,
-				playerScore: game.user1.id == playerId ? game.scoreP1 : game.scoreP2,
-				opponentScore: game.user1.id == playerId ? game.scoreP2 : game.scoreP1,
-				winner: game.winner.nickname,
-			};
+		const result = [] as MatchHistoryDto[];
+		for (const hist of matchHistory)
+			result.push (MatchHistoryDto.fromMatchHistoryEntity (playerId, hist));
 
-		});
+		return result;
 	}
 
 	getUsersInGame() : string[]
