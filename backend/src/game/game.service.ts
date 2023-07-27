@@ -161,6 +161,11 @@ export class GameService {
 		{
 			throw new UnauthorizedException("Player not on database")
 		}
+		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1 || this.isGameWaitingUserId(userId) != -1)
+		{
+			client.emit("alreadyGaming")
+			return
+		}
 		if (this.waitRoom.length >= 1)
 		{
 			let otherUser = this.waitRoom.pop()
@@ -199,6 +204,12 @@ export class GameService {
 		}
 		//console.log("trying to find a game for ", client.id)
 		//One game is waiting for player
+		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1 || this.isGameWaitingUserId(userId) != -1)
+		{
+			console.log("hehhooo")
+			client.emit("alreadyGaming")
+			return ({player1 : null, instanceId : -2, difficulty : "default", color : ""})
+		}
 		if (this.gamesWaitingRoom.length >= 1)
 		{
 			let newGame = this.gamesWaitingRoom.shift()
@@ -537,9 +548,36 @@ export class GameService {
 		return (index)
 	}
 
+	isGamingUserId(userId : string)
+	{
+		let index = this.gamesRoom.findIndex(game => {
+			if (game.player1DataBaseId)
+			{
+				return (game.player1DataBaseId == userId)
+			}
+			return (false)
+		}
+		)
+		if (index == -1)
+		{
+			index = this.gamesRoom.findIndex(game => {
+				if (game.player1DataBaseId)
+					return (game.player1DataBaseId === userId)
+				return (false)
+			})
+		}
+		return (index)
+	}
+
 	isWaiting(socketId : string)
 	{
 		let index =  this.waitRoom.findIndex(player => player.socket.id == socketId)
+		return (index)
+	}
+
+	isWaitingUserId(userId : string)
+	{
+		let index =  this.waitRoom.findIndex(player => player.userId == userId)
 		return (index)
 	}
 
@@ -559,12 +597,48 @@ export class GameService {
 		return (index)
 	}
 
+	isGameCreatingUserId(userId : string)
+	{
+		let index  = this.gamesCreateRoom.findIndex(game => {
+			if (game.player1DataBaseId)
+				return (game.player1DataBaseId == userId)
+			return (false)
+		})
+		if (index == -1)
+		{
+			index  = this.gamesCreateRoom.findIndex(game => {
+				if (game.player2DataBaseId)
+					return (game.player2DataBaseId == userId)
+				return (false)
+			})
+		}
+		return (index)
+	}
+
 	isGameWaiting(socketId : string)
 	{
 		let index = this.gamesWaitingRoom.findIndex(game => game.player1Socket.id == socketId)
 		if (index == -1)
 		{
 			index  = this.gamesWaitingRoom.findIndex(game => game.player2Socket.id == socketId)
+		}
+		return (index)
+	}
+
+	isGameWaitingUserId(userId : string)
+	{
+		let index = this.gamesWaitingRoom.findIndex(game => {
+			if (game.player1DataBaseId)
+				return (game.player1DataBaseId == userId)
+			return (false)
+		})
+		if (index == -1)
+		{
+			index  = this.gamesWaitingRoom.findIndex(game => {
+				if (game.player2DataBaseId)
+					return (game.player2DataBaseId == userId)
+				return (false)
+			})
 		}
 		return (index)
 	}
@@ -599,6 +673,28 @@ export class GameService {
 			}
 			return (false)
 		})
+		return (index)
+	}
+
+	isGameInviteUserId(userId : string)
+	{
+		let index = this.gamesInvite.findIndex(game => {
+			if (game.player1DataBaseId)
+			{
+				return (game.player1DataBaseId == userId)
+			}
+			return (false)
+		})
+		if (index == -1)
+		{
+			index = this.gamesInvite.findIndex(game => {
+				if (game.player2DataBaseId)
+				{
+					return (game.player2DataBaseId == userId)
+				}
+				return (false)
+			})
+		}
 		return (index)
 	}
 

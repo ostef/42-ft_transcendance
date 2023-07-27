@@ -141,6 +141,10 @@ export default {
 		this.socket.on("configurateGame", (gameId : number) => {
 			this.configureGame(gameId)
 		})
+		this.socket.on("alreadyGaming", () =>{
+			console.log("pk ca marche pas")
+			this.alreadyGaming()
+		})
 
 		//Game events on updtaing padddle, ball and score
 		this.socket.on("ballUpdate", (data : Point) => {
@@ -427,6 +431,15 @@ export default {
 			this.isPlaying = true
 			this.difficulty = difficulty
 			this.ball.color = color
+		},
+
+		alreadyGaming()
+		{
+			console.log("I am already in game")
+			if (this.userStore)
+				this.userStore.pushAlert("error", "You are already Gaming on another screen")
+			this.waitingPlayer = false
+			this.menu = true
 		},
 
 		//Event pour le déroulement de la partie
