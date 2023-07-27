@@ -161,7 +161,8 @@ export class GameService {
 		{
 			throw new UnauthorizedException("Player not on database")
 		}
-		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1 || this.isGameWaitingUserId(userId) != -1)
+		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1 
+			|| this.isGameWaitingUserId(userId) != -1 || this.isGameInviteUserId(userId) != -1)
 		{
 			client.emit("alreadyGaming")
 			return
@@ -204,9 +205,9 @@ export class GameService {
 		}
 		//console.log("trying to find a game for ", client.id)
 		//One game is waiting for player
-		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1 || this.isGameWaitingUserId(userId) != -1)
+		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1 
+			|| this.isGameWaitingUserId(userId) != -1 || this.isGameInviteUserId(userId) != -1)
 		{
-			console.log("hehhooo")
 			client.emit("alreadyGaming")
 			return ({player1 : null, instanceId : -2, difficulty : "default", color : ""})
 		}
@@ -726,6 +727,11 @@ export class GameService {
 			throw new BadRequestException("User is not on database")
 		}
 
+		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1 
+			|| this.isGameWaitingUserId(userId) != -1 || this.isGameInviteUserId(userId) != -1)
+		{
+			throw new BadRequestException("Your are already gaming on other screen")
+		}
 		result = result + userId + date.getTime().toString()
 		console.log(result)
 		result = this.channelService.hashPassword(result)
@@ -746,13 +752,12 @@ export class GameService {
 		}.bind(this)
 
 		setTimeout(clearMethod, 20000, result)
-		//Todo mettre un timeout si le createur arrive pas sur la page, on detruit la game
 		return (result)
 	}
 
 	clearInvite(inviteId : string)
 	{
-		//supprime l'invitation apres le timeout de 10 secondes
+		//supprime l'invitation apres le timeout de 20 secondes
 		let index = this.gamesInvite.findIndex(game => game.inviteId == inviteId)
 		if (index != -1)
 		{
@@ -816,6 +821,14 @@ export class GameService {
 		let index = this.gamesInvite.findIndex(game => game.inviteId == data.gameId)
 		if (index != -1)
 		{
+			if (this.isWaitingUserId(data.userId) != -1 || this.isGamingUserId(data.userId) != -1 || this.isGameCreatingUserId(data.userId) != -1 
+				|| this.isGameWaitingUserId(data.userId) != -1 || this.isGameInviteUserId(data.userId) != -1)
+			{
+				client.emit("alreadyPlaying")
+				this.gamesInvite[index].player1Socket.emit("gameNotFound")
+				this.gamesInvite.splice(index, 1)
+				return
+			}
 			this.gamesInvite[index].player2Socket = client
 			this.gamesInvite[index].player2DataBaseId = data.userId
 			client.emit("joinedGameInvite", this.gamesInvite[index].instanceId)
