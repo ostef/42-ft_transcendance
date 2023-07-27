@@ -146,6 +146,8 @@ async function goToPrivateConv ()
     selectedUserIndex.value = index;
     channelsSelected.value = false;
 
+    router.replace ("/chat");
+
     await selectPrivConv (props.user.id);
 }
 
@@ -179,7 +181,7 @@ async function inviteUserToPlay ()
             </div>
         </label>
         <ul tabindex="0" class="relative z-50 menu menu-compact dropdown-content w-40 m-2 shadow rounded-md bg-base-300">
-            <li  v-if="store.loggedUser?.id !== user?.id">
+            <li v-if="store.loggedUser?.id !== user?.id">
                 <a @click="goToPrivateConv ()">Send Message</a>
             </li>
 
