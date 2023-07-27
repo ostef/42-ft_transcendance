@@ -48,12 +48,6 @@ export class UserEntity
     @JoinTable ()
     privateConversations: PrivateConversationEntity[];
 
-    @OneToMany(() => gameHistoryEntity, (gameHistoryEntity) => gameHistoryEntity.user1)
-    gameHistory : gameHistoryEntity[]
-
-    @OneToMany(() => gameHistoryEntity, (gameHistoryEntity) => gameHistoryEntity.user2)
-    gameHistory2 : gameHistoryEntity[]
-
     isInChannel (other: string | ChannelEntity): boolean
     {
         if (!this.joinedChannels)
