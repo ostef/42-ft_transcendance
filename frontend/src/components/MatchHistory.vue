@@ -26,7 +26,7 @@ const loseNumber = ref (0);
 const winRate = ref (0);
 
 onMounted (async () => {
-    const res = await axios.get ("game/matchHistory/" + props.user?.id);
+    const res = await axios.get ("game/match-history");
 
     if (res.data)  matchHistory.value = res.data;
     for (let i = 0; i < matchHistory.value.length; i++)
