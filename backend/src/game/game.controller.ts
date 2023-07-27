@@ -17,7 +17,7 @@ export class GameController {
 
     @Get()
         findall() : Todo[] {
-        return this.gameService.findAll(); 
+        return this.gameService.findAll();
     }
 
     @Post()
@@ -35,9 +35,10 @@ export class GameController {
         return this.gameService.deleteTodo(id);
     }*/
 
-    @Get('matchHistory/:id')
-     getMatchHistory(@Param('id') id : string) {
-        return this.gameService.getMatchHistory(id);
+    @Get("match-history")
+    getMatchHistory(@Request () req)
+    {
+        return this.gameService.getMatchHistory(req.user.id);
     }
 
 	@Get("Spectate")

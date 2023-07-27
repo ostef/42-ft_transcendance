@@ -25,4 +25,3 @@ export type waitingPlayer = {
 	socket : Socket,
 	userId : string
 }
- 

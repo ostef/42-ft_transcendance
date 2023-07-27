@@ -184,18 +184,4 @@ export class UsersController
 
         return UserDto.fromUserEntity (me, user)
     }
-
-    @Get (":id/matchHistory")
-    async getMatchHistory (@Param ("id") id: string)
-    {
-        const user = await this.usersService.findUserEntity({id: id});
-        if (!user)
-            throw new NotFoundException ("User " + id + " does not exist");
-        const matchHistory =
-        console.log("gameHistory", user.gameHistory);
-        console.log("gameHistory2", user.gameHistory2);
-        if (user.gameHistory && user.gameHistory2)
-            return concat(user.gameHistory, user.gameHistory2);
-        return user.gameHistory ? user.gameHistory : user.gameHistory2;
-    }
 }

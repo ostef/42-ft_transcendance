@@ -16,10 +16,10 @@ export class gameHistoryEntity
     @PrimaryGeneratedColumn({ type : "bigint"})
     id: number;
 
-    @ManyToOne(() => UserEntity, (UserEntity) => UserEntity.gameHistory)
+    @ManyToOne(() => UserEntity)
     user1 : UserEntity
 
-    @ManyToOne(() => UserEntity, (UserEntity) => UserEntity.gameHistory2)
+    @ManyToOne(() => UserEntity)
     user2 : UserEntity
 
     @Column()
