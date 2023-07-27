@@ -35,10 +35,10 @@ export class GameController {
         return this.gameService.deleteTodo(id);
     }*/
 
-    @Get("match-history")
-    getMatchHistory(@Request () req)
+    @Get ("match-history/:user-id")
+    getMatchHistory(@Param ("user-id") userId: string)
     {
-        return this.gameService.getMatchHistory(req.user.id);
+        return this.gameService.getMatchHistory(userId);
     }
 
 	@Get("Spectate")
