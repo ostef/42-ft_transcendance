@@ -41,10 +41,10 @@ const store = useStore ();
             </ul>
         </div>
 
-        <div class="navbar-end" v-if="store.loggedUser != null">
-            <div class="flex flex-col select-none m-2">
+        <div class="navbar-end overflow-hidden" v-if="store.loggedUser != null">
+            <div class="block select-none m-2">
                 <h3 class="text-xl">{{ store.loggedUser.nickname }}</h3>
-                <h3 class="text-md">{{ store.loggedUser.username }}</h3>
+                <h3 class="text-md float-right">{{ store.loggedUser.username }}</h3>
             </div>
             <div class="dropdown dropdown-left flex">
                 <label tabindex="0" class="p-3 m-2 hover:bg-gray-400 hover:text-black rounded-full">
