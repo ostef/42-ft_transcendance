@@ -28,6 +28,7 @@ export default class gameInstance {
 	isPlaying : boolean
 	isWinner : number
 	spectators : Socket[] = []
+	inviteReady : boolean
 
 
 
@@ -46,6 +47,7 @@ export default class gameInstance {
 		this.color = "red"
 		this.inviteId = ""
 		this.isConfig = false
+		this.inviteReady = false
 	}
 
 	createGame()
@@ -64,7 +66,6 @@ export default class gameInstance {
 	{
 		console.log("Added color")
 		console.log("the color is : " + color)
-		//Todo : throw erreur en cas de donnes pourries ?
 		if (color != "default" && color != "green" && color != "red" && color != "black")
 		{
 			return ;
@@ -82,7 +83,6 @@ export default class gameInstance {
 		{
 			return ;
 		}
-		//Todo : throw une erreur si on  pas une bonne valeur ?
 		this.difficulty = data
 	}
 	

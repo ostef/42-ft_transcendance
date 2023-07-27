@@ -42,6 +42,7 @@ import Spectate from "@/components/game/Spectate.vue";
 import { chatSocket } from "@/chat";
 import type { Point, PaddlePos, Score } from "@/types/games.types";
 
+//Todo : Changer les couleurs des components pour le lol
 
 
 export default {
@@ -599,6 +600,7 @@ export default {
 			this.menu = false
 			this.gameNotFoundState = true
 			this.game = false
+			this.waitingPlayer = false
 		},
 
 		joinedGameInvite(gameId : number)

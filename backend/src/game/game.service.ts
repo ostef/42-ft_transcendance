@@ -507,6 +507,18 @@ export class GameService {
 		return (index)
 	}
 
+	isGamingGameId(gameId : number)
+	{
+		let index = this.gamesRoom.findIndex(game => {
+			if (game.player1Socket)
+			{
+				return (game.instanceId == gameId)
+			}
+			return (false)
+		})
+		return (index)
+	}
+
 	isWaiting(socketId : string)
 	{
 		let index =  this.waitRoom.findIndex(player => player.socket.id == socketId)
@@ -520,6 +532,12 @@ export class GameService {
 		{
 			index  = this.gamesCreateRoom.findIndex(game => game.player2Socket.id == socketId)
 		}
+		return (index)
+	}
+
+	isGameCreatingGameId(gameId : number)
+	{
+		let index  = this.gamesCreateRoom.findIndex(game => game.instanceId == gameId)
 		return (index)
 	}
 
@@ -552,6 +570,18 @@ export class GameService {
 			})
 		}
 		return (index)
+	}
+	
+	isGameInviteGameId(gameId : number)
+	{
+		let index = this.gamesInvite.findIndex(game => {
+			if (game.player1Socket)
+			{
+				return (game.instanceId == gameId)
+			}
+			return (false)
+		})
+		return (index)	
 	}
 
 	isInGame(userId : string) : number
@@ -587,8 +617,8 @@ export class GameService {
 		result = this.channelService.hashPassword(result)
 		console.log(result)
 
-		//Todo changer les id de game pour qu'ils soient uniques et ajouter un id a cette game la
-		let newGame : Game = new Game(this.gamesRoom.length, null, null , this)
+		let newGame : Game = new Game(this.gameIds, null, null , this)
+		this.incrementGameids()
 		this.gamesRoom.push(newGame)
 
 		newGame.isReady = false
@@ -596,8 +626,50 @@ export class GameService {
 		this.gamesInvite.push(newGame)
 
 
+		let clearMethod = function (inviteId : string) 
+		{
+			this.clearInvite(inviteId);
+		}.bind(this)
+
+		setTimeout(clearMethod, 20000, result)
 		//Todo mettre un timeout si le createur arrive pas sur la page, on detruit la game
 		return (result)
+	}
+
+	clearInvite(inviteId : string)
+	{
+		//supprime l'invitation apres le timeout de 10 secondes
+		let index = this.gamesInvite.findIndex(game => game.inviteId == inviteId)
+		if (index != -1)
+		{
+			if (this.gamesInvite[index].inviteReady == false)
+			{
+				if (this.gamesInvite[index].player1Socket != null)
+				{
+					this.gamesInvite[index].player1Socket.emit("gameNotFound")
+				}
+				else if (this.gamesInvite[index].player2Socket != null)
+				{
+					this.gamesInvite[index].player2Socket.emit("gameNotFound")
+				}
+				if (this.isGameCreatingGameId(this.gamesInvite[index].instanceId) != -1)
+				{
+					this.gamesCreateRoom = this.gamesCreateRoom.filter(game => game.instanceId !== this.gamesInvite[index].instanceId)
+				}
+				if (this.isGamingGameId(this.gamesInvite[index].instanceId) != -1)
+				{
+					this.gamesRoom = this.gamesRoom.filter(game => game.instanceId !== this.gamesInvite[index].instanceId)
+				}
+				if (this.isGameInviteGameId(this.gamesInvite[index].instanceId) != -1)
+				{
+					this.gamesInvite = this.gamesInvite.filter(game => game.instanceId !== this.gamesInvite[index].instanceId)
+				}
+			}
+		}
+		else
+		{
+			return;
+		}
 	}
 
 	async startInvite(client : Socket, data : StartInviteDto)
@@ -636,6 +708,7 @@ export class GameService {
 			this.gamesInvite[index].isReady = true
 			this.gamesCreateRoom.push(this.gamesInvite[index])
 			this.gamesInvite[index].createGame()
+			this.gamesInvite[index].inviteReady = true
 			this.gamesInvite.splice(index, 1)
 		}
 		else
