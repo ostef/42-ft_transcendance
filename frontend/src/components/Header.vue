@@ -35,16 +35,16 @@ const store = useStore ();
 
         <div v-if="store.loggedUser" class="navbar-center p-[6px] flex-grow hidden md:flex">
             <ul class="menu menu-horizontal">
-                <li><router-link to="/">Home</router-link></li>
-                <li><router-link to="/game/0">Play</router-link></li>
-                <li><router-link to="/chat">Chat</router-link></li>
+                <li class="mx-1"><router-link to="/">Home</router-link></li>
+                <li class="mx-1"><router-link to="/game/0">Play</router-link></li>
+                <li class="mx-1"><router-link to="/chat">Chat</router-link></li>
             </ul>
         </div>
 
         <div class="navbar-end" v-if="store.loggedUser != null">
-            <div class="block select-none m-2">
-                <h3 class="text-xl">{{ store.loggedUser.nickname }}</h3>
-                <h3 class="text-md float-right">{{ store.loggedUser.username }}</h3>
+            <div class="inline-grid select-none m-2">
+                <h3 class="text-xl truncate">{{ store.loggedUser.nickname }}</h3>
+                <h3 class="text-md float-right truncate">{{ store.loggedUser.username }}</h3>
             </div>
             <div class="dropdown dropdown-left flex">
                 <label tabindex="0" class="p-3 m-2 hover:bg-gray-400 hover:text-black rounded-full">
