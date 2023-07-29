@@ -2,6 +2,7 @@
 
 import {onMounted, ref, watch} from "vue";
 import axios from "axios";
+import { storeToRefs } from "pinia";
 
 import {type User, useStore} from "@/store";
 import router from "@/router";
@@ -19,8 +20,10 @@ const showFriends = ref (true);
 
 const user = ref (null as User | null);
 const matchHistory = ref ([] as GameMatch[]);
+const friends = ref ([] as User[]);
+const friendRequests = ref ([] as User[]);
 
-async function fetchUserAndMatchHistory ()
+async function fetchData ()
 {
     const userId = router.currentRoute.value.params.id ?? store.loggedUser?.id;
     if (!userId)
@@ -28,11 +31,28 @@ async function fetchUserAndMatchHistory ()
 
     user.value = (await axios.get ("user/profile/" + userId)).data;
     matchHistory.value = (await axios.get ("game/match-history/" + userId)).data;
+
+    friends.value.length = 0;
+    friendRequests.value.length = 0;
+    if (userId === store.loggedUser?.id)
+    {
+        friends.value = (await axios.get ("user/friends")).data;
+
+        for (const req of store.loggedUser.receivedFriendRequests)
+        {
+            const u = (await axios.get ("user/profile/" + req)).data;
+            friendRequests.value.push (u);
+        }
+    }
 }
 
-watch (router.currentRoute, async () => { await fetchUserAndMatchHistory (); });
+watch (router.currentRoute, async () => { await fetchData (); });
 
-onMounted (async () => { await fetchUserAndMatchHistory (); });
+const { loggedUser } = storeToRefs (store);
+
+watch (loggedUser, async () => { await fetchData (); });
+
+onMounted (async () => { await fetchData (); });
 
 </script>
 
@@ -65,14 +85,13 @@ onMounted (async () => { await fetchUserAndMatchHistory (); });
             </ul>
         </div>
 
-        <div class="h-friends overflow-y-auto p-2">
-            <!-- <FriendList v-if="showFriends" /> -->
+        <div class="h-friends overflow-x-hidden overflow-y-auto p-2">
             <div v-if="!showFriends || user?.id != store.loggedUser?.id" class="flex flex-col justify-center">
                 <GameStats class="m-4" :userId="user?.id ?? undefined" :matchHistory="matchHistory" />
                 <MatchHistory class="my-4" :userId="user?.id ?? undefined" :matchHistory="matchHistory" />
             </div>
             <div v-else-if="showFriends">
-                <FriendList :userId="user?.id ?? undefined" />
+                <FriendList :userId="user?.id ?? undefined" :friendRequests="friendRequests" :friends="friends" />
             </div>
         </div>
     </div>
