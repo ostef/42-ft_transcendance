@@ -64,8 +64,7 @@ const store = useStore ();
     <div  class="modal">
         <div class="modal-box w-6/12 max-w-5xl">
             <label for="setting_modal" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</label>
-                <SettingsModal />
+            <SettingsModal />
         </div>
-<!--        <label class="modal-backdrop" for="my_modal_7" >Close</label>-->
     </div>
 </template>
