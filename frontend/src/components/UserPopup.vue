@@ -5,12 +5,9 @@ import { storeToRefs} from "pinia";
 import axios from "axios";
 
 import { type User, useStore } from "@/store";
-import { fetchUserInfo } from "@/authentication";
-import { fetchUsers, notifyFriendshipChange } from "@/chat";
+import { notifyFriendshipChange } from "@/chat";
 
 import NonInteractiveAvatar from "./NonInteractiveAvatar.vue";
-import GameStats from "@/components/user/GameStats.vue";
-import router from "@/router";
 
 const store = useStore ();
 
