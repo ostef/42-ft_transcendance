@@ -35,9 +35,9 @@ const store = useStore ();
 
         <div v-if="store.loggedUser" class="navbar-center p-[6px] flex-grow hidden md:flex">
             <ul class="menu menu-horizontal">
-                <li class="mx-1"><router-link to="/">Home</router-link></li>
-                <li class="mx-1"><router-link to="/game/0">Play</router-link></li>
-                <li class="mx-1"><router-link to="/chat">Chat</router-link></li>
+                <li class="mx-1 text-lg"><router-link to="/">Home</router-link></li>
+                <li class="mx-1 text-lg"><router-link to="/game/0">Play</router-link></li>
+                <li class="mx-1 text-lg"><router-link to="/chat">Chat</router-link></li>
             </ul>
         </div>
 
