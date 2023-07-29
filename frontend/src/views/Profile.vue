@@ -10,7 +10,6 @@ import UserAvatar from "@/components/UserAvatar.vue";
 import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
 import MatchHistory from "@/components/user/MatchHistory.vue";
 import GameStats from "@/components/user/GameStats.vue";
-import FriendsPopup from "@/components/user/FriendsPopup.vue";
 import FriendList from "@/components/user/FriendList.vue";
 import router from "@/router";
 
