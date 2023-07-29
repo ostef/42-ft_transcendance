@@ -1,10 +1,7 @@
 <script setup lang="ts">
 
-import axios from "axios";
-
 import { useStore } from "@/store";
 import { logout } from "@/authentication";
-import {ref} from "vue";
 
 import SettingsModal from "@/components/SettingsModal.vue";
 
@@ -15,7 +12,7 @@ const store = useStore ();
 <template>
     <div class="navbar bg-base-100 h-20 overflow-visible">
         <div class="navbar-start p-[6px] flex-grow md:hidden">
-            <div class="dropdown dropdown-right flex">
+            <div v-if="store.loggedUser" class="dropdown dropdown-right flex">
                 <label tabindex="0" class="p-3 m-2 hover:bg-gray-400 hover:text-black rounded-full">
                     <iconify-icon icon="ri:menu-2-line" class="h-5 w-5" />
                 </label>
