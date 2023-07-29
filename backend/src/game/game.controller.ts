@@ -36,9 +36,9 @@ export class GameController {
     }*/
 
     @Get ("match-history/:id")
-    getMatchHistory(@Param ("id") userId: string)
+    async getMatchHistory(@Param ("id") userId: string): Promise<any[]>
     {
-        return this.gameService.getMatchHistory(userId);
+        return await this.gameService.getMatchHistory(userId);
     }
 
 	@Get("Spectate")
