@@ -33,7 +33,7 @@ const store = useStore ();
             <a class="p-4 font-bold text-xl select-none">Transcendance</a>
         </div>
 
-        <div class="navbar-center p-[6px] flex-grow hidden md:flex">
+        <div v-if="store.loggedUser" class="navbar-center p-[6px] flex-grow hidden md:flex">
             <ul class="menu menu-horizontal">
                 <li><router-link to="/">Home</router-link></li>
                 <li><router-link to="/game/0">Play</router-link></li>

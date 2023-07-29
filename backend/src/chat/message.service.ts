@@ -91,13 +91,16 @@ export class MessageService
 
         const receiver = await this.usersService.findUserEntity ({id: userId}, {blockedUsers: true});
         if (!receiver)
-            throw new Error ("User  does not exist");
+            throw new Error ("User does not exist");
 
         if (receiver.hasBlocked (senderId))
             throw new Error ("User has blocked you");
 
         if (sender.hasBlocked (userId))
             throw new Error ("User is blocked");
+
+        if (content.length > 3000)
+            throw new Error ("Message cannot be longer than 3000 characters");
 
         const {conv, newConv} = await this.findOrCreatePrivConversation (sender, receiver, {messages: true});
 
@@ -133,6 +136,9 @@ export class MessageService
 
         if (channel.isMuted (sender))
             throw new Error ("You are muted");
+
+        if (content.length > 3000)
+            throw new Error ("Message cannot be longer than 3000 characters");
 
         let msg = this.messageRepository.create ();
         msg.fromUser = sender;

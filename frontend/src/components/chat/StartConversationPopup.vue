@@ -8,21 +8,21 @@ import { selectPrivConv } from '@/chat';
 
 import UserSelectionList from "./UserSelectionList.vue";
 
-// @Todo: allow starting a conv with all users
+const users = ref ([] as User[]);
 
-const friends = ref ([] as User[]);
-
-async function fetchFriends ()
+async function fetchUsers ()
 {
     const store = useStore ();
-    const result = await axios.get ("user/friends");
+    const allUsers = (await axios.get ("user/all")).data;
 
-    friends.value.length = 0;
-    for (const friend of result.data)
+    users.value.length = 0;
+    for (const friend of allUsers)
     {
         if (!store.hasPrivConv (friend.id))
-            friends.value.push (friend);
+            users.value.push (friend);
     }
+
+    users.value.sort ((a, b) => (a.isFriend ? -1 : (b.isFriend ? 1 : -a.username.localeCompare (b.username))));
 }
 
 async function startConversation (user: User)
@@ -38,7 +38,7 @@ async function startConversation (user: User)
 </script>
 
 <template>
-    <input type="checkbox" id="startConversationModal" class="modal-toggle" @change="fetchFriends ()" />
+    <input type="checkbox" id="startConversationModal" class="modal-toggle" @change="fetchUsers ()" />
     <div class="modal">
         <div class="modal-box w-xs h-lg grid">
             <div class="block">
@@ -49,7 +49,7 @@ async function startConversation (user: User)
                 <h3 class="text-lg font-bold select-none">Start Conversation</h3>
             </div>
 
-            <UserSelectionList :users="friends" @on-select="startConversation"/>
+            <UserSelectionList :users="users" @on-select="startConversation"/>
         </div>
     </div>
 </template>

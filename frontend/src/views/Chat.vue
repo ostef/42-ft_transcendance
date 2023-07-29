@@ -93,6 +93,7 @@ function sendMessage ()
                         Send
                     </button>
                     <input type="text"
+                        maxlength="3000"
                         :placeholder="store.isMuted (store.loggedUser?.id) ? 'You are muted' : 'Write something'"
                         class="input input-bordered w-full"
                         :disabled="store.isMuted (store.loggedUser?.id)"

@@ -34,6 +34,18 @@ export class UsersService
         }
     }
 
+    async findMultipleUsers (params: any, relations: FindOptionsRelations<UserEntity> = {}): Promise<UserEntity[]>
+    {
+        try
+        {
+            return await this.usersRepository.find ({where: params, relations: relations});
+        }
+        catch (err)
+        {
+            return [];
+        }
+    }
+
     async createUser (params: CreateUserParams): Promise<UserEntity>
     {
         await validate (params);

@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from "vue-router"
 import HomeView from "@/views/Home.vue";
 import ChatView from "@/views/Chat.vue";
 import LoginView from "@/views/Login.vue";
-import TestPage from '../views/TestSocket.vue';
+import TestPage from '@/views/TestSocket.vue';
 import ProfileView from "@/views/Profile.vue";
 import axios from "axios";
 
