@@ -165,7 +165,7 @@ async function inviteUserToPlay ()
 
     store.pushAlert ("success", "Invited " + props.user.username + " to a game of Pong");
 
-    router.replace ("game/c" + gameId);
+    router.replace ("/game/c" + gameId);
 }
 
 </script>
@@ -216,10 +216,9 @@ async function inviteUserToPlay ()
                     User Profile
                 </label>
             </li>
-          <li v-if="user?.id == store.loggedUser?.id">
-            <router-link to="/">My profile </router-link>
-          </li>
-
+            <li v-if="user?.id == store.loggedUser?.id">
+                <router-link :to="'/profile/' + user?.id">My profile </router-link>
+            </li>
         </ul>
     </div>
 

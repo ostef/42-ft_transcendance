@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 import { computed, type PropType } from "vue";
+import { storeToRefs} from "pinia";
 import axios from "axios";
 
 import { type User, useStore } from "@/store";
@@ -8,7 +9,8 @@ import { fetchUserInfo } from "@/authentication";
 import { fetchUsers, notifyFriendshipChange } from "@/chat";
 
 import NonInteractiveAvatar from "./NonInteractiveAvatar.vue";
-import MatchHistory from "@/components/MatchHistory.vue";
+import GameStats from "@/components/user/GameStats.vue";
+import router from "@/router";
 
 const store = useStore ();
 
@@ -48,11 +50,12 @@ async function acceptFriendRequest ()
     props.user.isFriend = true;
     notifyFriendshipChange (props.user.id, "friend-accepted");
 
-    if (store.loggedUser)
+    const {loggedUser} = storeToRefs (store);
+    if (loggedUser.value)
     {
-        const index = store.loggedUser.receivedFriendRequests.findIndex ((val) => val == props.user?.id);
+        const index = loggedUser.value.receivedFriendRequests.findIndex ((val) => val == props.user?.id);
         if (index != -1)
-            store.loggedUser.receivedFriendRequests.splice (index, 1);
+            loggedUser.value.receivedFriendRequests.splice (index, 1);
     }
 }
 
@@ -64,11 +67,12 @@ async function declineFriendRequest ()
     await axios.post ("user/friends/decline/" + props.user.id);
     notifyFriendshipChange (props.user.id, "friend-declined");
 
-    if (store.loggedUser)
+    const {loggedUser} = storeToRefs (store);
+    if (loggedUser.value)
     {
-        const index = store.loggedUser.receivedFriendRequests.findIndex ((val) => val == props.user?.id);
+        const index = loggedUser.value.receivedFriendRequests.findIndex ((val) => val == props.user?.id);
         if (index != -1)
-            store.loggedUser.receivedFriendRequests.splice (index, 1);
+            loggedUser.value.receivedFriendRequests.splice (index, 1);
     }
 }
 
@@ -108,7 +112,7 @@ async function unblockUser ()
             </label>
 
             <div class="flex">
-                <NonInteractiveAvatar :user="user" />
+                <NonInteractiveAvatar class="w-12 h-12 min-w-12 min-h-12" :user="user" />
 
                 <div class="flex flex-col mx-4 select-none">
                     <h3 class="text-lg">{{ user?.nickname }}</h3>
@@ -120,9 +124,7 @@ async function unblockUser ()
                 This user has blocked you
             </h3>
         </div>
-      <Suspense>
-        <MatchHistory  :user="user as User" :show-full="true"/>
-      </Suspense>
+        <!-- <GameStats :userId="user?.id ?? undefined" /> -->
 
         <div v-if="!user?.isBlocked && !user?.hasBlockedYou">
             <button v-if="user?.isFriend" class="m-2 btn bg-primary normal-case" @click="removeFriend ()">
@@ -134,7 +136,7 @@ async function unblockUser ()
             </button>
 
             <div v-else>
-                <button class="m-2 btn-success btn  normal-case" @click="acceptFriendRequest ()">
+                <button class="m-2 btn-success btn normal-case" @click="acceptFriendRequest ()">
                     Accept Friend Request
                 </button>
 
@@ -151,7 +153,9 @@ async function unblockUser ()
             Block
         </button>
 
-
+        <router-link :to="'/profile/' + user?.id" class="m-2 btn normal-case">
+            Go To Profile Page
+        </router-link>
     </div>
 </div>
 
