@@ -1,29 +1,13 @@
 <script setup lang="ts">
 
-import {type User, useStore} from "@/store";
-import axios from "axios";
 import {type PropType, onMounted, ref} from "vue";
-import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
 
-export type MatchHistory =
-{
-    opponent: User;
-    playerScore: number;
-    opponentScore: number;
-    winner: string;
-}
+import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
+import { type GameMatch } from "@/store";
 
 const props = defineProps ({
     userId: String,
-});
-
-const matchHistory = ref ([] as MatchHistory[]);
-
-onMounted (async () => {
-    if (!props.userId)
-        return;
-
-    matchHistory.value = (await axios.get ("game/match-history/" + props.userId)).data;
+    matchHistory: Object as PropType<GameMatch[]>
 });
 
 </script>
@@ -38,14 +22,14 @@ onMounted (async () => {
             <th>Score</th>
             <th>Opponent Score</th>
         </tr>
-        <tr v-for="match in matchHistory">
+        <tr v-for="match of matchHistory">
             <td class="flex flex-row space-x-4 items-center">
                 <NonInteractiveAvatar :user="match.opponent"/>
                 <span>{{ match.opponent.nickname }}</span>
             </td>
             <td>
-                <span v-if="match.winner == match.opponent.id">Loose</span>
-                <span v-else>Victory</span>
+                <span v-if="match.winner == userId">Victory</span>
+                <span v-else>Defeat</span>
             </td>
             <td>{{ match.playerScore }}</td>
             <td>{{ match.opponentScore}}</td>

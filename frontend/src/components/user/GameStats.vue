@@ -1,41 +1,46 @@
 <script setup lang="ts">
-import { ref, type PropType, onMounted } from 'vue';
+import { ref, type PropType, computed } from 'vue';
 
-import type { User } from '@/store';
-import type { MatchHistory } from './MatchHistory.vue';
-import axios from 'axios';
+import { type GameMatch } from "@/store";
 
 const props = defineProps ({
     userId: String,
+    matchHistory: Object as PropType<GameMatch[]>
 });
 
-const matchHistory = ref ([] as MatchHistory[]);
-const winNumber = ref (0);
-const loseNumber = ref (0);
-const winRate = ref (0);
+const winNumber = computed (() => {
+    if (!props.matchHistory || !props.userId)
+        return 0;
 
-async function fetchMatchHistory ()
-{
-    if (!props.userId)
-        return;
-
-    matchHistory.value = (await axios.get ("game/match-history/" + props.userId)).data;
-
-    winNumber.value = 0;
-    loseNumber.value = 0;
-    for (let i = 0; i < matchHistory.value.length; i++)
+    let result = 0;
+    for (const hist of props.matchHistory)
     {
-        if (matchHistory.value[i].winner == props.userId)
-            winNumber.value++;
-        else
-            loseNumber.value++;
+        if (hist.winner == props.userId)
+            result += 1;
     }
 
-    winRate.value = Math.round ((winNumber.value / matchHistory.value.length) * 100);
-}
+    return result;
+});
 
-onMounted (async () => {
-    await fetchMatchHistory ();
+const loseNumber = computed (() => {
+    if (!props.matchHistory || !props.userId)
+        return 0;
+
+    let result = 0;
+    for (const hist of props.matchHistory)
+    {
+        if (hist.winner != props.userId)
+            result += 1;
+    }
+
+    return result;
+});
+
+const winRate = computed (() => {
+    if (!props.matchHistory || props.matchHistory.length == 0)
+        return 0;
+
+    return Math.round (100 * winNumber.value / props.matchHistory.length)
 });
 
 </script>
@@ -45,7 +50,7 @@ onMounted (async () => {
 <div class="stats shadow select-none p-2">
     <div class="stat">
         <div class="stat-title">Matches</div>
-        <div class="stat-value">{{ matchHistory.length }}</div>
+        <div class="stat-value">{{ matchHistory?.length ?? 0 }}</div>
     </div>
     <div class="stat">
         <div class="stat-title">Total Win</div>

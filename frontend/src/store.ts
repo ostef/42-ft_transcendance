@@ -1,6 +1,14 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
+export type GameMatch =
+{
+    opponent: User;
+    playerScore: number;
+    opponentScore: number;
+    winner: string;
+}
+
 export type User =
 {
     id: string;
