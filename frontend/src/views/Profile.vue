@@ -56,7 +56,7 @@ onMounted (async () => { await fetchUserAndMatchHistory (); });
                     <label class="text-lg" @click="showFriends=true">Friends</label>
                 </li>
                 <li v-else>
-                    <label class="text-lg">
+                    <label class="text-lg btn-disabled" :class="user?.id != store.loggedUser?.id ? 'btn-disabled' : ''">
                         <iconify-icon v-if="user?.id != store.loggedUser?.id" class="w-6 h-6" icon="fontisto:locked" />
                         Friends
                     </label>
