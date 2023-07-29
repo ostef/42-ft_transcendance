@@ -102,8 +102,8 @@ function onPictureSelectionChanged($event: Event) {
 
 
 <template>
-    <div class="flex flex-col space-y-10 justify-center items-center" id="container">
-        <div id="information" class="flex flex-row space-x-8  items-center">\
+    <div class="flex flex-col space-y-10 justify-center items-center">
+        <div class="flex flex-row space-x-8  items-center">\
           <NonInteractiveAvatar :user="store?.loggedUser" class="w-24 h-24"/>
           <h2 class="text-3xl"> {{ store.loggedUser?.nickname }}</h2>
         </div>

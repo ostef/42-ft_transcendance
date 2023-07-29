@@ -92,7 +92,7 @@ export default {
 			initialised : false,
 
 			inviteId : "" as string,
-			
+
 			userStore : null,
 
 
@@ -163,7 +163,7 @@ export default {
 		this.socket.on("score", (data : Score) => {
 			this.updateScore(data)
 		})
-        
+
 
 		//Game events for the end of the game
 		this.socket.on("winGame", () => {
@@ -181,7 +181,7 @@ export default {
 		this.socket.on("waitingPlayerInvite", () => {
 			console.log("Waiting for the invited player")
 			this.waitPlayer2()
-		}) 
+		})
 		this.socket.on("gameNotFound", () => {
 			console.log("GameNotFound")
 			this.gameNotFound()
@@ -200,7 +200,7 @@ export default {
 			this.playerDisconnect()
 		})
 
-		//Event de spectate 
+		//Event de spectate
 		this.socket.on('endOfSpectate', () => {
 			console.log("End of the spectate")
 			this.endSpectate()
@@ -215,7 +215,7 @@ export default {
 		console.log("mounted")
 		this.inviteId = this.$route.params.id
 		this.userStore = useStore();
-		console.log(this.userStore.loggedUser?.id)
+
 		this.canvas = document.querySelector("canvas")
 		if (this.canvas)
 		{
@@ -245,7 +245,7 @@ export default {
 
 		document.addEventListener("mousemove", e => {
 			let mouseHeight = 0
-			
+
 			if (this.isPlaying)
 			{
 				if (!this.initialised)
@@ -307,7 +307,7 @@ export default {
 	},
 
 	methods: {
-		
+
 
 		disconnectPlayerWaiting()
 		{
@@ -321,7 +321,7 @@ export default {
 			this.configurate = false
 			this.waitingPlayer = true
 		},
-		
+
 		windowresize() {
 			if (this.canvas)
 			{
@@ -421,7 +421,7 @@ export default {
 			this.waitingPlayer = true
 			this.socket.emit('configurate', {gameId : this.gameId, color : this.color, difficulty : this.difficulty})
 		},
-		
+
 		joinGame(playerPos : string, gameId : number, difficulty : string, color : string) {
 			console.log("joined a game")
 			this.ownPaddle = playerPos
@@ -454,7 +454,7 @@ export default {
 			}
 		},
 
-		updateOwnPadle(ownPaddle : PaddlePos) 
+		updateOwnPadle(ownPaddle : PaddlePos)
 		{
 			if (this.isPlaying || this.isSpectating)
 			{
@@ -470,7 +470,7 @@ export default {
 						this.paddleRight.setXpos(ownPaddle.centerPos.x * this.canvas.width)
 						this.paddleRight.setYpos(ownPaddle.centerPos.y * this.canvas.height)
 					}
-				}	
+				}
 			}
 		},
 

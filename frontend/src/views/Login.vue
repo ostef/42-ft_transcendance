@@ -9,7 +9,7 @@
 <!--        login using oauth-->
         <button class="btn btn-primary normal-case m-2 max-w-xs" @click="loginWith42">Login with 42</button>
     </div>
-  <div class="grid w-full place-content-center" id="2fa">
+  <div class="grid w-full place-content-center">
        <div v-if="need2fa" class="input-group">
          <input type="text" v-model="twoFactorCode" placeholder="Please enter 2fa code" class="input input-bordered" />
         <button class="btn btn-success input-group-btn" @click="submit2fa" :disabled="!twoFactorCode">Validate</button>
