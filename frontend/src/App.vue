@@ -93,4 +93,13 @@ onErrorCaptured ((err, vm, info) =>
 .v-leave-to {
   opacity: 0;
 }
+
+</style>
+
+<style>
+.h-full-without-header
+{
+    height: calc(100% - 5rem);
+}
+
 </style>

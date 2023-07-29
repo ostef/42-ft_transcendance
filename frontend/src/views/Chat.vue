@@ -82,7 +82,7 @@ function sendMessage ()
                 </div>
             </div>
 
-            <div class="h-custom-middle flex flex-col-reverse overflow-hidden">
+            <div class="h-full-without-header flex flex-col-reverse overflow-hidden">
                 <!-- Message input -->
                 <div v-if="store.selectedChannelIndex != -1 || store.selectedUserIndex != -1"
                     class="p-4 h-auto mt-4 flex flex-row-reverse"
@@ -138,12 +138,3 @@ function sendMessage ()
         </div>
     </div>
 </template>
-
-<style scoped>
-
-.h-custom-middle
-{
-    height: calc(100% - 5rem);
-}
-
-</style>
