@@ -12,11 +12,13 @@
 
 
 <script setup lang="ts">
+
 import { storeToRefs } from "pinia";
-import { useStore } from "@/store";
 import { ref } from "vue";
 import axios from "axios";
 import QRCodeVue3 from "qrcode-vue3";
+
+import { useStore } from "@/store";
 import {login2FA, logout} from "@/authentication";
 import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
 
@@ -103,7 +105,7 @@ function onPictureSelectionChanged($event: Event) {
 
 <template>
     <div class="flex flex-col space-y-10 justify-center items-center">
-        <div class="flex flex-row space-x-8  items-center">\
+        <div class="flex flex-row space-x-8  items-center">
           <NonInteractiveAvatar :user="store?.loggedUser" class="w-24 h-24"/>
           <h2 class="text-3xl"> {{ store.loggedUser?.nickname }}</h2>
         </div>
