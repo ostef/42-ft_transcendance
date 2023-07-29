@@ -16,7 +16,7 @@ import MatchHistory from "@/components/user/MatchHistory.vue";
 
 const store = useStore();
 
-const showFriends = ref (true);
+const showFriends = ref (false);
 
 const user = ref (null as User | null);
 const matchHistory = ref ([] as GameMatch[]);
