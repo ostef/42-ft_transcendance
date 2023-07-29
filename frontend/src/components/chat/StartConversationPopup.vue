@@ -8,6 +8,8 @@ import { selectPrivConv } from '@/chat';
 
 import UserSelectionList from "./UserSelectionList.vue";
 
+// @Todo: allow starting a conv with all users
+
 const friends = ref ([] as User[]);
 
 async function fetchFriends ()
