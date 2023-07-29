@@ -22,7 +22,7 @@ export class UserEntity
 
     // Some accounts must log in using 42auth, so they might not have a password
     @Column ({ nullable: true })
-    password: string;
+    hashedPassword: string;
 
     @Column ()
     has2FA: boolean;

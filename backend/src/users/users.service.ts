@@ -8,6 +8,7 @@ import { validate } from "class-validator";
 import { UserEntity } from "./entities/user.entity";
 import { FriendRequestEntity } from "./entities/friend_request.entity";
 import { CreateUserParams, ReceivedFriendRequestParams, SentFriendRequestParams, UpdateUserParams } from "./types";
+import { createHash } from "crypto";
 
 
 @Injectable ()
@@ -20,6 +21,11 @@ export class UsersService
         @InjectRepository (FriendRequestEntity)
         private friendRequestsRepository: Repository<FriendRequestEntity>,
     ) {}
+
+    hashPassword (password: string): string
+    {
+        return createHash ("sha256").update (password).digest ("hex");
+    }
 
     // Returns the user entity that satisfies the params, null if it does not exist
     async findUserEntity (params: any, relations: FindOptionsRelations<UserEntity> = {}): Promise<UserEntity>
@@ -59,7 +65,7 @@ export class UsersService
         const user = this.usersRepository.create ({
             username: params.username,
             nickname: params.nickname,
-            password: params.password,
+            hashedPassword: this.hashPassword (params.password),
             has2FA: false,
         });
 
@@ -124,7 +130,7 @@ export class UsersService
 
         if (params.password != undefined)
         {
-            user.password = params.password;
+            user.hashedPassword = this.hashPassword (params.password);
         }
 
         if (params.avatarFile != undefined)
@@ -201,7 +207,6 @@ export class UsersService
 
         if (params.twoFactorSecret != undefined)
         {
-            console.log ("Setting 2FA secret to", params.twoFactorSecret);
             user.twoFactorSecret = params.twoFactorSecret;
         }
 

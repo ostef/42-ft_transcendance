@@ -12,13 +12,13 @@ export class AuthService {
     constructor(
         private usersService: UsersService,
         private jwtService: JwtService,
-    ) {
-    }
+    )
+    {}
 
     async validateUser(userId: string): Promise<UserEntity> {
         const user = await this.usersService.findUserEntity({ id: userId });
         if (user) {
-            const { password, ...result } = user;
+            const { hashedPassword, twoFactorSecret, ...result } = user;
 
             return result as UserEntity;
         }
@@ -35,7 +35,10 @@ export class AuthService {
         if (!user)
             throw new UnauthorizedException("Invalid username");
 
-        if (user.password != password)
+        if (!user.hashedPassword)
+            throw new UnauthorizedException ("This user can only log in using 42 auth");
+
+        if (user.hashedPassword != this.usersService.hashPassword (password))
             throw new UnauthorizedException("Invalid password");
 
         const payload: JwtPayload = {
@@ -56,7 +59,10 @@ export class AuthService {
 
         let user = await this.usersService.findUserEntity({ username: username });
 
-        if (!user) {
+        if (!user)
+        {
+            // Try to find a nickname that is available by appending a
+            // number until we find one that is available
             let nickname = username;
             let nicknameSuffix = 1;
             while (!await this.usersService.isNicknameAvailable (nickname))
@@ -101,7 +107,7 @@ export class AuthService {
         return otpauthUrl;
     }
 
-     generate2FAQrCode(otpAuthUrl: string)
+    generate2FAQrCode(otpAuthUrl: string)
     {
         return toDataURL(otpAuthUrl);
     }
