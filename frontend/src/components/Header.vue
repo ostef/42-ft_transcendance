@@ -13,7 +13,7 @@ const store = useStore ();
 </script>
 
 <template>
-    <div class="navbar bg-primary-100">
+    <div class="navbar bg-primary-100 h-20">
         <div  class="navbar-start p-[6px] bg-secondary-100 flex-grow md:hidden">
             <div class="dropdown dropdown-right flex">
                 <label tabindex="0" class="p-3 m-2 hover:bg-gray-400 hover:text-black rounded-full">
@@ -35,9 +35,9 @@ const store = useStore ();
 
         <div class="navbar-center p-[6px] bg-secondary-200 flex-grow hidden md:flex">
             <ul class="menu menu-horizontal">
-                <li><router-link to="/" class="h-[50px]">Home</router-link></li>
-                <li><router-link to="/game/0" class="h-[50px]">Play</router-link></li>
-                <li><router-link to="/chat" class="h-[50px]">Chat</router-link></li>
+                <li><router-link to="/">Home</router-link></li>
+                <li><router-link to="/game/0">Play</router-link></li>
+                <li><router-link to="/chat">Chat</router-link></li>
             </ul>
         </div>
 
