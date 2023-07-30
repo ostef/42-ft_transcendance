@@ -119,7 +119,7 @@ export default {
 			}
 		);
 
-		//Events to connect
+		//Events to connect and handle errors
 		this.socket.on("onConnection" , data => {
 			console.log(data.id)
 		})
@@ -127,6 +127,10 @@ export default {
 		{
 			this.userStore.pushAlert("info", "Disconnected from game")
 		})
+		this.socket.on("connect_error", data => {
+			this.userStore.pushAlert("error", data.message)
+		})
+
 
 		//Events to join waiting room or games
 		this.socket.on("foundGame", (playerPos : string, gameId : number , difficulty : string, color : string) => {
