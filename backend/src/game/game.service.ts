@@ -553,7 +553,7 @@ export class GameService {
 		let index = this.gamesRoom.findIndex(game => {
 			if (game.player1DataBaseId)
 			{
-				return (game.player1DataBaseId == userId)
+				return (game.player1DataBaseId === userId)
 			}
 			return (false)
 		}
@@ -561,8 +561,8 @@ export class GameService {
 		if (index == -1)
 		{
 			index = this.gamesRoom.findIndex(game => {
-				if (game.player1DataBaseId)
-					return (game.player1DataBaseId === userId)
+				if (game.player2DataBaseId)
+					return (game.player2DataBaseId === userId)
 				return (false)
 			})
 		}
