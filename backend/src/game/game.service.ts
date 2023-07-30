@@ -409,10 +409,9 @@ export class GameService {
 				for ( let spectator of this.gamesRoom[index].spectators )
 				{
 					this.quitSpectators(spectator.id)
-			}
+				}
 			this.gamesRoom.splice(index, 1)
-		}
-
+			}
 	}
 
 	stopGameBeforeStart(gameId : number)
@@ -826,6 +825,11 @@ export class GameService {
 			{
 				client.emit("alreadyPlaying")
 				this.gamesInvite[index].player1Socket.emit("gameNotFound")
+				let index2 = this.isGamingGameId(this.gamesInvite[index].instanceId)
+				if (index2 != -1)
+				{
+					this.gamesRoom.splice(index2, 1)
+				}
 				this.gamesInvite.splice(index, 1)
 				return
 			}
