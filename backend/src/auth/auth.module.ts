@@ -14,7 +14,7 @@ import { FortyTwoStrategy } from "./42.strategy";
         UsersModule,
         PassportModule,
         JwtModule.register ({
-            secret: "secret",
+            secret: process.env.JWT_SECRET,
             signOptions: { expiresIn: "30d" },
         }),
     ],
