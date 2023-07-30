@@ -54,18 +54,19 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 
 
     this.server.on('connection', (socket) => {
-      console.log("A socket is connecting : " + socket.id);      this.sockets.push(socket.id);
-      console.log("The sockets are " + this.sockets)
+      //console.log("A socket is connecting : " + socket.id);      
+	  this.sockets.push(socket.id);
+      //console.log("The sockets are " + this.sockets)
       this.server.emit ("onConnection", {
         id: socket.id,
 			});
       socket.on("disconnect", (reason) => {
-        console.log(this.sockets)
-        console.log("Disconnecting id : " + socket.id);
+        //console.log(this.sockets)
+        //console.log("Disconnecting id : " + socket.id);
         this.sockets.splice(this.sockets.findIndex(id =>
           id == socket.id
         ), 1)
-        console.log("The sockets are " + this.sockets)
+        //console.log("The sockets are " + this.sockets)
         this.gameService.disconnectPlayer(socket.id)
       })
     })
@@ -94,7 +95,7 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     {
       return ;
     }
-    console.log("Searching for a game", client.id)
+    //console.log("Searching for a game", client.id)
 	try {
 
 		let findResult = await this.gameService.findGame(client, data.userId)
@@ -203,7 +204,6 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     {
       return ;
     }
-	console.log("Trying to join an invite game")
     this.gameService.startInvite(client, data)
    }
 

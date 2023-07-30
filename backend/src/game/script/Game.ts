@@ -52,33 +52,27 @@ export default class gameInstance {
 
 	createGame()
 	{
-		console.log("emitting configurate event for the game " + this.instanceId)
 		this.player1Socket.emit("configurateGame", this.instanceId)
 	}
 
 	changeInviteId(Id : string)
 	{
-		console.log("Changed the invite Id to " + Id)
 		this.inviteId = Id
 	}
 
 	addColor(color : string)
 	{
-		console.log("Added color")
-		console.log("the color is : " + color)
 		if (color != "default" && color != "green" && color != "red" && color != "black")
 		{
 			return ;
 		}
 		if (this.color == "default")
 			return ;
-		console.log("we changed the color")
 		this.color = color
 	}
 
 	addDifficulty(data : string)
 	{
-		console.log("Added the difficulty")
 		if (data != "default" && data != "easy" && data != "medium" && data != "hard")
 		{
 			return ;
@@ -186,9 +180,6 @@ export default class gameInstance {
 		this.score.p1 = 0
 		this.score.p2 = 0
 		this.isPlaying = true
-		console.log("starting a game with ")
-		console.log(this.player1Socket.id)
-		console.log(this.player2Socket.id)
 
 
 		//Lancement de la loop et déplacement balles et paddle
@@ -218,13 +209,11 @@ export default class gameInstance {
 
 	disconnectPlayer1()
 	{
-		console.log("Disconnect from player 1")
 		if (this.player2Socket)
 		{
 			this.player2Socket.emit("otherPlayerDisconnectedGame")
 			for (let spectator of this.spectators)
 			{
-				console.log('We are disconnecting spectators !!!!!!!!!!!!!!!')
 				spectator.emit('endOfSpectateDisconnect')
 			}
 		}
@@ -234,11 +223,9 @@ export default class gameInstance {
 	
 	disconnectPlayer2()
 	{
-		console.log("Disconnect from player 2")
 		if (this.player1Socket)
 		{
 			this.player1Socket.emit("otherPlayerDisconnectedGame")
-			console.log("The spectators are : " + this.spectators)
 			for (let spectator of this.spectators)
 			{
 				spectator.emit('endOfSpectateDisconnect')

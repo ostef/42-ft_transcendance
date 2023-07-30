@@ -409,10 +409,9 @@ export class GameService {
 				for ( let spectator of this.gamesRoom[index].spectators )
 				{
 					this.quitSpectators(spectator.id)
-			}
+				}
 			this.gamesRoom.splice(index, 1)
-		}
-
+			}
 	}
 
 	stopGameBeforeStart(gameId : number)
@@ -554,16 +553,16 @@ export class GameService {
 		let index = this.gamesRoom.findIndex(game => {
 			if (game.player1DataBaseId)
 			{
-				return (game.player1DataBaseId == userId)
+				return (game.player1DataBaseId === userId)
 			}
-			return (false)
+			return (false)	
 		}
 		)
 		if (index == -1)
 		{
 			index = this.gamesRoom.findIndex(game => {
-				if (game.player1DataBaseId)
-					return (game.player1DataBaseId === userId)
+				if (game.player2DataBaseId)
+					return (game.player2DataBaseId === userId)
 				return (false)
 			})
 		}
@@ -733,9 +732,7 @@ export class GameService {
 			throw new BadRequestException("Your are already gaming on other screen")
 		}
 		result = result + userId + date.getTime().toString()
-		console.log(result)
 		result = this.channelService.hashPassword(result)
-		console.log(result)
 
 		let newGame : Game = new Game(this.gameIds, null, null , this)
 		this.incrementGameids()
@@ -826,6 +823,11 @@ export class GameService {
 			{
 				client.emit("alreadyPlaying")
 				this.gamesInvite[index].player1Socket.emit("gameNotFound")
+				let index2 = this.isGamingGameId(this.gamesInvite[index].instanceId)
+				if (index2 != -1)
+				{
+					this.gamesRoom.splice(index2, 1)
+				}
 				this.gamesInvite.splice(index, 1)
 				return
 			}
