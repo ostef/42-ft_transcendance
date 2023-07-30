@@ -125,7 +125,7 @@ export default {
 		})
 		this.socket.on('disconnect', () =>
 		{
-			this.userStore.pushAlert("info", "Disconnected from game")
+			console.log("Disconnection from Game Socket")
 		})
 		this.socket.on("connect_error", data => {
 			this.userStore.pushAlert("error", data.message)
