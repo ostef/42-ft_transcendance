@@ -123,6 +123,10 @@ export default {
 		this.socket.on("onConnection" , data => {
 			console.log(data.id)
 		})
+		this.socket.on('disconnect', () =>
+		{
+			this.userStore.pushAlert("info", "Disconnected from game")
+		})
 
 		//Events to join waiting room or games
 		this.socket.on("foundGame", (playerPos : string, gameId : number , difficulty : string, color : string) => {
@@ -142,7 +146,6 @@ export default {
 			this.configureGame(gameId)
 		})
 		this.socket.on("alreadyGaming", () =>{
-			console.log("pk ca marche pas")
 			this.alreadyGaming()
 		})
 
@@ -167,52 +170,42 @@ export default {
 
 		//Game events for the end of the game
 		this.socket.on("winGame", () => {
-			console.log("Won the game")
 			chatSocket.emit("joinOrLeaveGame")
 			this.handleWin()
 		})
 		this.socket.on("looseGame", () => {
-			console.log("Lost the game")
 			chatSocket.emit("joinOrLeaveGame")
 			this.handleLoose()
 		})
 
 		//Event d'invitation
 		this.socket.on("waitingPlayerInvite", () => {
-			console.log("Waiting for the invited player")
 			this.waitPlayer2()
 		})
 		this.socket.on("gameNotFound", () => {
-			console.log("GameNotFound")
 			this.gameNotFound()
 		})
 		this.socket.on("joinedGameInvite", (data : number) => {
-			console.log("Joined a game in wich i was invited")
 			this.joinedGameInvite(data)
 		})
 		this.socket.on('otherPlayerDisconnectedGame', () => {
-			console.log("Disconnected second player while playing")
 			chatSocket.emit("joinOrLeaveGame")
 			this.playerDisconnectGame()
 		})
 		this.socket.on('OtherPlayerDisconnected', () => {
-			console.log("Other player disconnected")
 			this.playerDisconnect()
 		})
 
 		//Event de spectate
 		this.socket.on('endOfSpectate', () => {
-			console.log("End of the spectate")
 			this.endSpectate()
 		})
 		this.socket.on('endOfSpectateDisconnect', () => {
-			console.log("End of spectate because of disconnect")
 			this.spectateDisconnect()
 		})
     },
 
 	mounted() {
-		console.log("mounted")
 		this.inviteId = this.$route.params.id
 		this.userStore = useStore();
 
@@ -223,7 +216,7 @@ export default {
 			this.canvas.height = window.innerHeight * this.canvasAbsoluteSize
 			this.canvas.width = window.innerWidth * this.canvasAbsoluteSize
 
-			this.ball = new Ball("canvas", 100, 100, {x: 10 , y: 10}, "red", 0.008 * this.canvas.width, this.delta)
+			this.ball = new Ball("canvas", 100, 100, {x: 10 , y: 10}, "grey", 0.008 * this.canvas.width, this.delta)
 			this.leftScore = document.getElementById("player1-score")
 			this.rightScore = document.getElementById("player2-score")
 		}
@@ -236,9 +229,7 @@ export default {
 		}
 		else if (this.inviteId[0] == 'j')
 		{
-			console.log("Joining a game as invited player")
 			this.inviteId = this.inviteId.slice(1)
-			console.log("the Id is : " + this.inviteId)
 			this.joinGameInvite(this.inviteId)
 		}
 
@@ -348,7 +339,6 @@ export default {
 
 		waitRoom()
 		{
-			console.log("waiting for a game")
 		},
 
 		searchGame() {
@@ -359,7 +349,6 @@ export default {
 
 		createGame()
 		{
-			console.log("creating a Game")
 			this.socket.emit("createGame", { userId : this.userStore.loggedUser?.id })
 		},
 
@@ -413,8 +402,6 @@ export default {
 
 		configurateChoice(color : string, difficulty : string)
 		{
-			console.log("difficulty is " + difficulty)
-			console.log("color is : " + color)
 			this.color = color
 			this.difficulty = difficulty
 			this.configurate = false
@@ -423,7 +410,6 @@ export default {
 		},
 
 		joinGame(playerPos : string, gameId : number, difficulty : string, color : string) {
-			console.log("joined a game")
 			this.ownPaddle = playerPos
 			this.gameId = gameId
 			clearInterval(this.intervalId)
@@ -435,7 +421,6 @@ export default {
 
 		alreadyGaming()
 		{
-			console.log("I am already in game")
 			if (this.userStore)
 				this.userStore.pushAlert("error", "You are already Gaming on another screen")
 			this.waitingPlayer = false
@@ -592,13 +577,11 @@ export default {
 		//Methode d'invitation
 		creatorGameInvite(gameId : string)
 		{
-			console.log("the game invite id  :" + gameId)
 			this.socket.emit("startInvite", { gameId : gameId , userId : this.userStore.loggedUser?.id})
 		},
 
 		joinGameInvite(gameId : string)
 		{
-			console.log("the game invite id :" + gameId)
 			this.socket.emit("joinInvite", { gameId : gameId , userId : this.userStore.loggedUser?.id})
 		},
 
