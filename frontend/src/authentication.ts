@@ -1,4 +1,6 @@
 import axios from "axios";
+import { useCookies } from "vue3-cookies";
+
 import { useStore } from "@/store";
 import { connectChatSocket, disconnectChatSocket } from "@/chat";
 
@@ -74,7 +76,9 @@ export async function login2FA (code: string)
 
 export function logout ()
 {
-    document.cookie = "";
+    const {cookies} = useCookies ();
+    cookies.remove ("token");
+
     localStorage.removeItem ("token");
     delete axios.defaults.headers.common["Authorization"];
 
@@ -82,4 +86,3 @@ export function logout ()
     const store = useStore ();
     store.loggedUser = null;
 }
-

@@ -79,7 +79,6 @@ async function afterLogin ()
 async function check2fa ()
 {
     need2fa.value = ! await is2FAAuthenticated();
-    console.log(need2fa.value);
 }
 
 </script>
