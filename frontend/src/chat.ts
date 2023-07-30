@@ -34,8 +34,8 @@ export function connectChatSocket ()
         store.pushAlert ("error", err.message);
     }
 
-    chatSocket.on ("connect_error", handleError);
-    chatSocket.on ("connection_error", handleError);
+    chatSocket.on ("connect_error", err => store.pushAlert ("error", "Could not connect to chat socket: " + err.message));
+    chatSocket.on ("connection_error", err => store.pushAlert ("error", "Could not connect to chat socket: " + err.message));
     chatSocket.on ("connect", () => store.pushAlert ("info", "Connected to chat"));
     chatSocket.on ("disconnect", () => store.pushAlert ("info", "Disconnected from chat"));
     chatSocket.on ("exception", handleError);
