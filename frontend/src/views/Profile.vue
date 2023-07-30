@@ -91,61 +91,13 @@ onMounted (async () => { await fetchData (); });
                 <MatchHistory class="my-4" :userId="user?.id ?? undefined" :matchHistory="matchHistory" />
             </div>
             <div v-else-if="showFriends">
-                <FriendList :userId="user?.id ?? undefined" :friendRequests="friendRequests" :friends="friends" />
+                <FriendList :friendRequests="friendRequests" :friends="friends" />
             </div>
         </div>
     </div>
 
 </div>
 
-    <!-- <div class="w-96 flex flex-row">
-        <div class="p-4">
-            <NonInteractiveAvatar class="h-24 w-24" :user="store.loggedUser ?? undefined" />
-        </div>
-
-        <label for="friendsModal" class="btn normal-case">Friend Requests</label>
-        <label for="friendsModal" class="btn normal-case">Friends</label>
-        <div class="grid w-96 bg-base-300">
-            <div class="w-full h-20 my-2 bg-secondary">
-            </div>
-            <div class="w-full h-20 my-2 bg-secondary">
-            </div>
-        </div>
-    </div> -->
-
-
-<!--
-<FriendsPopup />
-<div class="flex flex-col w-screen items-center justify-center">
-    <div class="flex flex-col w-screen justify-center items-center sm:flex-row">
-        <div class="p-4">
-            <NonInteractiveAvatar class="h-24 w-24" :user="store.loggedUser ?? undefined" />
-        </div>
-        <div class="mx-10 grid text-center">
-            <div v-if="receivedFriendRequests.length > 0">
-                <h3 class="text-xl select-none">Received Friend Requests</h3>
-                <h3 v-if="receivedFriendRequests.length == 0" class="text-md select-none">You have no friend request yet</h3>
-                <div v-else class="overflow-y-visible overflow-x-auto w-full h-fit">
-                    <div class="contents">
-                        <div class="mx-1" v-for="friend in receivedFriendRequests">
-                            <UserAvatar :user="friend"/>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <h2 class="text-xl select-none">Friends</h2>
-            <h3 v-if="friendList.length == 0" class="text-md select-none">You have no friend yet</h3>
-            <div v-else class="w-full overflow-y-visible overflow-x-auto h-fit">
-                <div class="flex flex-row p-4">
-                    <div v-for="friend in friendList" class="mx-1">
-                        <UserAvatar :user="friend"/>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <MatchHistory :showFull="true" :user="store.loggedUser ?? undefined" />
-</div> -->
 </template>
 
 <style scoped>
