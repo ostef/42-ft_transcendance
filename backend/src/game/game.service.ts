@@ -555,7 +555,7 @@ export class GameService {
 			{
 				return (game.player1DataBaseId === userId)
 			}
-			return (false)
+			return (false)	
 		}
 		)
 		if (index == -1)
@@ -732,9 +732,7 @@ export class GameService {
 			throw new BadRequestException("Your are already gaming on other screen")
 		}
 		result = result + userId + date.getTime().toString()
-		console.log(result)
 		result = this.channelService.hashPassword(result)
-		console.log(result)
 
 		let newGame : Game = new Game(this.gameIds, null, null , this)
 		this.incrementGameids()

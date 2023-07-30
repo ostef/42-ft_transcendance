@@ -204,7 +204,6 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     {
       return ;
     }
-	console.log("Trying to join an invite game")
     this.gameService.startInvite(client, data)
    }
 
