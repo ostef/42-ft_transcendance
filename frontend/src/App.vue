@@ -32,7 +32,6 @@ function getAlertClassName (type: AlertType)
 
 onErrorCaptured ((err, vm, info) =>
 {
-    console.error (err);
     if (isAxiosError (err))
     {
         let msg = "";
