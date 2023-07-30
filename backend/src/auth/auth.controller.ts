@@ -101,6 +101,9 @@ export class AuthController
     async authenticate2fa(@Request() req, @Body() body) {
         const token = ExtractJwt.fromAuthHeaderAsBearerToken () (req);
         const  payload: JwtPayload = this.authService.getPayloadFromToken(token);
+        if (!payload)
+            throw new UnauthorizedException ("Invalid token");
+
         const isCodeValid = await this.authService.isTwoFactorCodeValid(req.body.code, payload.userId);
         if (!isCodeValid)
             throw new UnauthorizedException('Invalid two-factor code');
@@ -111,7 +114,10 @@ export class AuthController
     @Get("2fa/check")
     async check2fa(@Request() req) {
         const token = ExtractJwt.fromAuthHeaderAsBearerToken () (req);
-        const  payload: JwtPayload = this.authService.getPayloadFromToken(token);
+        const payload: JwtPayload = this.authService.getPayloadFromToken(token);
+        if (!payload)
+            throw new UnauthorizedException ("Invalid token");
+
         if (!payload.has2FA)
             return true;
        return payload.is2FAAuthenticated;
