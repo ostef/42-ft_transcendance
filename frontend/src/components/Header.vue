@@ -23,11 +23,11 @@ const store = useStore ();
                 </ul>
             </div>
 
-            <a class="p-4 font-bold text-xl select-none">Transcendance</a>
+            <router-link class="p-4 font-bold text-xl select-none" to="/">Transcendance</router-link>
         </div>
 
         <div class="navbar-start hidden md:flex">
-            <a class="p-4 font-bold text-xl select-none">Transcendance</a>
+            <router-link class="p-4 font-bold text-xl select-none" to="/">Transcendance</router-link>
         </div>
 
         <div v-if="store.loggedUser" class="navbar-center p-[6px] flex-grow hidden md:flex">
