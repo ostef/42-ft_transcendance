@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router"
-import HomeView from "@/views/Home.vue";
+import axios from "axios";
+
 import ChatView from "@/views/Chat.vue";
 import LoginView from "@/views/Login.vue";
-import TestPage from '@/views/TestSocket.vue';
+import GameView from '@/views/Game.vue';
 import ProfileView from "@/views/Profile.vue";
-import axios from "axios";
 
 import { useStore } from "@/store";
 import {logout, isAuthenticated, fetchUserInfo} from "@/authentication";
@@ -36,8 +36,8 @@ const router = createRouter ({
         },
         {
             path: '/game/:id',
-            name: 'testpage',
-            component: TestPage
+            name: 'Game',
+            component: GameView
         }
     ]
 });

@@ -90,7 +90,7 @@ export default {
 
 			inviteId : "" as string,
 
-			userStore : null,
+			store: {} as ReturnType<typeof useStore>,
 
 
 			//VUE js Components states
@@ -125,7 +125,7 @@ export default {
 			console.log("Disconnection from Game Socket")
 		})
 		this.socket.on("connect_error", data => {
-			this.userStore.pushAlert("error", data.message)
+			this.store.pushAlert("error", data.message)
 		})
 
 
@@ -207,8 +207,11 @@ export default {
     },
 
 	mounted() {
-		this.inviteId = this.$route.params.id
-		this.userStore = useStore();
+		if (typeof this.$route.params.id === "string")
+			this.inviteId = this.$route.params.id
+		else
+			this.inviteId = this.$route.params.id[0]
+		this.store = useStore();
 
 		this.canvas = document.querySelector("canvas")
 		if (this.canvas)
@@ -345,12 +348,12 @@ export default {
 		searchGame() {
 			this.menu = false
 			this.waitingPlayer = true
-			this.socket.emit("searchGame", { userId : this.userStore.loggedUser?.id })
+			this.socket.emit("searchGame", { userId : this.store.loggedUser?.id })
 		},
 
 		createGame()
 		{
-			this.socket.emit("createGame", { userId : this.userStore.loggedUser?.id })
+			this.socket.emit("createGame", { userId : this.store.loggedUser?.id })
 		},
 
 
@@ -422,8 +425,8 @@ export default {
 
 		alreadyGaming()
 		{
-			if (this.userStore)
-				this.userStore.pushAlert("error", "You are already Gaming on another screen")
+			if (this.store)
+				this.store.pushAlert("error", "You are already Gaming on another screen")
 			this.waitingPlayer = false
 			this.menu = true
 		},
@@ -578,12 +581,12 @@ export default {
 		//Methode d'invitation
 		creatorGameInvite(gameId : string)
 		{
-			this.socket.emit("startInvite", { gameId : gameId , userId : this.userStore.loggedUser?.id})
+			this.socket.emit("startInvite", { gameId : gameId , userId : this.store.loggedUser?.id})
 		},
 
 		joinGameInvite(gameId : string)
 		{
-			this.socket.emit("joinInvite", { gameId : gameId , userId : this.userStore.loggedUser?.id})
+			this.socket.emit("joinInvite", { gameId : gameId , userId : this.store.loggedUser?.id})
 		},
 
 		waitPlayer2()
