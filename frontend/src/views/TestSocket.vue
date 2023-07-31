@@ -108,7 +108,7 @@ export default {
         }
     },
     created () {
-        console.log("Starting connection to websocket server")
+        //console.log("Starting connection to websocket server")
         this.socket = io(
 			"http://" + window.location.hostname + ":3000/game",
 			{
@@ -118,7 +118,7 @@ export default {
 
 		//Events to connect and handle errors
 		this.socket.on("onConnection" , data => {
-			console.log(data.id)
+			//console.log(data.id)
 		})
 		this.socket.on('disconnect', () =>
 		{

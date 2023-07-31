@@ -31,7 +31,7 @@ export default {
 
 		startSpectate(gameId : number, gameDifficulty : string, gameColor : string)
 		{
-			console.log("Lauching event to spectate game : " + gameId)
+			//console.log("Lauching event to spectate game : " + gameId)
 			this.$emit('spectateGame', gameId, gameDifficulty, gameColor)
 		},
 	}
