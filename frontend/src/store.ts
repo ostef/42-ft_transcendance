@@ -91,6 +91,11 @@ export const useStore = defineStore ("global", () =>
         return privateConvs.value[selectedUserIndex.value];
     });
 
+    function getAvatarUrl (avatarFile: string): string
+    {
+        return "http://" + window.location.hostname + ":3000/files/" + avatarFile;
+    }
+
     function isOnline (userId?: string): boolean
     {
         if (!userId)
@@ -187,6 +192,6 @@ export const useStore = defineStore ("global", () =>
         channelsSelected, onlineUsers, usersInGame,
         isOnline, isMuted, isAdmin, isOwner, hasPrivConv, isInGame,
         resetChat,
-        alerts, pushAlert
+        alerts, pushAlert, getAvatarUrl
     };
 });

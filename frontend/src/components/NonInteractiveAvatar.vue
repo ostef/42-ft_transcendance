@@ -16,7 +16,7 @@ const props = defineProps ({
         <div class="select-none rounded-full overflow-hidden bg-base-300 grid"
             :class="store.isInGame (user?.id) ? 'ring ring-primary ring-offset-base-100 ring-offset-2' : ''"
         >
-            <img v-if="user?.avatarFile" :src="user?.avatarFile" />
+            <img v-if="user?.avatarFile" :src="store.getAvatarUrl (user?.avatarFile)" />
             <span v-else class="text-xl align-text-top">{{ user?.nickname.charAt (0)}}</span>
         </div>
     </div>

@@ -176,7 +176,7 @@ async function inviteUserToPlay ()
             <div class="h-12 w-12 btn normal-case btn-circle overflow-hidden grid"
                 :class="isInGame ? 'ring ring-primary ring-offset-base-100 ring-offset-2' : ''"
             >
-                <img v-if="user?.avatarFile" :src="user?.avatarFile" />
+                <img v-if="user?.avatarFile" :src="store.getAvatarUrl (user?.avatarFile)" />
                 <span v-else class="text-xl align-text-top">{{ user?.nickname.charAt (0) }}</span>
             </div>
         </label>

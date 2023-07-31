@@ -54,7 +54,7 @@ const store = useStore ();
             </div>
             <div class="avatar" :class="!store.loggedUser.avatarFile ? ' placeholder' : ''">
                 <div class="select-none rounded-full overflow-hidden h-14 w-14 bg-base-300 grid">
-                    <img v-if="store.loggedUser.avatarFile" :src="store.loggedUser.avatarFile" />
+                    <img v-if="store.loggedUser.avatarFile" :src="store.getAvatarUrl (store.loggedUser.avatarFile)" />
                     <span v-else class="text-xl align-text-top">{{ store.loggedUser.nickname.charAt (0)}}</span>
                 </div>
             </div>
