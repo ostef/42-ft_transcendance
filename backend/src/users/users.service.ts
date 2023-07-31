@@ -65,7 +65,7 @@ export class UsersService
         const user = this.usersRepository.create ({
             username: params.username,
             nickname: params.nickname,
-            hashedPassword: this.hashPassword (params.password),
+            hashedPassword: params.password ? this.hashPassword (params.password) : null,
             has2FA: false,
         });
 
