@@ -42,10 +42,10 @@ export default {
 
 <template>
     <div class="flex flex-col content-center justify-center place-items-center">
-		<li class="list-none rounded-lg bg-green-400 pl-4 font-bold" v-for="game in gameSpectateList">
+		<li class="list-none rounded-lg bg-base-200 pl-4 font-bold mt-4" v-for="game in gameSpectateList">
 			Game {{ game.gameId }} : {{ game.user1 }} - {{ game.user2 }}
-			<button class="btn normal-case bg-green-400 ml-4" @click="startSpectate(game.gameId, game.difficulty, game.color)">Spectate</button>
+			<button class="btn normal-case bg-primary mx-2 ml-4" @click="startSpectate(game.gameId, game.difficulty, game.color)">Spectate</button>
 		</li>
-        <router-link to="/game/0" class="btn normal-case bg-base-600" @click="$emit('spectateEnd')">Return to Menu</router-link>
+        <router-link to="/game/0" class="btn normal-case bg-primary mt-4" @click="$emit('spectateEnd')">Return to Menu</router-link>
     </div>
 </template>
