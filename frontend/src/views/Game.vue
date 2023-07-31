@@ -1,7 +1,7 @@
 <template>
     <div class="place-content-center content-center justify-center">
 		<MenuComp v-if="menu" @on-search="searchGame()" @on-create="createGame()" @on-spectate="spectateGame()"/>
-		<div class="flex justify-center font-bold text-6xl text-black" v-show="game">
+		<div class="flex justify-center font-bold text-6xl text-primary-content" v-show="game">
 			<div class="h-4/6" id="player1-score">0</div>
 			<div class="h-2/6">-</div>
 			<div class="h-4/6" id="player2-score">0</div>
