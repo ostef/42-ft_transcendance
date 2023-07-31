@@ -3,6 +3,8 @@ import Ball from "./Ball"
 import Paddle from "./Paddle"
 import { Socket } from 'socket.io'
 
+const MAX_SCORE = 10;
+
 export default class gameInstance {
 
 	instanceId : number
@@ -79,7 +81,7 @@ export default class gameInstance {
 		}
 		this.difficulty = data
 	}
-	
+
 	gameLoop()
 	{
 		this.ball.update(this.paddleLeft.getPaddlePos(), this.paddleRight.getPaddlePos())
@@ -87,14 +89,14 @@ export default class gameInstance {
 		{
 			this.handleLose()
 		}
-		if (this.score.p1 >= 3 || this.score.p2 >= 3)
+		if (this.score.p1 >= MAX_SCORE  || this.score.p2 >= MAX_SCORE)
 		{
 			this.handleWin()
 		}
 		this.player1Socket.emit('ballUpdate', this.ball.getcenterpos())
 		this.player1Socket.emit('ownPaddle', this.paddleLeft.getPaddlePos())
 		this.player1Socket.emit('otherPaddle', this.paddleRight.getPaddlePos())
-		
+
 
 		this.player2Socket.emit('ballUpdate', this.ball.getcenterpos())
 		this.player2Socket.emit('ownPaddle', this.paddleRight.getPaddlePos())
@@ -108,7 +110,7 @@ export default class gameInstance {
 		}
 	}
 
-	isLose() 
+	isLose()
 	{
 		if (this.ball.getcenterpos().x + this.ball.radius >= 1)
 			return (1)
@@ -118,7 +120,7 @@ export default class gameInstance {
 		return (0)
 	}
 
-	handleLose() 
+	handleLose()
 	{
 		if (this.ball.getcenterpos().x + this.ball.radius >= 1)
 		{
@@ -130,7 +132,7 @@ export default class gameInstance {
 				spectator.emit('score', this.score)
 			}
 		}
-		else 
+		else
 		{
 			this.score.p2 += 1
 			this.player1Socket.emit('score', this.score)
@@ -147,7 +149,7 @@ export default class gameInstance {
 
 	handleWin()
 	{
-		if (this.score.p1 >= 3)
+		if (this.score.p1 >= MAX_SCORE)
 		{
 			this.isWinner = 1
 			this.player1Socket.emit("winGame")
@@ -158,7 +160,7 @@ export default class gameInstance {
 			}
 			this.stopGame()
 		}
-		if (this.score.p2 >= 3)
+		if (this.score.p2 >= MAX_SCORE)
 		{
 			this.isWinner = 2
 			this.player2Socket.emit("winGame")
@@ -171,7 +173,7 @@ export default class gameInstance {
 		}
 	}
 
-	startGame() 
+	startGame()
 	{
 		//Lancement de la partie en dehors de la loop
 		this.ball = new Ball(0.5, 0.5, {x: 0.0001 , y: 0.0001}, this.color, 0.008, this.delta)
@@ -186,7 +188,7 @@ export default class gameInstance {
 		this.timerId = setInterval(this.gameLoop.bind(this), this.delta)
 
 
-		//Fin de la partie 
+		//Fin de la partie
 	}
 
 	updatePaddlePos(player : Socket, paddlePos : number)
@@ -220,7 +222,7 @@ export default class gameInstance {
 		this.isWinner = 2
 		this.stopGame()
 	}
-	
+
 	disconnectPlayer2()
 	{
 		if (this.player1Socket)
