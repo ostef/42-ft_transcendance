@@ -2,7 +2,7 @@ import { PartialType, PickType } from "@nestjs/mapped-types";
 import { IsNotEmpty, IsPositive, isNotEmpty, IsString, IsNumber } from "class-validator";
 import { SpectateGame } from "../types/game.types";
 
-//Todo : Faire une validation plus propre ? Genre si la mouseheight est négative etc
+// @Todo : Faire une validation plus propre ? Genre si la mouseheight est négative etc
 export class UpdatePaddleDto {
 
 	@IsNotEmpty()
@@ -52,7 +52,7 @@ export class StartInviteDto {
 }
 
 export class JoinInviteDto {
-	
+
 	@IsNotEmpty()
 	@IsString()
 	gameId : string

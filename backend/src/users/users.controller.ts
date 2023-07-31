@@ -67,7 +67,7 @@ export class UsersController
         return result;
     }
 
-    
+
     @SetMetadata ("isPublic", true)
     @Post ()
     async createUser (@Body () body: CreateUserParams): Promise<string>
@@ -84,7 +84,7 @@ export class UsersController
             throw new BadRequestException (err.message);
         }
     }
-    
+
 
     @Put ()
     async updateUser (@Request () req, @Body () body: UpdateUserParams)

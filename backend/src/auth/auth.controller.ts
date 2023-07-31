@@ -76,7 +76,7 @@ export class AuthController
             return res.status(HttpStatus.OK).send('<script>window.close();</script >');
         }
         catch (err) {
-            this.logger.error(err);
+            this.logger.error(err.stack);
             throw new BadRequestException(err.message);
         }
     }

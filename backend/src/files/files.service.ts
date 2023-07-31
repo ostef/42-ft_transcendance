@@ -28,7 +28,6 @@ export class FilesService {
     try {
       const path = `${baseDir}/${filename}`;
       if (fs.existsSync(path)) fs.unlinkSync(path);
-      //TODO: check if folder exist when start server
       // fs.mkdirSync(baseDir);
       fs.writeFileSync(path, file, { encoding: 'base64' });
     } catch (err) {
