@@ -1,22 +1,7 @@
-
-<!--<script lang="ts">-->
-<!--export default {-->
-<!--    name: "Settings",-->
-<!--    computed: {-->
-<!--        isUsernameNewEmpty() {-->
-<!--            return this.usernameNew == '';-->
-<!--        }-->
-<!--    },-->
-<!--}-->
-<!--</script>-->
-
-
 <script setup lang="ts">
 
-import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import axios from "axios";
-import QRCodeVue3 from "qrcode-vue3";
 
 import { useStore } from "@/store";
 import {login2FA, logout} from "@/authentication";
@@ -24,12 +9,8 @@ import NonInteractiveAvatar from "@/components/NonInteractiveAvatar.vue";
 
 
 const store = useStore();
-// const { user } = storeToRefs (userStore);
 
 const isEditing = ref("");
-
-const isChangingNickname = ref(false);
-const isChangingPicture = ref(false);
 const isChanging2fa = ref(false);
 const nickNameNew = ref("");
 const pictureNew = ref<File | null>(null);
@@ -38,15 +19,20 @@ const code2fa = ref("");
 
 async function changePicture()
 {
+    if (!store.loggedUser || !pictureNew.value)
+        return;
+
     const fd = new FormData();
     fd.append("avatar", pictureNew.value);
     const res = await axios.put("/user/avatar", fd);
     store.loggedUser.avatarFile = res.data.toString();
     isEditing.value = "";
-    // toggleChangePicture();
 }
 
 async function changeNickname() {
+    if (!store.loggedUser)
+        return;
+
     await axios.put("user", { nickname: nickNameNew.value });
     store.loggedUser.nickname = nickNameNew.value;
     isEditing.value = "";
@@ -57,12 +43,14 @@ async function generate2faQrCode() {
     const res = await axios.get("/auth/2fa/generate");
     if (res.status != 200)
         return;
-    console.log(res.data);
     qrCode2fa.value = res.data.toString();
 
 }
 
 async function turnon2fa() {
+    if (!store.loggedUser)
+        return;
+
     const res = await axios.post("/auth/2fa/turn-on", { code: code2fa.value });
     qrCode2fa.value = ""
   if (res.status == 200)
@@ -75,20 +63,15 @@ async function turnon2fa() {
 }
 
 async function turnoff2fa() {
+    if (!store.loggedUser)
+        return;
+
     const res = await axios.post("/auth/2fa/turn-off", { code: code2fa.value });
     if (res.status == 200)
       store.loggedUser.has2FA = false;
     isEditing.value = "";
 
 }
-
-// function toggleChangeNickname() {
-//     isChangingNickname.value = !isChangingNickname.value;
-// }
-//
-// function toggleChangePicture() {
-//     isChangingPicture.value = !isChangingPicture.value;
-// }
 
 function onPictureSelectionChanged($event: Event) {
     const file = ($event.target as HTMLInputElement).files?.[0];
@@ -99,14 +82,13 @@ function onPictureSelectionChanged($event: Event) {
     pictureNew.value = file;
 }
 
-
 </script>
 
 
 <template>
     <div class="flex flex-col space-y-10 justify-center items-center">
         <div class="flex flex-row space-x-8  items-center">
-          <NonInteractiveAvatar :user="store?.loggedUser" class="w-24 h-24"/>
+          <NonInteractiveAvatar :user="store?.loggedUser ?? undefined" class="w-24 h-24"/>
           <h2 class="text-3xl"> {{ store.loggedUser?.nickname }}</h2>
         </div>
       <div class="flex space-x-4">
