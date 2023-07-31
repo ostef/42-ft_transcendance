@@ -20,7 +20,7 @@ export default {
         },
         emitConfig()
         {
-            console.log("The difficulty chosen is " + this.difficulty)
+            //console.log("The difficulty chosen is " + this.difficulty)
             let color = this.color
             let difficulty = this.difficulty
             this.$emit('on-config', color, difficulty)
