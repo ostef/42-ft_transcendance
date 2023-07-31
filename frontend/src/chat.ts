@@ -196,6 +196,9 @@ export async function fetchChannels ()
 {
     const store = useStore ();
 
+    if (store.selectedChannel)
+        store.messages.length = 0;
+
     const result = await axios.get ("channels/joined");
 
     store.channels = result.data;
@@ -208,6 +211,9 @@ export async function fetchChannels ()
 export async function fetchPrivateConversations ()
 {
     const store = useStore ();
+
+    if (store.selectedUser)
+        store.messages.length = 0;
 
     const result = await axios.get ("channels/discussions");
 
