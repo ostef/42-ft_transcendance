@@ -276,5 +276,6 @@ export default class gameInstance {
 	addSpectator(client : Socket)
 	{
 		this.spectators.push(client)
+		client.emit('score', this.score)
 	}
 }
