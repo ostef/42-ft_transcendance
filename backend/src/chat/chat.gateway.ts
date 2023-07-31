@@ -270,6 +270,8 @@ export class ChatGateway
     {
         const sockets = await this.server.fetchSockets ();
 
+        client.emit ("friendshipChanged", {userId: client.data.userId, event: params.event});
+
         for (const other of sockets)
         {
             if (other.data.userId == params.userId)
