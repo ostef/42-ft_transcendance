@@ -17,7 +17,7 @@ export class UserEntity
     @Column ({ type: "varchar", length: 100, unique: true })
     username: string;
 
-    @Column ({ type: "varchar", length: 100})
+    @Column ({ type: "varchar", length: 100, unique: true })
     nickname: string;
 
     // Some accounts must log in using 42auth, so they might not have a password
