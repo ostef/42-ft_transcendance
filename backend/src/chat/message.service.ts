@@ -83,8 +83,6 @@ export class MessageService
 
     async sendMessageToUser (senderId: string, userId: string, content: string, invite: ChannelInviteEntity = null, gameId?: string): Promise<{msg: MessageEntity, conv: PrivateConversationEntity, newConv: boolean}>
     {
-        console.log (gameId);
-
         const sender = await this.usersService.findUserEntity ({id: senderId}, {blockedUsers: true});
         if (!sender)
             throw new Error ("User does not exist");
