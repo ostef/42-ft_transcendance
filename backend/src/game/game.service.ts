@@ -303,6 +303,7 @@ export class GameService {
 		}
 		currentInstance.addDifficulty(data.difficulty)
 		currentInstance.addColor(data.color)
+		currentInstance.addMaxScore(data.score)
 		currentInstance.isConfig = true
 		this.redirectGame(currentInstance)
 	}

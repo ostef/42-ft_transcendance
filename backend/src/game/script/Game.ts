@@ -22,6 +22,7 @@ export default class gameInstance {
 	//Information sur les dimensions du canvas par rapport à la fenetre
 	delta : number
 	difficulty : string
+	maxScore : number
 	gameService : GameService
 	isReady : boolean
 	color : string
@@ -43,6 +44,7 @@ export default class gameInstance {
 		this.score.p1 = 0
 		this.score.p2 = 0
 		this.difficulty = "default"
+		this.maxScore = MAX_SCORE
 		this.gameService = gameService
 		this.isReady = false
 		this.timerId
@@ -80,6 +82,15 @@ export default class gameInstance {
 			return ;
 		}
 		this.difficulty = data
+	}
+
+	addMaxScore(data : number)
+	{
+		if (data <= 5 || data >= 20)
+		{
+			return ;
+		}
+		this.maxScore = data
 	}
 
 	gameLoop()
