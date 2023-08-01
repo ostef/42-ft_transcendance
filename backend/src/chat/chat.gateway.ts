@@ -9,9 +9,6 @@ import { UsersService } from "src/users/users.service";
 import { MessageService } from "./message.service";
 import { ChannelInviteDto } from "./types";
 
-// @Todo: notify connected users when a nickname has changed
-// @Todo: notify connected users when an avatarFile has changed
-
 class JoinChannelParams
 {
     channelId: string;
@@ -51,6 +48,17 @@ class UserFriendshipChanged
 {
     userId: string;
     event: "blocked" | "unblocked" | "friend-removed" | "friend-accepted" | "friend-request" | "friend-declined";
+}
+
+class EmitMessageParams
+{
+    sender: string;
+    toChannel?: string;
+    toUser?: string;
+    content: string;
+    date: Date;
+    gameId?: string;
+    channelInvite?: ChannelInviteDto;
 }
 
 @WebSocketGateway ({
@@ -130,6 +138,19 @@ export class ChatGateway
         }
     }
 
+    async emitMessage (to: any, msg: EmitMessageParams)
+    {
+        const sender = await this.usersService.findUserEntity ({id: msg.sender}, {blockedUsers: true});
+        const sockets = await to.fetchSockets ();
+        for (const sock of sockets)
+        {
+            if (sender.hasBlocked (sock.data.userId))
+                continue;
+
+            sock.emit ("newMessage", msg);
+        }
+    }
+
     @SubscribeMessage ("newMessage")
     async handleMessage (client: Socket, msg: MessageParams)
     {
@@ -162,7 +183,7 @@ export class ChatGateway
 
             if (sent)
             {
-                this.server.to (room).emit ("newMessage", {
+                await this.emitMessage (this.server.to (room), {
                     sender: client.data.userId,
                     content: msg.content,
                     date: sent.timestamp,
@@ -194,7 +215,7 @@ export class ChatGateway
                 await this.addUsersToPrivConvRoom (firstKey, secondKey);
             }
 
-            this.server.to ("PrivConv#" + firstKey + "&" + secondKey).emit ("newMessage", {
+            await this.emitMessage (this.server.to ("PrivConv#" + firstKey + "&" + secondKey), {
                 sender: client.data.userId,
                 content: params.message,
                 date: msg.timestamp,
@@ -224,7 +245,7 @@ export class ChatGateway
                 await this.addUsersToPrivConvRoom (firstKey, secondKey);
             }
 
-            this.server.to ("PrivConv#" + firstKey + "&" + secondKey).emit ("newMessage", {
+            await this.emitMessage (this.server.to ("PrivConv#" + firstKey + "&" + secondKey), {
                 sender: client.data.userId,
                 content: params.message,
                 date: msg.timestamp,
