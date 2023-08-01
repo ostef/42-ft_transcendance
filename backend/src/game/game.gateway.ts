@@ -186,14 +186,14 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
     {
       return ;
     }
-	try {
+    try {
 
-		this.gameService.configurateGame(client, data)
-	}
-	catch(err)
-	{
-		console.log(err.message);
-	}
+      this.gameService.configurateGame(client, data)
+    }
+    catch(err)
+    {
+      console.log(err.message);
+    }
    }
 
    //Invite Event to handle connection from an invite URL

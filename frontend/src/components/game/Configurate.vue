@@ -5,7 +5,8 @@ export default {
     data () {
         return {
             color : "default" as string,
-            difficulty : "default" as string
+            difficulty : "default" as string,
+            score : 10 as number
         }
     },
     methods: {
@@ -17,6 +18,10 @@ export default {
         changeColor(newColor : string)
         {
             this.color = newColor
+        },
+        changeScore(newScore : number)
+        {
+            this.score = newScore
         },
         emitConfig()
         {
@@ -88,6 +93,7 @@ export default {
                     <input @change="changeColor('black')" type="radio" name="radio-10" class="radio checked:bg-red-500" />
                 </label>
                 </div>
+                <input type="range" min="5" max="20" value="10" class="range range-primary" v-model="score" />
             </div>
             <button class="btn normal-case mt-4" @click="emitConfig()">Validate</button>
             <button class="btn normal-case mt-4 ml-5" @click="$emit('disconnect')">Quit</button>

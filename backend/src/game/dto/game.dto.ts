@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsArray, IsString, IsNumber } from "class-validator";
+import { IsNotEmpty, IsPositive, IsArray, IsString, IsNumber } from "class-validator";
 import { SpectateGame } from "../types/game.types";
 
 // @Todo : Faire une validation plus propre ? Genre si la mouseheight est négative etc
@@ -26,6 +26,11 @@ export class ConfigurateDto {
 	@IsNotEmpty()
 	@IsString()
 	difficulty : string
+
+	@IsNotEmpty()
+	@IsNumber()
+	@IsPositive()
+	score : number
 }
 
 export class UserIdDtto {
