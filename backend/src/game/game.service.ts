@@ -508,12 +508,17 @@ export class GameService {
 			}
 			this.quitSpectators(socketId)
 		}
-		//console.log("The game room : " + this.gamesRoom)
-		//console.log("The Game waiting room : " + this.gamesWaitingRoom)
-		//console.log("The game Create room : " + this.gamesCreateRoom)
-		//console.log("The playing games are : " + this.gamesPlayingRoom)
-		//console.log("The playing players are : " + this.usersInGame)
-		//console.log("The spectators are : " + this.spectators)
+		index = this.isGaming(socketId)
+		if (index != -1)
+		{
+			this.gamesRoom[index].disconnectPlayerBeforeStart(socketId)
+		}
+		// console.log("The game room : " , this.gamesRoom)
+		// console.log("The Game waiting room : " , this.gamesWaitingRoom)
+		// console.log("The game Create room : " , this.gamesCreateRoom)
+		// console.log("The playing games are : " , this.gamesPlayingRoom)
+		// console.log("The playing players are : " , this.usersInGame)
+		// console.log("The spectators are : " , this.spectators)
 	}
 
 
