@@ -26,21 +26,22 @@ export default {
         emitConfig()
         {
             //console.log("The difficulty chosen is " + this.difficulty)
-            let color = this.color
-            let difficulty = this.difficulty
-            this.$emit('on-config', color, difficulty)
+            const color = this.color
+            const difficulty = this.difficulty
+            const score = typeof this.score !== "number" ? parseInt (this.score) : this.score
+
+            this.$emit('on-config', color, difficulty, score)
         }
     }
 }
 
 </script>
 
-
 <template>
     <div class="flex content-center justify-center">
         <div class="p-8 rounded-lg shadow-2xl m-14 bg-base-600" >
             <div class="flex flex-row p-4 justify-center">
-                <h1 class="text-lg w-2/5 mr-4 font-bold">Choose difficulty</h1>
+                <h1 class="text-lg w-2/5 mr-4 font-bold select-none">Choose difficulty</h1>
                 <div class="form-control w-1/5">
                     <label class="label cursor-pointer mr-4">
                         <span class="label-text text-lg fontwin-bold mr-4">Default</span>
@@ -68,7 +69,7 @@ export default {
             </div>
 
             <div class="flex flex-row p-4 justify-center">
-                <h1 class="text-lg w-2/5 mr-4 font-bold">Choose Ball Color</h1>
+                <h1 class="text-lg w-2/5 mr-4 font-bold select-none">Choose Ball Color</h1>
                 <div class="form-control w-1/5">
                     <label class="label cursor-pointer mr-4">
                         <span class="label-text text-lg fontwin-bold mr-4">Default</span>
@@ -96,8 +97,9 @@ export default {
 
             </div>
             <div class="flex flex-row p-4 justify-center">
-                    <span class="label-text text-lg fontwin-bold mr-4">Maximum score</span>
+                    <h1 class="text-lg w-2/5 mr-4 font-bold select-none">Maximum Score</h1>
                     <input type="range" min="5" max="20" class="range range-primary" v-model="score" />
+                    <h3 class="label-text text-lg mx-4">{{ score }}</h3>
             </div>
             <button class="btn normal-case mt-4" @click="emitConfig()">Validate</button>
             <button class="btn normal-case mt-4 ml-5" @click="$emit('disconnect')">Quit</button>

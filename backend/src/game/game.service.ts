@@ -161,7 +161,7 @@ export class GameService {
 		{
 			throw new UnauthorizedException("Player not on database")
 		}
-		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1 
+		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1
 			|| this.isGameWaitingUserId(userId) != -1 || this.isGameInviteUserId(userId) != -1)
 		{
 			client.emit("alreadyGaming")
@@ -205,7 +205,7 @@ export class GameService {
 		}
 		//console.log("trying to find a game for ", client.id)
 		//One game is waiting for player
-		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1 
+		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1
 			|| this.isGameWaitingUserId(userId) != -1 || this.isGameInviteUserId(userId) != -1)
 		{
 			client.emit("alreadyGaming")
@@ -556,7 +556,7 @@ export class GameService {
 			{
 				return (game.player1DataBaseId === userId)
 			}
-			return (false)	
+			return (false)
 		}
 		)
 		if (index == -1)
@@ -727,7 +727,7 @@ export class GameService {
 			throw new BadRequestException("User is not on database")
 		}
 
-		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1 
+		if (this.isWaitingUserId(userId) != -1 || this.isGamingUserId(userId) != -1 || this.isGameCreatingUserId(userId) != -1
 			|| this.isGameWaitingUserId(userId) != -1 || this.isGameInviteUserId(userId) != -1)
 		{
 			throw new BadRequestException("Your are already gaming on other screen")
@@ -819,7 +819,7 @@ export class GameService {
 		let index = this.gamesInvite.findIndex(game => game.inviteId == data.gameId)
 		if (index != -1)
 		{
-			if (this.isWaitingUserId(data.userId) != -1 || this.isGamingUserId(data.userId) != -1 || this.isGameCreatingUserId(data.userId) != -1 
+			if (this.isWaitingUserId(data.userId) != -1 || this.isGamingUserId(data.userId) != -1 || this.isGameCreatingUserId(data.userId) != -1
 				|| this.isGameWaitingUserId(data.userId) != -1 || this.isGameInviteUserId(data.userId) != -1)
 			{
 				client.emit("alreadyPlaying")

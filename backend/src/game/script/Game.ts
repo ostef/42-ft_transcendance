@@ -86,7 +86,7 @@ export default class gameInstance {
 
 	addMaxScore(data : number)
 	{
-		if (data <= 5 || data >= 20)
+		if (data < 5 || data > 20)
 		{
 			return ;
 		}
@@ -100,7 +100,7 @@ export default class gameInstance {
 		{
 			this.handleLose()
 		}
-		if (this.score.p1 >= MAX_SCORE  || this.score.p2 >= MAX_SCORE)
+		if (this.score.p1 >= this.maxScore  || this.score.p2 >= this.maxScore)
 		{
 			this.handleWin()
 		}
@@ -160,7 +160,7 @@ export default class gameInstance {
 
 	handleWin()
 	{
-		if (this.score.p1 >= MAX_SCORE)
+		if (this.score.p1 >= this.maxScore)
 		{
 			this.isWinner = 1
 			this.player1Socket.emit("winGame")
@@ -171,7 +171,7 @@ export default class gameInstance {
 			}
 			this.stopGame()
 		}
-		if (this.score.p2 >= MAX_SCORE)
+		if (this.score.p2 >= this.maxScore)
 		{
 			this.isWinner = 2
 			this.player2Socket.emit("winGame")

@@ -404,13 +404,13 @@ export default {
 			this.waitingPlayer = false
 		},
 
-		configurateChoice(color : string, difficulty : string)
+		configurateChoice(color : string, difficulty : string, score : number)
 		{
 			this.color = color
 			this.difficulty = difficulty
 			this.configurate = false
 			this.waitingPlayer = true
-			this.socket.emit('configurate', {gameId : this.gameId, color : this.color, difficulty : this.difficulty})
+			this.socket.emit('configurate', {gameId : this.gameId, color : this.color, difficulty : this.difficulty, score : score})
 		},
 
 		joinGame(playerPos : string, gameId : number, difficulty : string, color : string) {
