@@ -93,7 +93,11 @@ export default {
                     <input @change="changeColor('black')" type="radio" name="radio-10" class="radio checked:bg-red-500" />
                 </label>
                 </div>
-                <input type="range" min="5" max="20" value="10" class="range range-primary" v-model="score" />
+
+            </div>
+            <div class="flex flex-row p-4 justify-center">
+                    <span class="label-text text-lg fontwin-bold mr-4">Maximum score</span>
+                    <input type="range" min="5" max="20" class="range range-primary" v-model="score" />
             </div>
             <button class="btn normal-case mt-4" @click="emitConfig()">Validate</button>
             <button class="btn normal-case mt-4 ml-5" @click="$emit('disconnect')">Quit</button>
