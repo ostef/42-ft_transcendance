@@ -351,8 +351,8 @@ export async function leaveChannel (newOwnerId?: string)
         return;
 
     await axios.post ("channels/" + store.selectedChannel.id + "/leave", {newOwnerId: newOwnerId});
-    notifyChannelChange (store.selectedChannel.id);
     await fetchChannels ();
+    notifyChannelChange (store.selectedChannel.id);
 
     clearDiscussions ();
 }
