@@ -396,7 +396,7 @@ export class ChannelsService
 
     async leaveChannel (channelId: string, userId: string, newOwnerId?: string)
     {
-        const channel = await this.findChannelEntity ({id: channelId}, {owner: true, users: true, administrators: true});
+        const channel = await this.findChannelEntity ({id: channelId}, {owner: true, users: true, administrators: true, mutedUsers: true});
         if (!channel)
             throw new Error ("Channel does not exist");
 
