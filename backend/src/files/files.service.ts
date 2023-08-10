@@ -26,10 +26,13 @@ export class FilesService {
 
   changeFile(filename: string, file: any): void {
     try {
-      const path = `${baseDir}/${filename}`;
-      if (fs.existsSync(path)) fs.unlinkSync(path);
-      // fs.mkdirSync(baseDir);
-      fs.writeFileSync(path, file, { encoding: 'base64' });
+      const full_filename = `${baseDir}/${filename}`;
+      if (fs.existsSync(full_filename)) fs.unlinkSync(full_filename);
+
+      if (!fs.existsSync (baseDir))
+        fs.mkdirSync (baseDir, {recursive: true});
+
+      fs.writeFileSync(full_filename, file, { encoding: 'base64' });
     } catch (err) {
       throw new Error(err);
     }
