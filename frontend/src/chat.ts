@@ -157,28 +157,31 @@ export function connectChatSocket ()
         else if (previousChannel)
             await selectChannel (previousChannel);
 
-        const userRes = await axios.get ("user/profile/" + params.userId);
-        const user = userRes.data;
-        switch (params.event)
+        if (params.userId !== store.loggedUser?.id)
         {
-        case "blocked":
-            store.pushAlert ("info", user.username + " has blocked you");
-            break;
-        case "unblocked":
-            store.pushAlert ("info", user.username + " has unblocked you");
-            break;
-        case "friend-removed":
-            store.pushAlert ("info", user.username + " has removed you from his friends list");
-            break;
-        case "friend-accepted":
-            store.pushAlert ("info", user.username + " has accepted your friend request");
-            break;
-        case "friend-declined":
-            store.pushAlert ("info", user.username + " has declined your friend request");
-            break;
-        case "friend-request":
-            store.pushAlert ("info", user.username + " has sent you a friend request");
-            break;
+            const userRes = await axios.get ("user/profile/" + params.userId);
+            const user = userRes.data;
+            switch (params.event)
+            {
+            case "blocked":
+                store.pushAlert ("info", user.username + " has blocked you");
+                break;
+            case "unblocked":
+                store.pushAlert ("info", user.username + " has unblocked you");
+                break;
+            case "friend-removed":
+                store.pushAlert ("info", user.username + " has removed you from his friends list");
+                break;
+            case "friend-accepted":
+                store.pushAlert ("info", user.username + " has accepted your friend request");
+                break;
+            case "friend-declined":
+                store.pushAlert ("info", user.username + " has declined your friend request");
+                break;
+            case "friend-request":
+                store.pushAlert ("info", user.username + " has sent you a friend request");
+                break;
+            }
         }
     });
 }
