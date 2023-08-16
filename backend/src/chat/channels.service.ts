@@ -391,7 +391,7 @@ export class ChannelsService
             throw new Error ("Channel password invalid");
 
         channel.users.push (user);
-        this.saveChannel (channel);
+        await this.saveChannel (channel);
     }
 
     async leaveChannel (channelId: string, userId: string, newOwnerId?: string)
@@ -435,7 +435,7 @@ export class ChannelsService
             throw new Error ("User is not in channel");
 
         channel.removeUser (userId);
-        this.saveChannel (channel);
+        await this.saveChannel (channel);
     }
 
     async findInviteEntity (params: any, relations: FindOptionsRelations<ChannelInviteEntity> = {}): Promise<ChannelInviteEntity>

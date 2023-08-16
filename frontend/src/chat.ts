@@ -45,8 +45,8 @@ export function connectChatSocket ()
 
                 await fetchPrivateConversations ();
 
-                if (prevConv)
-                    selectPrivConv (prevConv);
+            if (prevConv)
+                await selectPrivConv (prevConv);
 
                 store.pushAlert ("info", "You have a new message from someone new");
             }
