@@ -64,7 +64,7 @@ async function acceptInvite ()
     notifyChannelChange (props.message.channelInvite.channel.id);
     props.message.channelInvite.accepted = true;
 
-    selectChannel (props.message.channelInvite.channel.id);
+    await selectChannel (props.message.channelInvite.channel.id);
 }
 
 async function joinGame ()
@@ -72,7 +72,7 @@ async function joinGame ()
     if (!props.message?.gameId || !store.loggedUser)
         return;
 
-    router.replace ("/game/j" + props.message?.gameId);
+    await router.replace ("/game/j" + props.message?.gameId);
 }
 
 </script>

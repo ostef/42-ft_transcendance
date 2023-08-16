@@ -86,21 +86,6 @@ export class UsersService
         return entity == null;
     }
 
-    async setTwoFactorAuth (id: string, secret: string): Promise<void>
-    {
-        this.usersRepository.update (id, {twoFactorSecret: secret});
-    }
-
-    async turnonTwoFactorAuth (id: string): Promise<void>
-    {
-        this.usersRepository.update (id, {has2FA: true});
-    }
-
-    async turnoffTwoFactorAuth (id: string): Promise<void>
-    {
-        this.usersRepository.update (id, {has2FA: false});
-    }
-
     async updateUser (id: string, params: UpdateUserParams)
     {
         await validate (params);
