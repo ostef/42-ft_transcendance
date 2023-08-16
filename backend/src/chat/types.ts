@@ -77,7 +77,7 @@ export class MessageDto
 
     static fromMessageEntity (me: UserEntity, msg: MessageEntity): MessageDto
     {
-        if (msg.fromUser.hasBlocked (me))
+        if (msg.fromUser.hasBlocked (me) || me.hasBlocked (msg.fromUser.id))
         {
             return {
                 sender: UserDto.fromUserEntity (me, msg.fromUser),

@@ -145,7 +145,8 @@ export class ChatGateway
         const sockets = await to.fetchSockets ();
         for (const sock of sockets)
         {
-            if (sender.hasBlocked (sock.data.userId))
+            const user = await this.usersService.findUserEntity ({id: sock.data.userId}, {blockedUsers: true});
+            if (sender.hasBlocked (sock.data.userId) || user?.hasBlocked (sender.id))
                 continue;
 
             sock.emit ("newMessage", msg);

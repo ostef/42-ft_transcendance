@@ -97,7 +97,7 @@ export class ChannelsController
         const result = [] as MessageDto[];
         for (const msg of channel.messages)
         {
-            if (!msg.fromUser.hasBlocked (me))
+            if (!msg.fromUser.hasBlocked (me) || me.hasBlocked (msg.fromUser.id))
                 result.push (MessageDto.fromMessageEntity (me, msg));
         }
 
@@ -158,6 +158,9 @@ export class ChannelsController
             const other = await this.userService.findUserEntity ({id: otherId}, {blockedUsers: true});
 
             if (other.hasBlocked (me))
+                return [];
+
+            if (me.hasBlocked (other.id))
                 return [];
 
             const conv = await this.msgService.findPrivConversation (req.user.id, otherId, {messages: {fromUser: {blockedUsers: true}, invite: true}});

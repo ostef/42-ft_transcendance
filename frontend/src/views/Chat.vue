@@ -75,7 +75,7 @@ function sendMessage ()
                     <div class="flex flex-col my-2">
                         <h3 class="flex flex-row text-lg select-none">
                             {{ store.selectedUser?.nickname }}
-                            <iconify-icon v-if="store.selectedUser?.hasBlockedYou" class="mx-2 my-1" icon="fluent:presence-blocked-20-regular" />
+                            <iconify-icon v-if="store.selectedUser?.hasBlockedYou || store.selectedUser?.isBlocked" class="mx-2 my-1" icon="fluent:presence-blocked-20-regular" />
                         </h3>
                         <h3 class="text-sm select-none">{{ store.selectedUser?.username }}</h3>
                     </div>
@@ -103,7 +103,10 @@ function sendMessage ()
 
                 <!-- Messages -->
                 <div class="overflow-y-auto overflow-x-hidden p-4 min-h-0 h-full flex flex-col-reverse">
-                    <h3 v-if="store.selectedUser?.hasBlockedYou" class="text-sm m-4 italic select-none">
+                    <h3 v-if="store.selectedUser?.isBlocked" class="text-sm m-4 italic select-none">
+                        You have blocked this user, you will not see or receive any messages from them
+                    </h3>
+                    <h3 v-else-if="store.selectedUser?.hasBlockedYou" class="text-sm m-4 italic select-none">
                         This user has blocked you, you will not see or receive any messages from them
                     </h3>
                     <div v-else-if="store.selectedChannelIndex != -1 || store.selectedUserIndex != -1">
