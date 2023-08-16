@@ -38,8 +38,9 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 
 	this.server.use (async (socket, next) => {
 		const payload = this.authService.getPayloadFromToken (socket.handshake.auth.token);
+    const user = await this.authService.validateUser (payload.userId);
 
-		if (!payload || !(await this.authService.validateUser) (payload.userId))
+		if (!payload || !user)
 		{
 			next (new WsException ("Unauthorized"));
 		}
@@ -54,7 +55,7 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 
 
     this.server.on('connection', (socket) => {
-      //console.log("A socket is connecting : " + socket.id);      
+      //console.log("A socket is connecting : " + socket.id);
 	  this.sockets.push(socket.id);
       //console.log("The sockets are " + this.sockets)
       this.server.emit ("onConnection", {
