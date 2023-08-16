@@ -1,6 +1,6 @@
-import { ArgumentsHost, Catch, HttpException, Logger, OnModuleInit} from "@nestjs/common";
-import { BaseWsExceptionFilter, ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
-import { RemoteSocket, Server, Socket } from "socket.io";
+import { Logger, OnModuleInit} from "@nestjs/common";
+import { SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
+import { Server, Socket } from "socket.io";
 
 import { AuthService } from "src/auth/auth.service";
 import { ChannelsService } from "./channels.service";
@@ -85,10 +85,11 @@ export class ChatGateway
 
     onModuleInit ()
     {
-        this.server.use ((socket, next) => {
+        this.server.use (async (socket, next) => {
             const payload = this.authService.getPayloadFromToken (socket.handshake.auth.token);
+            const user = await this.authService.validateUser (payload.userId);
 
-            if (!payload || !this.authService.validateUser (payload.userId))
+            if (!payload || !user)
             {
                 next (new WsException ("Unauthorized"));
             }
