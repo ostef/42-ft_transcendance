@@ -36,10 +36,10 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 
   onApplicationBootstrap() {
 
-	this.server.use ((socket, next) => {
+	this.server.use (async (socket, next) => {
 		const payload = this.authService.getPayloadFromToken (socket.handshake.auth.token);
 
-		if (!payload || !this.authService.validateUser (payload.userId))
+		if (!payload || !(await this.authService.validateUser) (payload.userId))
 		{
 			next (new WsException ("Unauthorized"));
 		}
