@@ -7,6 +7,7 @@ import { RouterView } from "vue-router";
 import router from "@/router";
 import { logout } from "@/authentication";
 import { useStore, type AlertType } from "@/store";
+import { catchError } from "@/main";
 
 import Header from "@/components/Header.vue";
 
@@ -30,36 +31,7 @@ function getAlertClassName (type: AlertType)
     return "";
 }
 
-onErrorCaptured ((err, vm, info) =>
-{
-    if (isAxiosError (err))
-    {
-        let msg = "";
-        if (err.response)
-            msg = err.response.data.message;
-        else
-            msg = err.message;
-
-        if (msg == "Unauthorized" || msg == "Token expired")
-        {
-            msg += ", redirecting to login page";
-            logout ();
-            router.replace ("/login");
-        }
-
-        store.pushAlert ("error", msg);
-
-        return false;
-    }
-    else if (err instanceof Error)
-    {
-        store.pushAlert ("error", err.message);
-
-        return false;
-    }
-
-    return true;
-});
+onErrorCaptured ((err) => catchError (err));
 
 </script>
 
