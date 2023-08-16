@@ -127,6 +127,12 @@ export default {
 		this.socket.on("connect_error", data => {
 			this.store.pushAlert("error", data.message)
 		})
+		this.socket.on("error", data => {
+			this.store.pushAlert("error", data)
+		})
+		this.socket.on("exception", data => {
+			this.store.pushAlert("error", data)
+		})
 
 
 		//Events to join waiting room or games
