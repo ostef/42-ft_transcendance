@@ -173,7 +173,7 @@ export class ChannelsService
             channel.isPrivate = params.isPrivate;
         }
 
-        if (params.removePassword != undefined)
+        if (params.removePassword != undefined && params.removePassword)
         {
             if (channel.owner.id != userId)
                 throw new Error ("Only the owner can change the channel description");
