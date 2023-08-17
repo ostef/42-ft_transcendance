@@ -17,8 +17,6 @@ export function catchError (err: any)
 {
     const store = useStore ();
 
-    console.log (err);
-
     if (axios.isAxiosError (err))
     {
         let msg = "";
