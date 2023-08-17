@@ -97,7 +97,7 @@ export class ChannelsController
         const result = [] as MessageDto[];
         for (const msg of channel.messages)
         {
-            if (!msg.fromUser.hasBlocked (me) || me.hasBlocked (msg.fromUser.id))
+            if (!msg.fromUser.hasBlocked (me) && !me.hasBlocked (msg.fromUser.id))
                 result.push (MessageDto.fromMessageEntity (me, msg));
         }
 
