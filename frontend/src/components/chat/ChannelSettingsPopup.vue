@@ -56,7 +56,7 @@ async function updateChannel ()
         description: description.value,
         isPrivate: isPrivate.value,
         removePassword: removePassword.value,
-        password: setPassword.value ? password.value : null
+        password: setPassword.value ? password.value : undefined
     });
 
     notifyChannelChange (store.selectedChannel.id);
