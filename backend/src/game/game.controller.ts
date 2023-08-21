@@ -14,14 +14,28 @@ export class GameController {
     @Get ("match-history/:id")
     async getMatchHistory(@Param ("id") userId: string): Promise<any[]>
     {
-        return await this.gameService.getMatchHistory(userId);
-    }
+		try
+		{
+        	return await this.gameService.getMatchHistory(userId);
+		}
+		catch
+		{
+			throw new BadRequestException ("Could not get match history");
+		}
+	}
 
 	@Get("Spectate")
 	async getSpectateList() : Promise<GameSpectateDto> {
-		let gamesSpectate = await this.gameService.getPlayingGames()
-		console.log(gamesSpectate)
-		return (gamesSpectate)
+		try
+		{
+			let gamesSpectate = await this.gameService.getPlayingGames()
+			console.log(gamesSpectate)
+			return (gamesSpectate)
+		}
+		catch
+		{
+			throw new BadRequestException ("Could not get spectators list");
+		}
 	}
 
     @Post()

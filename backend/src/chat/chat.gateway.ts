@@ -86,22 +86,39 @@ export class ChatGateway
     onModuleInit ()
     {
         this.server.use (async (socket, next) => {
-            const payload = this.authService.getPayloadFromToken (socket.handshake.auth.token);
-            const user = await this.authService.validateUser (payload.userId);
+            try
+            {
+                const payload = this.authService.getPayloadFromToken (socket.handshake.auth.token);
+                if (!payload)
+                    next (new WsException ("Unauthorized"));
 
-            if (!payload || !user)
+                const user = await this.authService.validateUser (payload.userId);
+                if (!user)
+                    next (new WsException ("Unauthorized"));
+
+                socket.data.userId = payload.userId;
+                next ();
+            }
+            catch (err)
             {
                 next (new WsException ("Unauthorized"));
-            }
-            else
-            {
-               socket.data.userId = payload.userId;
-               next ();
             }
         });
 
         this.server.on ("connection", async (socket) => {
+            if (!socket.data.userId)
+            {
+                socket.disconnect ();
+                return;
+            }
+
             const user = await this.usersService.findUserEntity ({id: socket.data.userId});
+            if (!user)
+            {
+                socket.disconnect ();
+                return;
+            }
+
             this.logger.log ("New connection (" + socket.id + "), user " + user.username);
 
             const onlineUsers = await this.getOnlineUsers ();

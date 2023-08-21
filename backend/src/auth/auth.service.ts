@@ -26,8 +26,19 @@ export class AuthService {
         return null;
     }
 
-    getPayloadFromToken(token: string): JwtPayload {
-        return this.jwtService.decode(token) as JwtPayload;
+    getPayloadFromToken(token: string): JwtPayload | null {
+        try
+        {
+            const decoded = this.jwtService.decode(token);
+            if (!decoded)
+                return null;
+
+            return decoded as JwtPayload;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     async login(username: string, password: string) {
@@ -93,6 +104,7 @@ export class AuthService {
             has2FA: oldpayload.has2FA,
             is2FAAuthenticated: true
         };
+
         return {
             access_token: await this.jwtService.signAsync(payload)
         }
@@ -117,6 +129,7 @@ export class AuthService {
         const user = await this.usersService.findUserEntity({ id: id })
         if (!user)
             throw new UnauthorizedException("Invalid user");
+
         return authenticator.check(twoFactorCode, user.twoFactorSecret);
     }
 

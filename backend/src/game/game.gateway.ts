@@ -36,21 +36,25 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
 
   onApplicationBootstrap() {
 
-	this.server.use (async (socket, next) => {
-		const payload = this.authService.getPayloadFromToken (socket.handshake.auth.token);
-    const user = await this.authService.validateUser (payload.userId);
+    this.server.use (async (socket, next) => {
+        try
+        {
+            const payload = this.authService.getPayloadFromToken (socket.handshake.auth.token);
+            if (!payload)
+                next (new WsException ("Unauthorized"));
 
-		if (!payload || !user)
-		{
-			next (new WsException ("Unauthorized"));
-		}
-		else
-		{
-		   socket.data.userId = payload.userId;
-		   next ();
-		}
-	 });
+            const user = await this.authService.validateUser (payload.userId);
+            if (!user)
+                next (new WsException ("Unauthorized"));
 
+            socket.data.userId = payload.userId;
+            next ();
+        }
+        catch (err)
+        {
+            next (new WsException ("Unauthorized"));
+        }
+    });
 
 
 
@@ -62,11 +66,12 @@ export class GameGateway implements OnModuleInit, OnApplicationBootstrap {
         id: socket.id,
 			});
       socket.on("disconnect", (reason) => {
+        const index = this.sockets.findIndex (id => id == socket.id);
         //console.log(this.sockets)
         //console.log("Disconnecting id : " + socket.id);
-        this.sockets.splice(this.sockets.findIndex(id =>
-          id == socket.id
-        ), 1)
+        if (index != -1)
+          this.sockets.splice(index , 1)
+
         //console.log("The sockets are " + this.sockets)
         this.gameService.disconnectPlayer(socket.id)
       })
