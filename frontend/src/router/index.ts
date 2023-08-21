@@ -68,8 +68,6 @@ router.beforeEach (async (to, from, next) => {
         catch (err)
         {
             console.error ("Could not retrieve user info. Redirecting to login page");
-            console.log (err);
-
             logout ();
 
             return next ({ name: "Login" });

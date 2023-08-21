@@ -43,9 +43,16 @@ export class UsersController
         if (entity == null)
             throw new NotFoundException ("User with id " + req.user.id + " does not exist");
 
-        const requests = await this.usersService.findMultipleFriendRequests ({toUserId: req.user.id});
+        try
+        {
+            const requests = await this.usersService.findMultipleFriendRequests ({toUserId: req.user.id});
 
-        return LoggedUserDto.fromUserEntityAndFriendRequests (entity, requests);
+            return LoggedUserDto.fromUserEntityAndFriendRequests (entity, requests);
+        }
+        catch (err)
+        {
+            throw new BadRequestException (err.message);
+        }
     }
 
     @Get ("all")
