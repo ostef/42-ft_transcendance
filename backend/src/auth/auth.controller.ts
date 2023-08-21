@@ -92,6 +92,10 @@ export class AuthController
         if (!payload)
             return false;
 
+        const user = await this.usersService.findUserEntity ({id: payload.userId});
+        if (!user)
+            return false;
+
         return true;
     }
 
@@ -100,13 +104,15 @@ export class AuthController
     @HttpCode(200)
     async authenticate2fa(@Request() req, @Body() body) {
         const token = ExtractJwt.fromAuthHeaderAsBearerToken () (req);
-        const  payload: JwtPayload = this.authService.getPayloadFromToken(token);
+
+        const payload = this.authService.getPayloadFromToken(token);
         if (!payload)
             throw new UnauthorizedException ("Invalid token");
 
         const isCodeValid = await this.authService.isTwoFactorCodeValid(req.body.code, payload.userId);
         if (!isCodeValid)
             throw new UnauthorizedException('Invalid two-factor code');
+
         return this.authService.login2FA(payload);
     }
 
@@ -114,12 +120,13 @@ export class AuthController
     @Get("2fa/check")
     async check2fa(@Request() req) {
         const token = ExtractJwt.fromAuthHeaderAsBearerToken () (req);
-        const payload: JwtPayload = this.authService.getPayloadFromToken(token);
+        const payload = this.authService.getPayloadFromToken(token);
         if (!payload)
             throw new UnauthorizedException ("Invalid token");
 
         if (!payload.has2FA)
             return true;
+
        return payload.is2FAAuthenticated;
     }
 
