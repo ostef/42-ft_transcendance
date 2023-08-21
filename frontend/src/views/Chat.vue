@@ -12,7 +12,7 @@ import ChannelHeader from "@/components/chat/ChannelHeader.vue";
 
 import {
     chatSocket,
-    fetchChannels, fetchPrivateConversations,
+    fetchChannels, fetchPrivateConversations, clearDiscussions,
 } from "@/chat";
 
 const store = useStore ();
@@ -20,6 +20,7 @@ const messageToSend = ref ("");
 
 onMounted (async () =>
 {
+    clearDiscussions ();
     await fetchChannels ();
     await fetchPrivateConversations ();
 });
